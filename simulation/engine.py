@@ -158,4 +158,6 @@ class Simulation:
         baseline_vib = 0.02 + 0.03 * rpm_fraction
         fault_vib = mods["vibration_severity"]
         state["vibration_index"] = min(baseline_vib + fault_vib, 1.0)
+        state["engine_load"] = min(self._throttle * rpm_fraction, 1.0)
+        state["injection_timing"] = 24.0 + 8.0 * rpm_fraction
         return state
