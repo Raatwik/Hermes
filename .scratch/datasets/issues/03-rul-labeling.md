@@ -4,8 +4,12 @@
 
 **Blocked by:** 02: Automated Exponential Fault Scheduler
 
-**Status:** ready-for-agent
+**Status:** completed
 
-- [ ] Telemetry includes a `Remaining_Useful_Life` column for all generated rows.
-- [ ] Following a fault injection, RUL decreases monotonically down to 0 at the point where severity reaches 1.0.
-- [ ] Prior to fault injection (or for entirely healthy missions), RUL is capped at a specified logical maximum constant.
+- [x] Telemetry includes a `Remaining_Useful_Life` column for all generated rows.
+- [x] Following a fault injection, RUL decreases monotonically down to 0 at the point where severity reaches 1.0.
+- [x] Prior to fault injection (or for entirely healthy missions), RUL is capped at a specified logical maximum constant.
+
+## Resolution
+
+Added a `RUL_MAX` constant (500.0s) and calculation logic in `generate_mission.py`'s state recording loop. Healthy runs consistently output `RUL_MAX`, while faulty runs decrease down to 0.0 at `max_time`, capped by `RUL_MAX` during their healthy prefix.

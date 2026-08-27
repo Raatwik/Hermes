@@ -4,7 +4,7 @@ import yaml
 import pandas as pd
 import pytest
 
-from datasets.generate_mission import parse_mission_config, run_pipeline, FaultScheduler
+from datasets.generate_mission import parse_mission_config, run_pipeline, FaultScheduler, RUL_MAX
 
 
 @pytest.fixture
@@ -86,7 +86,12 @@ def test_run_pipeline_healthy(tmp_path, dummy_mission_yaml):
     assert "time" in df.columns
     assert "rpm" in df.columns
     assert "fault_class" in df.columns
+    assert "Remaining_Useful_Life" in df.columns
     assert df["fault_class"].iloc[0] == "healthy"
+    
+    # RUL should be RUL_MAX for healthy
+    assert df["Remaining_Useful_Life"].iloc[0] == RUL_MAX
+    
     assert len(df) > 50
 
 
@@ -103,4 +108,14 @@ def test_run_pipeline_faulty(tmp_path, dummy_mission_yaml):
     
     df = pd.read_parquet(out_dir)
     assert df["fault_class"].iloc[0] == "misfire"
+    assert "Remaining_Useful_Life" in df.columns
+    
+    # The initial RUL should be capped or correctly calculated
+    # For a 10s mission, if max RUL is 500, it'll start at 10.0 and count down.
+    # Because injection time is 5.0, at t=0, it should be capped at RUL_MAX (or rather just RUL_MAX since t < 5.0)
+    assert df["Remaining_Useful_Life"].iloc[0] == RUL_MAX
+    
+    # And at the last row (t=10.0), it should be 0.0
+    assert df["Remaining_Useful_Life"].iloc[-1] == pytest.approx(0.0, abs=1e-5)
+    
     assert len(df) > 50

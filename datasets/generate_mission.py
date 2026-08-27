@@ -9,6 +9,7 @@ from typing import Optional
 from simulation.engine import Simulation
 from simulation.fault_manager import KNOWN_FAULTS
 
+RUL_MAX = 500.0
 
 class FaultScheduler:
     def __init__(self, max_time: float):
@@ -127,6 +128,21 @@ def run_pipeline(config_path: str, output_dir: str, dt: float = 0.1, scheduler: 
         record_state()
         
     df = pd.DataFrame(records)
+    
+    # Post-processing RUL Calculation
+    if scheduler.fault_class == "healthy":
+        df["Remaining_Useful_Life"] = RUL_MAX
+    else:
+        # Capped at RUL_MAX before injection time
+        # Monotonically decreasing after injection time based on max_time - current_time
+        # But we ensure it anchors properly.
+        def calc_rul(t):
+            if t < scheduler.injection_time:
+                return RUL_MAX
+            else:
+                return min(RUL_MAX, max_time - t)
+        
+        df["Remaining_Useful_Life"] = df["time"].apply(calc_rul)
     
     os.makedirs(output_dir, exist_ok=True)
     df.to_parquet(
