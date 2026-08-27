@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from simulation.fault_manager import FaultManager
 from simulation.lag_filter import LagFilter
 
 
@@ -95,10 +96,17 @@ class Simulation:
         self._altitude: float = altitude
         self._time: float = 0.0
         self._profile: list[dict[str, float]] | None = None
+        self._fault_manager: FaultManager = FaultManager()
         self._filters: dict[str, LagFilter] = {
             key: LagFilter(initial=INITIAL_VALUES[key], tau=TIME_CONSTANTS[key])
             for key in TIME_CONSTANTS
         }
+
+    def inject_fault(self, fault_type: str, **kwargs: object) -> None:
+        self._fault_manager.inject(fault_type, **kwargs)
+
+    def clear_faults(self) -> None:
+        self._fault_manager.clear()
 
     def load_profile(self, profile_data: dict) -> None:
         setpoints = profile_data.get("setpoints")
@@ -118,13 +126,20 @@ class Simulation:
         if self._profile is not None:
             self._throttle = _interp_profile_value(self._profile, self._time, "throttle")
             self._altitude = _interp_profile_value(self._profile, self._time, "altitude")
+        mods = self._fault_manager.get_modifiers()
         for key, filt in self._filters.items():
             target = _interpolate_map(STEADY_STATE_MAP[key], self._throttle, self._altitude)
+            target += mods["target_offsets"].get(key, 0.0)
+            tau_mult = mods["tau_multipliers"].get(key, 1.0)
+            original_tau = filt.tau
+            filt.tau = TIME_CONSTANTS[key] * tau_mult
             filt.step(target, dt)
+            filt.tau = original_tau
         self._time += dt
 
     def get_state(self) -> dict[str, float]:
-        return {
-            "time": self._time,
-            **{key: filt.value for key, filt in self._filters.items()},
-        }
+        mods = self._fault_manager.get_modifiers()
+        state: dict[str, float] = {"time": self._time}
+        for key, filt in self._filters.items():
+            state[key] = filt.value + mods["output_offsets"].get(key, 0.0)
+        return state
