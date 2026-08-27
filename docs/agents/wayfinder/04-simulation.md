@@ -1,5 +1,5 @@
 ---
-labels: ["ready-for-agent"]
+labels: ["in-progress"]
 ---
 # [wayfinder:task] Simulation: Engine Physics & Twin Core
 
@@ -50,6 +50,25 @@ A Python-based simulation engine using a Mean-Value Engine Model (MVEM) approach
 - Full 3D kinematic modeling of the drone airframe (we are exclusively modeling the engine).
 - High-frequency time-domain vibration audio/accelerometer data.
 - Solving complex differential equations for physical thermodynamics (we are substituting this with maps and filters).
+
+## Implementation Status
+
+All core user stories (1–11) are implemented on `feature/simulation-foundation` with 38 passing tests. See `simulation/README.md` for full API docs and data generation guide.
+
+| Issue | Status | What |
+|---|---|---|
+| 01 — Core Physics | Done | `Simulation`, `LagFilter`, empirical maps, `step(dt)`, `get_state()` |
+| 02 — Mission Profiles | Done | `load_profile()`, time-interpolated throttle/altitude |
+| 03 — Fault Manager | Done | `FaultManager`, sensor_drift, cooling_degradation |
+| 04 — Advanced Faults | Done | misfire, injector_abnormalities, lubrication_issues, vibration_index |
+
+### Known Gaps (pre-data-generation)
+
+- **User Story 2 — ambient temperature:** Profiles currently interpolate throttle and altitude only. Ambient temp is not an input axis in the steady-state maps.
+- **User Story 1 — "Injection" channel:** Not a separate telemetry output; injector health is reflected through fuel_flow and EGT changes via the `injector_abnormalities` fault.
+- **Sensor noise:** No stochastic noise model. The sim is fully deterministic (as required), but realistic training data may need seeded Gaussian noise on sensor outputs.
+- **File-based profile loading:** `load_profile` accepts a Python dict. YAML/JSON file parsing is not built in — the caller reads the file.
+- **Parquet export:** Not implemented. The README documents CSV export; Parquet is listed in the tech stack as an approved format.
 
 ## Further Notes
 
