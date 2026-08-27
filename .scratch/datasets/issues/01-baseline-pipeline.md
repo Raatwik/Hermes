@@ -6,7 +6,11 @@
 
 **Status:** ready-for-agent
 
-- [ ] Pipeline successfully parses a YAML mission configuration file containing basic phase definitions (duration, altitude, throttle).
-- [ ] Pipeline initializes and steps the core simulation over the interpolated mission profile.
-- [ ] Pipeline automatically appends a `fault_class` column set to `"healthy"` for every row of telemetry.
-- [ ] Pipeline exports the resulting telemetry dataframe to a Parquet file located in a partitioned directory (e.g., `data/fault_class=healthy/`).
+- [x] Pipeline successfully parses a YAML mission configuration file containing basic phase definitions (duration, altitude, throttle).
+- [x] Pipeline initializes and steps the core simulation over the interpolated mission profile.
+- [x] Pipeline automatically appends a `fault_class` column set to `"healthy"` for every row of telemetry.
+- [x] Pipeline exports the resulting telemetry dataframe to a Parquet file located in a partitioned directory (e.g., `data/fault_class=healthy/`).
+
+## Resolution
+
+Created `generate_baseline.py` orchestrator script that uses the pyarrow partitioned dataset API to write healthy baseline telemetry. Phase durations are parsed and held steadily using step functions rather than interpolating from phase start to the end of the next phase.
