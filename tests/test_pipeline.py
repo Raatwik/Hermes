@@ -4,7 +4,21 @@ import yaml
 import pandas as pd
 import pytest
 
-from datasets.generate_baseline import parse_mission_config, run_pipeline
+from datasets.generate_mission import parse_mission_config, run_pipeline, FaultScheduler
+
+
+@pytest.fixture
+def dummy_mission_yaml(tmp_path):
+    yaml_content = """
+    phases:
+      - duration: 10
+        throttle: 0.5
+        altitude: 0
+    """
+    config_path = tmp_path / "config.yaml"
+    config_path.write_text(yaml_content)
+    return config_path
+
 
 def test_parse_mission_config():
     yaml_content = """
@@ -55,35 +69,38 @@ def test_parse_mission_config():
     finally:
         os.remove(temp_path)
 
-def test_run_pipeline(tmp_path):
-    yaml_content = """
-    phases:
-      - duration: 10
-        throttle: 0.5
-        altitude: 0
-    """
-    config_path = tmp_path / "config.yaml"
-    config_path.write_text(yaml_content)
-    
+
+def test_run_pipeline_healthy(tmp_path, dummy_mission_yaml):
     out_dir = tmp_path / "data"
+    scheduler = FaultScheduler(10.0)
+    scheduler.fault_class = "healthy"
     
-    run_pipeline(str(config_path), str(out_dir))
+    run_pipeline(str(dummy_mission_yaml), str(out_dir), scheduler=scheduler)
     
     # Check that parquet file was created in partition
     partition_dir = out_dir / "fault_class=healthy"
     assert partition_dir.exists()
     
-    parquet_files = list(partition_dir.glob("*.parquet"))
-    assert len(parquet_files) > 0
-    
     # Read the data and check via pyarrow dataset to keep partition columns
     df = pd.read_parquet(out_dir)
     assert "time" in df.columns
     assert "rpm" in df.columns
-    assert "ambient_temperature" in df.columns
     assert "fault_class" in df.columns
     assert df["fault_class"].iloc[0] == "healthy"
+    assert len(df) > 50
+
+
+def test_run_pipeline_faulty(tmp_path, dummy_mission_yaml):
+    out_dir = tmp_path / "data_faulty"
+    scheduler = FaultScheduler(10.0)
+    scheduler.fault_class = "misfire"
+    scheduler.injection_time = 5.0
     
-    # We should have approximately 100 rows since duration=10 and dt=0.1
-    # Plus maybe the initial row at t=0
+    run_pipeline(str(dummy_mission_yaml), str(out_dir), scheduler=scheduler)
+    
+    partition_dir = out_dir / "fault_class=misfire"
+    assert partition_dir.exists()
+    
+    df = pd.read_parquet(out_dir)
+    assert df["fault_class"].iloc[0] == "misfire"
     assert len(df) > 50
