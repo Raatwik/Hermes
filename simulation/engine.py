@@ -73,23 +73,51 @@ def _interp_throttle(points: list[tuple[float, float, float]], throttle: float) 
     return pts[-1][2]
 
 
+def _interp_profile_value(
+    setpoints: list[dict[str, float]], time: float, key: str,
+) -> float:
+    if time <= setpoints[0]["time"]:
+        return setpoints[0][key]
+    if time >= setpoints[-1]["time"]:
+        return setpoints[-1][key]
+    for i in range(len(setpoints) - 1):
+        t0 = setpoints[i]["time"]
+        t1 = setpoints[i + 1]["time"]
+        if t0 <= time <= t1:
+            frac = (time - t0) / (t1 - t0) if t1 != t0 else 0.0
+            return setpoints[i][key] + frac * (setpoints[i + 1][key] - setpoints[i][key])
+    return setpoints[-1][key]
+
+
 class Simulation:
     def __init__(self, throttle: float = 0.0, altitude: float = 0.0) -> None:
         self._throttle: float = throttle
         self._altitude: float = altitude
         self._time: float = 0.0
+        self._profile: list[dict[str, float]] | None = None
         self._filters: dict[str, LagFilter] = {
             key: LagFilter(initial=INITIAL_VALUES[key], tau=TIME_CONSTANTS[key])
             for key in TIME_CONSTANTS
         }
 
+    def load_profile(self, profile_data: dict) -> None:
+        setpoints = profile_data.get("setpoints")
+        if not setpoints:
+            raise ValueError("Profile must contain a non-empty 'setpoints' list")
+        self._profile = sorted(setpoints, key=lambda s: s["time"])
+
     def set_throttle(self, throttle: float) -> None:
         self._throttle = throttle
+        self._profile = None
 
     def set_altitude(self, altitude: float) -> None:
         self._altitude = altitude
+        self._profile = None
 
     def step(self, dt: float) -> None:
+        if self._profile is not None:
+            self._throttle = _interp_profile_value(self._profile, self._time, "throttle")
+            self._altitude = _interp_profile_value(self._profile, self._time, "altitude")
         for key, filt in self._filters.items():
             target = _interpolate_map(STEADY_STATE_MAP[key], self._throttle, self._altitude)
             filt.step(target, dt)
