@@ -12,12 +12,12 @@ Deliver a fully functional MVP of the MALE-UAV Digital Twin, complete with the s
 ## Decisions so far
 
 - [01-researcher.md](01-researcher.md) — Stage advanced PINN-GAT-ODE after baseline XGBoost/LSTM; integrate as secondary AI module consuming physical residuals, not replacing base physics.
+- [04-simulation.md](04-simulation.md) — Architecture finalized: empirical maps with lag filters, centralized FaultManager, and a Python API for explicit time-stepping and runtime fault injection.
 
 ## Open Tickets (The Frontier)
 
 - [02-frontend.md](02-frontend.md) — Frontend: Operator Dashboard MVP
 - [03-ml-engineer.md](03-ml-engineer.md) — ML Engineer: Diagnostics & RUL Models (Blocked by 05)
-- [04-simulation.md](04-simulation.md) — Simulation: Engine Physics & Twin Core
 - [05-datasets.md](05-datasets.md) — Datasets: Mission Profiles & Telemetry Generation (Blocked by 04)
 - [06-integration.md](06-integration.md) — Integration: Real-Time Backend & MQTT (Blocked by 02, 03, 04)
 
