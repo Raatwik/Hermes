@@ -4,9 +4,9 @@
 
 **Blocked by:** None — can start immediately.
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] `Simulation` exposes a new `get_environment()` public method returning a dictionary with keys `ambient_temperature`, `ambient_pressure`, and `air_density`.
-- [ ] The values are correctly derived from the simulation's current `altitude` using standard ISA formulas.
-- [ ] A test asserts that at altitude 0, standard sea-level values are returned (e.g. ~15°C and 101.3 kPa).
-- [ ] A test asserts that at a higher altitude (e.g. 10,000 ft), temperature and pressure drop accordingly.
+- [x] `Simulation` exposes a new `get_environment()` public method returning a dictionary with keys `ambient_temperature`, `ambient_pressure`, and `air_density`.
+- [x] The values are correctly derived from the simulation's current `altitude` using standard ISA formulas.
+- [x] A test asserts that at altitude 0, standard sea-level values are returned (e.g. ~15°C and 101.3 kPa).
+- [x] A test asserts that at a higher altitude (e.g. 10,000 ft), temperature and pressure drop accordingly.

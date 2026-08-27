@@ -7,7 +7,7 @@
 - **Milestone 4: End-to-End Integration.** The FastAPI backend seamlessly glues the data generator, ML inference, and frontend together in real-time.
 
 ## 2. Cross-Stream Blockers
-- **Datasets** is unblocked — **Simulation** now provides a functional MVEM engine with mission profiles and fault injection (issues 01–04 complete on `feature/simulation-foundation`). Remaining gaps before bulk generation: ambient temperature in profiles, sensor noise model, and Parquet export (see `docs/handoff.md`).
+- **Datasets** is unblocked — **Simulation** now provides a functional MVEM engine with mission profiles, fault injection (phase 1 issues 01–04), ISA environment model (`get_environment()`), and dynamic telemetry extensions (`engine_load`, `injection_timing`). Phase 2 issues 01–02 complete on `main`. Remaining gaps before bulk generation: sensor noise model and Parquet export (see `docs/handoff.md`).
 - **ML Engineer** is completely blocked until **Datasets** generates robust, balanced training data for both healthy and faulty conditions.
 - **Integration** is blocked by **Frontend**, **Simulation**, and **ML Engineer**; it requires the interfaces from all three to build the final API/MQTT orchestration layer.
 

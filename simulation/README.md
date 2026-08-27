@@ -34,6 +34,7 @@ from simulation.engine import Simulation
 sim = Simulation(throttle=0.5, altitude=0.0)  # throttle: 0.0–1.0, altitude: ft
 sim.step(dt=0.1)                               # advance by dt seconds
 sim.get_state()                                # returns telemetry dict (see below)
+sim.get_environment()                          # returns ISA atmosphere dict
 sim.set_throttle(0.8)                          # manual override (clears profile)
 sim.set_altitude(5000.0)                       # manual override (clears profile)
 sim.load_profile(profile_dict)                 # auto-interpolates throttle/altitude
@@ -56,6 +57,18 @@ sim.clear_faults()                             # remove all faults
 | `fuel_flow` | L/hr | 20 |
 | `battery_voltage` | V | 13.6 |
 | `vibration_index` | 0.0–1.0 | 0.04 |
+| `engine_load` | 0.0–1.0 | 0.31 |
+| `injection_timing` | degrees BTDC | 28.9 |
+
+### Environment Output
+
+`get_environment()` returns ISA atmosphere conditions derived from the current altitude:
+
+| Key | Unit | Sea level value |
+|---|---|---|
+| `ambient_temperature` | °C | 15.0 |
+| `ambient_pressure` | kPa | 101.3 |
+| `air_density` | kg/m³ | 1.225 |
 
 ## Mission Profiles
 
@@ -135,6 +148,8 @@ from simulation.engine import Simulation
 DT = 0.1
 FIELDS = ["time", "rpm", "cht", "egt", "oil_pressure", "oil_temp",
           "fuel_flow", "battery_voltage", "vibration_index",
+          "engine_load", "injection_timing",
+          "ambient_temperature", "ambient_pressure", "air_density",
           "mission", "fault_type", "fault_severity"]
 
 rows = []
@@ -168,10 +183,12 @@ for mission in missions:
             # Sample every 1 second (every 10 steps at dt=0.1)
             if i % 10 == 0:
                 state = sim.get_state()
-                state["mission"] = mission["name"]
-                state["fault_type"] = fault_label
-                state["fault_severity"] = fault_sev
-                rows.append(state)
+                env = sim.get_environment()
+                row = {**state, **env}
+                row["mission"] = mission["name"]
+                row["fault_type"] = fault_label
+                row["fault_severity"] = fault_sev
+                rows.append(row)
 
 # Write to CSV
 with open("synthetic_telemetry.csv", "w", newline="") as f:
@@ -204,11 +221,9 @@ A typical dataset structure for ML training:
 The CSV columns map directly to ML input features:
 
 ```
-time,rpm,cht,egt,oil_pressure,oil_temp,fuel_flow,battery_voltage,vibration_index,mission,fault_type,fault_severity
-1.0,2440.3,132.1,498.2,50.1,78.3,12.0,13.0,0.036,cruise_5k,healthy,0.0
-2.0,2441.0,132.5,498.8,50.1,78.5,12.0,13.0,0.036,cruise_5k,healthy,0.0
+time,rpm,cht,egt,oil_pressure,oil_temp,fuel_flow,battery_voltage,vibration_index,engine_load,injection_timing,ambient_temperature,ambient_pressure,air_density,mission,fault_type,fault_severity
+1.0,2440.3,132.1,498.2,50.1,78.3,12.0,13.0,0.036,0.177,27.5,15.0,101.3,1.225,cruise_5k,healthy,0.0
 ...
-301.0,3180.5,168.2,680.1,65.0,95.1,20.0,13.6,0.342,cruise_5k,misfire,0.3
 ```
 
 The `fault_type` column is your classification label. For RUL models, compute `time_to_failure = mission_end - time` as an additional target column.
@@ -219,4 +234,6 @@ The `fault_type` column is your classification label. For RUL models, compute `t
 pytest tests/unit/
 ```
 
-38 tests covering baseline stabilization, transient lag, mission profiles, and all fault types.
+50 tests covering baseline stabilization, transient lag, mission profiles, all fault types, ISA environment model, and dynamic telemetry extensions.
+
+See `simulation/phase2/README.md` for details on the phase 2 additions.
