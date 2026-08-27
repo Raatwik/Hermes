@@ -137,6 +137,18 @@ class Simulation:
             filt.tau = original_tau
         self._time += dt
 
+    def get_environment(self) -> dict[str, float]:
+        altitude_ft = self._altitude
+        altitude_m = altitude_ft * 0.3048
+        temp_k = 288.15 - 0.0065 * altitude_m
+        pressure_pa = 101325.0 * (temp_k / 288.15) ** 5.2561
+        density = pressure_pa / (287.058 * temp_k)
+        return {
+            "ambient_temperature": temp_k - 273.15,
+            "ambient_pressure": pressure_pa / 1000.0,
+            "air_density": density,
+        }
+
     def get_state(self) -> dict[str, float]:
         mods = self._fault_manager.get_modifiers()
         state: dict[str, float] = {"time": self._time}
