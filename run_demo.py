@@ -27,6 +27,14 @@ def print_state(state: dict[str, float]) -> None:
     print(f"  Fuel Flow:   {state['fuel_flow']:8.1f} L/hr")
     print(f"  Battery:     {state['battery_voltage']:8.2f} V")
     print(f"  Vibration:   {state['vibration_index']:8.3f}")
+    print(f"  Eng Load:    {state['engine_load']:8.3f}")
+    print(f"  Inj Timing:  {state['injection_timing']:8.1f} °BTDC")
+
+
+def print_environment(env: dict[str, float]) -> None:
+    print(f"  Ambient T:   {env['ambient_temperature']:8.1f} °C")
+    print(f"  Ambient P:   {env['ambient_pressure']:8.1f} kPa")
+    print(f"  Air Density: {env['air_density']:8.4f} kg/m³")
 
 
 def demo_baseline() -> None:
@@ -35,6 +43,8 @@ def demo_baseline() -> None:
     for _ in range(1000):
         sim.step(dt=0.1)
     print_state(sim.get_state())
+    print()
+    print_environment(sim.get_environment())
 
 
 def demo_transient() -> None:
@@ -69,13 +79,14 @@ def demo_mission_profile() -> None:
     sim = Simulation()
     sim.load_profile(profile)
 
-    print(f"  {'Time':>6s}  {'RPM':>6s}  {'CHT':>6s}  {'EGT':>6s}  {'Vib':>6s}")
-    print(f"  {'-'*6}  {'-'*6}  {'-'*6}  {'-'*6}  {'-'*6}")
+    print(f"  {'Time':>6s}  {'RPM':>6s}  {'CHT':>6s}  {'EGT':>6s}  {'Vib':>6s}  {'Load':>6s}  {'AmbT':>6s}")
+    print(f"  {'-'*6}  {'-'*6}  {'-'*6}  {'-'*6}  {'-'*6}  {'-'*6}  {'-'*6}")
     for i in range(1, 6001):
         sim.step(dt=0.1)
         if i % 600 == 0:
             s = sim.get_state()
-            print(f"  {s['time']:6.0f}  {s['rpm']:6.0f}  {s['cht']:6.1f}  {s['egt']:6.1f}  {s['vibration_index']:6.3f}")
+            e = sim.get_environment()
+            print(f"  {s['time']:6.0f}  {s['rpm']:6.0f}  {s['cht']:6.1f}  {s['egt']:6.1f}  {s['vibration_index']:6.3f}  {s['engine_load']:6.3f}  {e['ambient_temperature']:6.1f}")
 
 
 def demo_faults() -> None:
