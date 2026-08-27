@@ -17,6 +17,7 @@ Deliver a fully functional MVP of the MALE-UAV Digital Twin, complete with the s
 - [.scratch/datasets/issues/01-baseline-pipeline.md](../../../.scratch/datasets/issues/01-baseline-pipeline.md) — Built generate_baseline.py orchestrator script to export partitioned Parquet healthy telemetry.
 - [.scratch/datasets/issues/02-fault-scheduler.md](../../../.scratch/datasets/issues/02-fault-scheduler.md) — Implemented dynamic exponential fault scheduler in generate_mission.py.
 - [.scratch/datasets/issues/03-rul-labeling.md](../../../.scratch/datasets/issues/03-rul-labeling.md) — Added RUL logic with capping to prevent NaN targets in datasets.
+- [.scratch/datasets/issues/04-bulk-orchestrator.md](../../../.scratch/datasets/issues/04-bulk-orchestrator.md) — Added multiprocessing CLI to rapidly generate perfectly balanced datasets.
 
 ## Open Tickets (The Frontier)
 

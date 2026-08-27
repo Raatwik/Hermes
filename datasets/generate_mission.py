@@ -12,14 +12,17 @@ from simulation.fault_manager import KNOWN_FAULTS
 RUL_MAX = 500.0
 
 class FaultScheduler:
-    def __init__(self, max_time: float):
+    def __init__(self, max_time: float, force_fault_class: Optional[str] = None):
         self.max_time = max_time
         
-        # 50% chance of healthy vs faulty
-        if random.random() < 0.5:
-            self.fault_class = "healthy"
+        if force_fault_class is not None:
+            self.fault_class = force_fault_class
         else:
-            self.fault_class = random.choice(list(KNOWN_FAULTS))
+            # 50% chance of healthy vs faulty
+            if random.random() < 0.5:
+                self.fault_class = "healthy"
+            else:
+                self.fault_class = random.choice(list(KNOWN_FAULTS))
             
         self.injection_time = (
             random.uniform(0.0, self.max_time)
@@ -90,12 +93,15 @@ def parse_mission_config(config_path: str) -> dict:
     return {"setpoints": setpoints}
 
 
-def run_pipeline(config_path: str, output_dir: str, dt: float = 0.1, scheduler: Optional[FaultScheduler] = None) -> None:
+def run_pipeline(config_path: Optional[str] = None, output_dir: str = "data", dt: float = 0.1, scheduler: Optional[FaultScheduler] = None, profile: Optional[dict] = None) -> None:
     """
     Initializes and steps the core simulation over the interpolated mission profile.
     Schedules an exponential severity curve, and exports to a partitioned Parquet file.
     """
-    profile = parse_mission_config(config_path)
+    if profile is None:
+        if config_path is None:
+            raise ValueError("Must provide either config_path or profile")
+        profile = parse_mission_config(config_path)
     
     sim = Simulation()
     sim.load_profile(profile)
