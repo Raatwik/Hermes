@@ -22,7 +22,7 @@ Deliver a fully functional MVP of the MALE-UAV Digital Twin, complete with the s
 ## Open Tickets (The Frontier)
 
 - [02-frontend.md](02-frontend.md) — Frontend: Operator Dashboard MVP
-- [03-ml-engineer.md](03-ml-engineer.md) — ML Engineer: Diagnostics & RUL Models (Blocked by 05)
+- [03-ml-engineer.md](03-ml-engineer.md) — ML Engineer: Diagnostics & RUL Models (Unblocked)
 - [06-integration.md](06-integration.md) — Integration: Real-Time Backend & MQTT (Blocked by 02, 03, 04)
 
 ## Not yet specified
