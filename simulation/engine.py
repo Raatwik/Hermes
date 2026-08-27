@@ -142,4 +142,8 @@ class Simulation:
         state: dict[str, float] = {"time": self._time}
         for key, filt in self._filters.items():
             state[key] = filt.value + mods["output_offsets"].get(key, 0.0)
+        rpm_fraction = state["rpm"] / 5500.0
+        baseline_vib = 0.02 + 0.03 * rpm_fraction
+        fault_vib = mods["vibration_severity"]
+        state["vibration_index"] = min(baseline_vib + fault_vib, 1.0)
         return state
