@@ -4,7 +4,7 @@
 
 **Blocked by:** 01: Expose Core Control Inputs and Fault Severity
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [ ] Mission YAML templates include a `name` key for every phase.
 - [ ] The `parse_mission_config` function successfully parses and returns the phase names along with the setpoints.
