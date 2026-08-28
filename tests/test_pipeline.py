@@ -39,8 +39,8 @@ def test_parse_mission_config():
     
     try:
         profile = parse_mission_config(temp_path)
-        assert "setpoints" in profile
-        setpoints = profile["setpoints"]
+        assert hasattr(profile, "setpoints")
+        setpoints = profile.setpoints
         assert len(setpoints) == 6
         # t=0
         assert setpoints[0]["time"] == 0
@@ -69,6 +69,53 @@ def test_parse_mission_config():
     finally:
         os.remove(temp_path)
 
+def test_parse_mission_config_with_ranges():
+    yaml_content = """
+    ambient_temp_offset: [-10.0, 10.0]
+    phases:
+      - duration: [50, 70]
+        throttle: [0.2, 0.4]
+        altitude: [0, 1000]
+    """
+    with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.yaml') as f:
+        f.write(yaml_content)
+        temp_path = f.name
+    
+    try:
+        profile = parse_mission_config(temp_path)
+        assert hasattr(profile, "setpoints")
+        assert hasattr(profile, "ambient_temp_offset")
+        
+        amb_temp = profile.ambient_temp_offset
+        assert -10.0 <= amb_temp <= 10.0
+        
+        setpoints = profile.setpoints
+        assert len(setpoints) == 2
+        
+        # t=0
+        assert setpoints[0]["time"] == 0
+        assert 0.2 <= setpoints[0]["throttle"] <= 0.4
+        assert 0 <= setpoints[0]["altitude"] <= 1000
+        
+        # t=end
+        duration = setpoints[1]["time"]
+        assert 50 <= duration <= 70
+        assert setpoints[1]["throttle"] == setpoints[0]["throttle"]
+        assert setpoints[1]["altitude"] == setpoints[0]["altitude"]
+    finally:
+        os.remove(temp_path)
+
+
+def assert_expected_columns(df):
+    assert "time" in df.columns
+    assert "rpm" in df.columns
+    assert "throttle" in df.columns
+    assert "altitude" in df.columns
+    assert "fault_class" in df.columns
+    assert "fault_severity" in df.columns
+    assert "flight_phase" in df.columns
+    assert "Remaining_Useful_Life" in df.columns
+
 
 def test_run_pipeline_healthy(tmp_path, dummy_mission_yaml):
     out_dir = tmp_path / "data"
@@ -77,16 +124,11 @@ def test_run_pipeline_healthy(tmp_path, dummy_mission_yaml):
     
     run_pipeline(str(dummy_mission_yaml), str(out_dir), scheduler=scheduler)
     
-    # Check that parquet file was created in partition
     partition_dir = out_dir / "fault_class=healthy"
     assert partition_dir.exists()
     
-    # Read the data and check via pyarrow dataset to keep partition columns
     df = pd.read_parquet(out_dir)
-    assert "time" in df.columns
-    assert "rpm" in df.columns
-    assert "fault_class" in df.columns
-    assert "Remaining_Useful_Life" in df.columns
+    assert_expected_columns(df)
     assert df["fault_class"].iloc[0] == "healthy"
     
     # RUL should be RUL_MAX for healthy
@@ -108,7 +150,7 @@ def test_run_pipeline_faulty(tmp_path, dummy_mission_yaml):
     
     df = pd.read_parquet(out_dir)
     assert df["fault_class"].iloc[0] == "misfire"
-    assert "Remaining_Useful_Life" in df.columns
+    assert_expected_columns(df)
     
     # The initial RUL should be capped or correctly calculated
     # For a 10s mission, if max RUL is 500, it'll start at 10.0 and count down.

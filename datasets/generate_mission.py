@@ -4,12 +4,33 @@ import pandas as pd
 import random
 import math
 import uuid
-from typing import Optional
+from typing import Optional, List, Dict
+from dataclasses import dataclass
 
 from simulation.engine import Simulation
 from simulation.fault_manager import KNOWN_FAULTS
 
 RUL_MAX = 500.0
+
+@dataclass
+class PhaseInterval:
+    name: str
+    start_time: float
+    end_time: float
+
+@dataclass
+class MissionProfile:
+    setpoints: List[Dict[str, float]]
+    ambient_temp_offset: float
+    phase_intervals: List[PhaseInterval]
+
+    def get_phase_name(self, t: float) -> str:
+        for p in self.phase_intervals:
+            if p.start_time <= t < p.end_time:
+                return p.name
+        if self.phase_intervals and t >= self.phase_intervals[-1].end_time - 1e-5:
+            return self.phase_intervals[-1].name
+        return "Unknown"
 
 class FaultScheduler:
     def __init__(self, max_time: float, force_fault_class: Optional[str] = None):
@@ -74,26 +95,51 @@ def parse_mission_config(config_path: str) -> dict:
     if not phases:
         raise ValueError("YAML config must contain 'phases'.")
 
+    def sample_val(val):
+        if isinstance(val, list) and len(val) == 2:
+            return random.uniform(val[0], val[1])
+        return val
+
     setpoints = []
+    phase_intervals = []
     current_time = 0.0
 
-    for phase in phases:
+    for i, phase in enumerate(phases):
+        phase_name = phase.get("name", f"Phase_{i+1}")
+        duration = sample_val(phase["duration"])
+        throttle = sample_val(phase["throttle"])
+        altitude = sample_val(phase["altitude"])
+        
+        start_time = current_time
+        setpoints.append({
+            "time": start_time,
+            "throttle": throttle,
+            "altitude": altitude
+        })
+        current_time += duration
         setpoints.append({
             "time": current_time,
-            "throttle": phase["throttle"],
-            "altitude": phase["altitude"]
+            "throttle": throttle,
+            "altitude": altitude
         })
-        current_time += phase["duration"]
-        setpoints.append({
-            "time": current_time,
-            "throttle": phase["throttle"],
-            "altitude": phase["altitude"]
-        })
+        
+        phase_intervals.append(PhaseInterval(
+            name=phase_name,
+            start_time=start_time,
+            end_time=current_time
+        ))
 
-    return {"setpoints": setpoints}
+    ambient_temp_offset = data.get("ambient_temp_offset", 0.0)
+    ambient_temp_offset = sample_val(ambient_temp_offset)
+
+    return MissionProfile(
+        setpoints=setpoints, 
+        ambient_temp_offset=ambient_temp_offset,
+        phase_intervals=phase_intervals
+    )
 
 
-def run_pipeline(config_path: Optional[str] = None, output_dir: str = "data", dt: float = 0.1, scheduler: Optional[FaultScheduler] = None, profile: Optional[dict] = None) -> None:
+def run_pipeline(config_path: Optional[str] = None, output_dir: str = "data", dt: float = 0.1, scheduler: Optional[FaultScheduler] = None, profile: Optional[MissionProfile] = None, noise_seed: Optional[int] = 42) -> None:
     """
     Initializes and steps the core simulation over the interpolated mission profile.
     Schedules an exponential severity curve, and exports to a partitioned Parquet file.
@@ -103,25 +149,37 @@ def run_pipeline(config_path: Optional[str] = None, output_dir: str = "data", dt
             raise ValueError("Must provide either config_path or profile")
         profile = parse_mission_config(config_path)
     
-    sim = Simulation()
-    sim.load_profile(profile)
+    # Extract setpoints to pass to sim
+    setpoints = profile.setpoints if isinstance(profile, MissionProfile) else profile["setpoints"]
+    ambient_temp_offset = profile.ambient_temp_offset if isinstance(profile, MissionProfile) else profile.get("ambient_temp_offset", 0.0)
+    
+    sim = Simulation(noise_seed=noise_seed, ambient_temp_offset=ambient_temp_offset)
+    sim.load_profile({"setpoints": setpoints})
     sim.step(dt=0.0)
     
-    max_time = profile["setpoints"][-1]["time"]
+    max_time = setpoints[-1]["time"]
     
     if scheduler is None:
         scheduler = FaultScheduler(max_time)
-        
+
     records = []
     
-    def record_state():
+    def record_state(current_time: float):
         state = sim.get_state()
         environment = sim.get_environment()
         row = {**state, **environment}
         row["fault_class"] = scheduler.fault_class
+        row["fault_severity"] = scheduler.get_severity(current_time)
+        
+        # Backward compatibility if profile is still passed as a dict in some tests
+        if isinstance(profile, MissionProfile):
+            row["flight_phase"] = profile.get_phase_name(current_time)
+        else:
+            row["flight_phase"] = "Unknown"
+            
         records.append(row)
     
-    record_state()
+    record_state(0.0)
     
     num_steps = int(max_time / dt)
     for i in range(1, num_steps + 1):
@@ -131,13 +189,14 @@ def run_pipeline(config_path: Optional[str] = None, output_dir: str = "data", dt
         scheduler.inject_to(sim, current_time)
         
         sim.step(dt)
-        record_state()
+        record_state(current_time)
         
     df = pd.DataFrame(records)
     
     # Post-processing RUL Calculation
     if scheduler.fault_class == "healthy":
         df["Remaining_Useful_Life"] = RUL_MAX
+        df["time_since_fault_injection"] = 0.0
     else:
         # Capped at RUL_MAX before injection time
         # Monotonically decreasing after injection time based on max_time - current_time
@@ -148,7 +207,14 @@ def run_pipeline(config_path: Optional[str] = None, output_dir: str = "data", dt
             else:
                 return min(RUL_MAX, max_time - t)
         
+        def calc_tsfi(t):
+            if t < scheduler.injection_time:
+                return 0.0
+            else:
+                return t - scheduler.injection_time
+        
         df["Remaining_Useful_Life"] = df["time"].apply(calc_rul)
+        df["time_since_fault_injection"] = df["time"].apply(calc_tsfi)
     
     os.makedirs(output_dir, exist_ok=True)
     df.to_parquet(

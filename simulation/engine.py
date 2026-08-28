@@ -2,6 +2,20 @@ from __future__ import annotations
 
 from simulation.fault_manager import FaultManager
 from simulation.lag_filter import LagFilter
+import random
+
+SENSOR_NOISE_STD: dict[str, float] = {
+    "rpm": 10.0,
+    "cht": 2.0,
+    "egt": 5.0,
+    "oil_pressure": 0.5,
+    "oil_temp": 1.0,
+    "fuel_flow": 0.2,
+    "battery_voltage": 0.1,
+    "vibration_index": 0.005,
+    "engine_load": 0.005,
+    "injection_timing": 0.2,
+}
 
 
 STEADY_STATE_MAP: dict[str, list[tuple[float, float, float]]] = {
@@ -91,9 +105,10 @@ def _interp_profile_value(
 
 
 class Simulation:
-    def __init__(self, throttle: float = 0.0, altitude: float = 0.0) -> None:
+    def __init__(self, throttle: float = 0.0, altitude: float = 0.0, noise_seed: int | None = None, ambient_temp_offset: float = 0.0) -> None:
         self._throttle: float = throttle
         self._altitude: float = altitude
+        self._ambient_temp_offset: float = ambient_temp_offset
         self._time: float = 0.0
         self._profile: list[dict[str, float]] | None = None
         self._fault_manager: FaultManager = FaultManager()
@@ -101,6 +116,7 @@ class Simulation:
             key: LagFilter(initial=INITIAL_VALUES[key], tau=TIME_CONSTANTS[key])
             for key in TIME_CONSTANTS
         }
+        self._rng = random.Random(noise_seed) if noise_seed is not None else None
 
     def inject_fault(self, fault_type: str, **kwargs: object) -> None:
         self._fault_manager.inject(fault_type, **kwargs)
@@ -140,10 +156,12 @@ class Simulation:
     def get_environment(self) -> dict[str, float]:
         altitude_ft = self._altitude
         altitude_m = altitude_ft * 0.3048
-        temp_k = 288.15 - 0.0065 * altitude_m
-        pressure_pa = 101325.0 * (temp_k / 288.15) ** 5.2561
+        std_temp_k = 288.15 - 0.0065 * altitude_m
+        temp_k = std_temp_k + self._ambient_temp_offset
+        pressure_pa = 101325.0 * (std_temp_k / 288.15) ** 5.2561
         density = pressure_pa / (287.058 * temp_k)
         return {
+            "altitude": altitude_ft,
             "ambient_temperature": temp_k - 273.15,
             "ambient_pressure": pressure_pa / 1000.0,
             "air_density": density,
@@ -151,7 +169,10 @@ class Simulation:
 
     def get_state(self) -> dict[str, float]:
         mods = self._fault_manager.get_modifiers()
-        state: dict[str, float] = {"time": self._time}
+        state: dict[str, float] = {
+            "time": self._time,
+            "throttle": self._throttle
+        }
         for key, filt in self._filters.items():
             state[key] = filt.value + mods["output_offsets"].get(key, 0.0)
         rpm_fraction = state["rpm"] / 5500.0
@@ -160,4 +181,10 @@ class Simulation:
         state["vibration_index"] = min(baseline_vib + fault_vib, 1.0)
         state["engine_load"] = min(self._throttle * rpm_fraction, 1.0)
         state["injection_timing"] = 24.0 + 8.0 * rpm_fraction
+
+        if self._rng is not None:
+            for key, std in SENSOR_NOISE_STD.items():
+                if key in state:
+                    state[key] += self._rng.gauss(0.0, std)
+
         return state

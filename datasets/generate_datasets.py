@@ -4,41 +4,27 @@ import os
 import random
 from dataclasses import dataclass
 
-from datasets.generate_mission import run_pipeline, FaultScheduler
+from datasets.generate_mission import run_pipeline, FaultScheduler, parse_mission_config, MissionProfile
 from simulation.fault_manager import KNOWN_FAULTS
 
 @dataclass
 class MissionTask:
     output_dir: str
     fault_class: str
-    profile: dict
+    profile: MissionProfile
 
-def generate_random_profile() -> dict:
-    num_phases = random.randint(1, 4)
-    setpoints = []
-    current_time = 0.0
+def generate_random_profile() -> MissionProfile:
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    missions_dir = os.path.join(current_dir, "missions")
+    templates = [os.path.join(missions_dir, f) for f in os.listdir(missions_dir) if f.endswith(".yaml")]
+    if not templates:
+        raise FileNotFoundError(f"No mission templates found in {missions_dir}")
     
-    for _ in range(num_phases):
-        duration = random.uniform(60.0, 600.0)
-        throttle = random.uniform(0.3, 1.0)
-        altitude = random.uniform(0.0, 5000.0)
-        
-        setpoints.append({
-            "time": current_time,
-            "throttle": throttle,
-            "altitude": altitude
-        })
-        current_time += duration
-        setpoints.append({
-            "time": current_time,
-            "throttle": throttle,
-            "altitude": altitude
-        })
-        
-    return {"setpoints": setpoints}
+    template = random.choice(templates)
+    return parse_mission_config(template)
 
 def generate_single_mission(task: MissionTask):
-    max_time = task.profile["setpoints"][-1]["time"]
+    max_time = task.profile.setpoints[-1]["time"]
     scheduler = FaultScheduler(max_time, force_fault_class=task.fault_class)
     run_pipeline(profile=task.profile, output_dir=task.output_dir, scheduler=scheduler)
 
