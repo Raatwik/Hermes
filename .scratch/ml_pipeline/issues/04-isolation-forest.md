@@ -4,9 +4,9 @@
 
 **Blocked by:** 02 — Feature Engineering (Rolling Statistics)
 
-**Status:** ready-for-agent
+**Status:** completed
 
-- [ ] An Isolation Forest model is defined and trained on the engineered features.
-- [ ] The model is trained on a mixed dataset (healthy + known faults).
-- [ ] The model outputs an anomaly score/flag for out-of-distribution data.
-- [ ] A test runs the pipeline on a toy dataset and asserts that the Isolation Forest successfully flags an extreme, artificially injected outlier that falls outside the training distribution.
+- [x] An Isolation Forest model is defined and trained on the engineered features.
+- [x] The model is trained on a mixed dataset (healthy + known faults).
+- [x] The model outputs an anomaly score/flag for out-of-distribution data.
+- [x] A test runs the pipeline on a toy dataset and asserts that the Isolation Forest successfully flags an extreme, artificially injected outlier that falls outside the training distribution.

@@ -4,11 +4,11 @@
 
 **Blocked by:** None — can start immediately.
 
-**Status:** ready-for-agent
+**Status:** completed
 
-- [ ] A script iterates through all raw Parquet files in the `data/` directory.
-- [ ] For each mission, a fresh `Simulation` instance is initialized.
-- [ ] The script steps the pristine simulation through the exact throttle and altitude sequences found in the mission data.
-- [ ] `Actual - Expected` residuals are computed for all relevant engine parameters.
-- [ ] The augmented datasets (including the new residual columns) are saved to disk in Parquet format.
-- [ ] A test verifies that a healthy deterministic run produces ~0.0 residuals (accounting for noise).
+- [x] A script iterates through all raw Parquet files in the `data/` directory.
+- [x] For each mission, a fresh `Simulation` instance is initialized.
+- [x] The script steps the pristine simulation through the exact throttle and altitude sequences found in the mission data.
+- [x] `Actual - Expected` residuals are computed for all relevant engine parameters.
+- [x] The augmented datasets (including the new residual columns) are saved to disk in Parquet format.
+- [x] A test verifies that a healthy deterministic run produces ~0.0 residuals (accounting for noise).

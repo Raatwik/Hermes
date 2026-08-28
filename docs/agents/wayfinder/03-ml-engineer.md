@@ -1,5 +1,5 @@
 ---
-labels: ["ready-for-agent"]
+labels: ["completed"]
 ---
 # [wayfinder:task] ML Engineer: Diagnostics & RUL Models (Stage 1 Baseline & Anomaly Detection)
 
