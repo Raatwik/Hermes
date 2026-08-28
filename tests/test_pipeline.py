@@ -113,6 +113,7 @@ def assert_expected_columns(df):
     assert "altitude" in df.columns
     assert "fault_class" in df.columns
     assert "fault_severity" in df.columns
+    assert "flight_phase" in df.columns
     assert "Remaining_Useful_Life" in df.columns
 
 

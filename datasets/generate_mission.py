@@ -80,15 +80,18 @@ def parse_mission_config(config_path: str) -> dict:
         return val
 
     setpoints = []
+    phase_intervals = []
     current_time = 0.0
 
-    for phase in phases:
+    for i, phase in enumerate(phases):
+        phase_name = phase.get("name", f"Phase_{i+1}")
         duration = sample_val(phase["duration"])
         throttle = sample_val(phase["throttle"])
         altitude = sample_val(phase["altitude"])
         
+        start_time = current_time
         setpoints.append({
-            "time": current_time,
+            "time": start_time,
             "throttle": throttle,
             "altitude": altitude
         })
@@ -98,11 +101,21 @@ def parse_mission_config(config_path: str) -> dict:
             "throttle": throttle,
             "altitude": altitude
         })
+        
+        phase_intervals.append({
+            "name": phase_name,
+            "start_time": start_time,
+            "end_time": current_time
+        })
 
     ambient_temp_offset = data.get("ambient_temp_offset", 0.0)
     ambient_temp_offset = sample_val(ambient_temp_offset)
 
-    return {"setpoints": setpoints, "ambient_temp_offset": ambient_temp_offset}
+    return {
+        "setpoints": setpoints, 
+        "ambient_temp_offset": ambient_temp_offset,
+        "phase_intervals": phase_intervals
+    }
 
 
 def run_pipeline(config_path: Optional[str] = None, output_dir: str = "data", dt: float = 0.1, scheduler: Optional[FaultScheduler] = None, profile: Optional[dict] = None, noise_seed: Optional[int] = 42) -> None:
@@ -125,6 +138,12 @@ def run_pipeline(config_path: Optional[str] = None, output_dir: str = "data", dt
     if scheduler is None:
         scheduler = FaultScheduler(max_time)
         
+    def get_phase_name(t: float) -> str:
+        for p in profile.get("phase_intervals", []):
+            if p["start_time"] <= t <= p["end_time"]:
+                return p["name"]
+        return "Unknown"
+
     records = []
     
     def record_state(current_time: float):
@@ -133,6 +152,7 @@ def run_pipeline(config_path: Optional[str] = None, output_dir: str = "data", dt
         row = {**state, **environment}
         row["fault_class"] = scheduler.fault_class
         row["fault_severity"] = scheduler.get_severity(current_time)
+        row["flight_phase"] = get_phase_name(current_time)
         records.append(row)
     
     record_state(0.0)
