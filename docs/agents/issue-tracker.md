@@ -7,8 +7,8 @@
 - **Milestone 4: End-to-End Integration.** The FastAPI backend seamlessly glues the data generator, ML inference, and frontend together in real-time.
 
 ## 2. Cross-Stream Blockers
-- **Datasets** is unblocked — **Simulation** now provides a functional MVEM engine with mission profiles, fault injection (phase 1 issues 01–04), ISA environment model (`get_environment()`), and dynamic telemetry extensions (`engine_load`, `injection_timing`). Phase 2 issues 01–02 complete on `main`. Remaining gaps before bulk generation: sensor noise model and Parquet export (see `docs/handoff.md`).
-- **ML Engineer** is completely blocked until **Datasets** generates robust, balanced training data for both healthy and faulty conditions.
+- **Datasets** is complete — **Simulation** and **Datasets** have successfully combined to provide a functional MVEM engine and a telemetry generation pipeline (mission profiles, fault injection, automated RUL labeling, multiprocessing bulk generation, and Parquet export). Milestone 1 is fully operational.
+- **ML Engineer** is now UNBLOCKED. The pipeline can generate the robust, balanced training data for both healthy and faulty conditions needed to train diagnostics and RUL models.
 - **Integration** is blocked by **Frontend**, **Simulation**, and **ML Engineer**; it requires the interfaces from all three to build the final API/MQTT orchestration layer.
 
 ## 3. Wayfinder Team Tracks Index
