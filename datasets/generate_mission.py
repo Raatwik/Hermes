@@ -4,12 +4,33 @@ import pandas as pd
 import random
 import math
 import uuid
-from typing import Optional
+from typing import Optional, List, Dict
+from dataclasses import dataclass
 
 from simulation.engine import Simulation
 from simulation.fault_manager import KNOWN_FAULTS
 
 RUL_MAX = 500.0
+
+@dataclass
+class PhaseInterval:
+    name: str
+    start_time: float
+    end_time: float
+
+@dataclass
+class MissionProfile:
+    setpoints: List[Dict[str, float]]
+    ambient_temp_offset: float
+    phase_intervals: List[PhaseInterval]
+
+    def get_phase_name(self, t: float) -> str:
+        for p in self.phase_intervals:
+            if p.start_time <= t < p.end_time:
+                return p.name
+        if self.phase_intervals and t >= self.phase_intervals[-1].end_time - 1e-5:
+            return self.phase_intervals[-1].name
+        return "Unknown"
 
 class FaultScheduler:
     def __init__(self, max_time: float, force_fault_class: Optional[str] = None):
@@ -102,23 +123,23 @@ def parse_mission_config(config_path: str) -> dict:
             "altitude": altitude
         })
         
-        phase_intervals.append({
-            "name": phase_name,
-            "start_time": start_time,
-            "end_time": current_time
-        })
+        phase_intervals.append(PhaseInterval(
+            name=phase_name,
+            start_time=start_time,
+            end_time=current_time
+        ))
 
     ambient_temp_offset = data.get("ambient_temp_offset", 0.0)
     ambient_temp_offset = sample_val(ambient_temp_offset)
 
-    return {
-        "setpoints": setpoints, 
-        "ambient_temp_offset": ambient_temp_offset,
-        "phase_intervals": phase_intervals
-    }
+    return MissionProfile(
+        setpoints=setpoints, 
+        ambient_temp_offset=ambient_temp_offset,
+        phase_intervals=phase_intervals
+    )
 
 
-def run_pipeline(config_path: Optional[str] = None, output_dir: str = "data", dt: float = 0.1, scheduler: Optional[FaultScheduler] = None, profile: Optional[dict] = None, noise_seed: Optional[int] = 42) -> None:
+def run_pipeline(config_path: Optional[str] = None, output_dir: str = "data", dt: float = 0.1, scheduler: Optional[FaultScheduler] = None, profile: Optional[MissionProfile] = None, noise_seed: Optional[int] = 42) -> None:
     """
     Initializes and steps the core simulation over the interpolated mission profile.
     Schedules an exponential severity curve, and exports to a partitioned Parquet file.
@@ -128,21 +149,18 @@ def run_pipeline(config_path: Optional[str] = None, output_dir: str = "data", dt
             raise ValueError("Must provide either config_path or profile")
         profile = parse_mission_config(config_path)
     
-    ambient_temp_offset = profile.get("ambient_temp_offset", 0.0)
+    # Extract setpoints to pass to sim
+    setpoints = profile.setpoints if isinstance(profile, MissionProfile) else profile["setpoints"]
+    ambient_temp_offset = profile.ambient_temp_offset if isinstance(profile, MissionProfile) else profile.get("ambient_temp_offset", 0.0)
+    
     sim = Simulation(noise_seed=noise_seed, ambient_temp_offset=ambient_temp_offset)
-    sim.load_profile(profile)
+    sim.load_profile({"setpoints": setpoints})
     sim.step(dt=0.0)
     
-    max_time = profile["setpoints"][-1]["time"]
+    max_time = setpoints[-1]["time"]
     
     if scheduler is None:
         scheduler = FaultScheduler(max_time)
-        
-    def get_phase_name(t: float) -> str:
-        for p in profile.get("phase_intervals", []):
-            if p["start_time"] <= t <= p["end_time"]:
-                return p["name"]
-        return "Unknown"
 
     records = []
     
@@ -152,7 +170,13 @@ def run_pipeline(config_path: Optional[str] = None, output_dir: str = "data", dt
         row = {**state, **environment}
         row["fault_class"] = scheduler.fault_class
         row["fault_severity"] = scheduler.get_severity(current_time)
-        row["flight_phase"] = get_phase_name(current_time)
+        
+        # Backward compatibility if profile is still passed as a dict in some tests
+        if isinstance(profile, MissionProfile):
+            row["flight_phase"] = profile.get_phase_name(current_time)
+        else:
+            row["flight_phase"] = "Unknown"
+            
         records.append(row)
     
     record_state(0.0)

@@ -39,8 +39,8 @@ def test_parse_mission_config():
     
     try:
         profile = parse_mission_config(temp_path)
-        assert "setpoints" in profile
-        setpoints = profile["setpoints"]
+        assert hasattr(profile, "setpoints")
+        setpoints = profile.setpoints
         assert len(setpoints) == 6
         # t=0
         assert setpoints[0]["time"] == 0
@@ -83,13 +83,13 @@ def test_parse_mission_config_with_ranges():
     
     try:
         profile = parse_mission_config(temp_path)
-        assert "setpoints" in profile
-        assert "ambient_temp_offset" in profile
+        assert hasattr(profile, "setpoints")
+        assert hasattr(profile, "ambient_temp_offset")
         
-        amb_temp = profile["ambient_temp_offset"]
+        amb_temp = profile.ambient_temp_offset
         assert -10.0 <= amb_temp <= 10.0
         
-        setpoints = profile["setpoints"]
+        setpoints = profile.setpoints
         assert len(setpoints) == 2
         
         # t=0
