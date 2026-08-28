@@ -1,5 +1,5 @@
 ---
-labels: ["ready-for-agent"]
+labels: ["done"]
 ---
 # [wayfinder:task] Datasets: Mission Profiles & Telemetry Generation
 
@@ -52,3 +52,14 @@ A Python-based telemetry generation pipeline that reads randomized flight phases
 ## Further Notes
 
 - Relying on the Law of Large Numbers for dataset balancing means we need to generate hundreds or thousands of runs. The generation script should ideally support multiprocessing or fast execution to ensure the pipeline runs in a reasonable amount of time.
+
+## Resolution
+
+- **Telemetry Pipeline Implemented:** Built `datasets/generate_mission.py` and `datasets/generate_datasets.py` to step the Rotax 914 MVEM simulation over randomized mission setpoints.
+- **Dynamic Fault Scheduling:** Integrated `FaultScheduler` applying exponential wear curves up to severity 1.0, with dynamic per-step re-injection across all 5 fault types + healthy baseline.
+- **Prognostic Labeling:** Automatically computes `Remaining_Useful_Life` (RUL) with capping (`RUL_MAX = 500.0s`) to prevent training divergence on healthy data points.
+- **Partitioned Parquet Generation:** Partitioned on disk by `fault_class` using `pyarrow`.
+- **Bulk Orchestration:** Multiprocessing pool CLI generating statistically balanced datasets across all classes.
+- **Dataset Artifacts:** Synthetic dataset generated and tracked in `synthetic_data/` containing 81,571 data rows across 12 mission partitions.
+- **Status:** Unblocks ML Engineer (Track 03) for model training.
+

@@ -4,7 +4,7 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** completed
 
 - [x] Pipeline successfully parses a YAML mission configuration file containing basic phase definitions (duration, altitude, throttle).
 - [x] Pipeline initializes and steps the core simulation over the interpolated mission profile.
