@@ -34,6 +34,7 @@ Thumbs.db
 synthetic_telemetry.csv
 telemetry.json
 *.parquet
+data/
 !synthetic_data/
 !synthetic_data/**
 
