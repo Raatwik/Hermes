@@ -93,7 +93,7 @@ def parse_mission_config(config_path: str) -> dict:
     return {"setpoints": setpoints}
 
 
-def run_pipeline(config_path: Optional[str] = None, output_dir: str = "data", dt: float = 0.1, scheduler: Optional[FaultScheduler] = None, profile: Optional[dict] = None) -> None:
+def run_pipeline(config_path: Optional[str] = None, output_dir: str = "data", dt: float = 0.1, scheduler: Optional[FaultScheduler] = None, profile: Optional[dict] = None, noise_seed: Optional[int] = 42) -> None:
     """
     Initializes and steps the core simulation over the interpolated mission profile.
     Schedules an exponential severity curve, and exports to a partitioned Parquet file.
@@ -103,7 +103,7 @@ def run_pipeline(config_path: Optional[str] = None, output_dir: str = "data", dt
             raise ValueError("Must provide either config_path or profile")
         profile = parse_mission_config(config_path)
     
-    sim = Simulation()
+    sim = Simulation(noise_seed=noise_seed)
     sim.load_profile(profile)
     sim.step(dt=0.0)
     
@@ -138,6 +138,7 @@ def run_pipeline(config_path: Optional[str] = None, output_dir: str = "data", dt
     # Post-processing RUL Calculation
     if scheduler.fault_class == "healthy":
         df["Remaining_Useful_Life"] = RUL_MAX
+        df["time_since_fault_injection"] = 0.0
     else:
         # Capped at RUL_MAX before injection time
         # Monotonically decreasing after injection time based on max_time - current_time
@@ -148,7 +149,14 @@ def run_pipeline(config_path: Optional[str] = None, output_dir: str = "data", dt
             else:
                 return min(RUL_MAX, max_time - t)
         
+        def calc_tsfi(t):
+            if t < scheduler.injection_time:
+                return 0.0
+            else:
+                return t - scheduler.injection_time
+        
         df["Remaining_Useful_Life"] = df["time"].apply(calc_rul)
+        df["time_since_fault_injection"] = df["time"].apply(calc_tsfi)
     
     os.makedirs(output_dir, exist_ok=True)
     df.to_parquet(

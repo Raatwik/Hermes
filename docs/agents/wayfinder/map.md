@@ -21,6 +21,7 @@ Deliver a fully functional MVP of the MALE-UAV Digital Twin, complete with the s
 
 ## Open Tickets (The Frontier)
 
+- [05.1-datasets.md](05.1-datasets.md) — Datasets Phase 2: Operational Bounds, Noise, and Environment
 - [02-frontend.md](02-frontend.md) — Frontend: Operator Dashboard MVP
 - [03-ml-engineer.md](03-ml-engineer.md) — ML Engineer: Diagnostics & RUL Models (Unblocked)
 - [06-integration.md](06-integration.md) — Integration: Real-Time Backend & MQTT (Blocked by 02, 03, 04)
