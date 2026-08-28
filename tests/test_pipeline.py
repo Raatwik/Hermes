@@ -106,6 +106,16 @@ def test_parse_mission_config_with_ranges():
         os.remove(temp_path)
 
 
+def assert_expected_columns(df):
+    assert "time" in df.columns
+    assert "rpm" in df.columns
+    assert "throttle" in df.columns
+    assert "altitude" in df.columns
+    assert "fault_class" in df.columns
+    assert "fault_severity" in df.columns
+    assert "Remaining_Useful_Life" in df.columns
+
+
 def test_run_pipeline_healthy(tmp_path, dummy_mission_yaml):
     out_dir = tmp_path / "data"
     scheduler = FaultScheduler(10.0)
@@ -113,16 +123,11 @@ def test_run_pipeline_healthy(tmp_path, dummy_mission_yaml):
     
     run_pipeline(str(dummy_mission_yaml), str(out_dir), scheduler=scheduler)
     
-    # Check that parquet file was created in partition
     partition_dir = out_dir / "fault_class=healthy"
     assert partition_dir.exists()
     
-    # Read the data and check via pyarrow dataset to keep partition columns
     df = pd.read_parquet(out_dir)
-    assert "time" in df.columns
-    assert "rpm" in df.columns
-    assert "fault_class" in df.columns
-    assert "Remaining_Useful_Life" in df.columns
+    assert_expected_columns(df)
     assert df["fault_class"].iloc[0] == "healthy"
     
     # RUL should be RUL_MAX for healthy
@@ -144,7 +149,7 @@ def test_run_pipeline_faulty(tmp_path, dummy_mission_yaml):
     
     df = pd.read_parquet(out_dir)
     assert df["fault_class"].iloc[0] == "misfire"
-    assert "Remaining_Useful_Life" in df.columns
+    assert_expected_columns(df)
     
     # The initial RUL should be capped or correctly calculated
     # For a 10s mission, if max RUL is 500, it'll start at 10.0 and count down.

@@ -48,10 +48,10 @@ class TestGetEnvironment:
         expected_temp = 15.0 - 0.001981 * expected_alt
         assert env["ambient_temperature"] == pytest.approx(expected_temp, abs=1.0)
 
-    def test_returns_all_three_keys(self):
+    def test_returns_expected_keys(self):
         sim = Simulation()
         env = sim.get_environment()
-        assert set(env.keys()) == {"ambient_temperature", "ambient_pressure", "air_density"}
+        assert set(env.keys()) == {"altitude", "ambient_temperature", "ambient_pressure", "air_density"}
 
     def test_ambient_temp_offset_affects_engine_outputs(self):
         sim_default = Simulation(throttle=0.5, altitude=0.0)

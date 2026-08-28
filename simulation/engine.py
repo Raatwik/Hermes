@@ -161,6 +161,7 @@ class Simulation:
         pressure_pa = 101325.0 * (std_temp_k / 288.15) ** 5.2561
         density = pressure_pa / (287.058 * temp_k)
         return {
+            "altitude": altitude_ft,
             "ambient_temperature": temp_k - 273.15,
             "ambient_pressure": pressure_pa / 1000.0,
             "air_density": density,
@@ -168,7 +169,10 @@ class Simulation:
 
     def get_state(self) -> dict[str, float]:
         mods = self._fault_manager.get_modifiers()
-        state: dict[str, float] = {"time": self._time}
+        state: dict[str, float] = {
+            "time": self._time,
+            "throttle": self._throttle
+        }
         for key, filt in self._filters.items():
             state[key] = filt.value + mods["output_offsets"].get(key, 0.0)
         rpm_fraction = state["rpm"] / 5500.0

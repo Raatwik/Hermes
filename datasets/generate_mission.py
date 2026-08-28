@@ -127,14 +127,15 @@ def run_pipeline(config_path: Optional[str] = None, output_dir: str = "data", dt
         
     records = []
     
-    def record_state():
+    def record_state(current_time: float):
         state = sim.get_state()
         environment = sim.get_environment()
         row = {**state, **environment}
         row["fault_class"] = scheduler.fault_class
+        row["fault_severity"] = scheduler.get_severity(current_time)
         records.append(row)
     
-    record_state()
+    record_state(0.0)
     
     num_steps = int(max_time / dt)
     for i in range(1, num_steps + 1):
@@ -144,7 +145,7 @@ def run_pipeline(config_path: Optional[str] = None, output_dir: str = "data", dt
         scheduler.inject_to(sim, current_time)
         
         sim.step(dt)
-        record_state()
+        record_state(current_time)
         
     df = pd.DataFrame(records)
     

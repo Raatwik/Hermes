@@ -1,14 +1,18 @@
 ambient_temp_offset: [-15.0, 15.0]
 phases:
-  - duration: [30, 60]
+  - name: Takeoff
+    duration: [30, 60]
     throttle: [0.9, 1.0]
     altitude: [0, 500]
-  - duration: [300, 600]
+  - name: Climb
+    duration: [300, 600]
     throttle: [0.75, 0.9]
     altitude: [500, 8000]
-  - duration: [1800, 3600]
+  - name: Cruise
+    duration: [1800, 3600]
     throttle: [0.5, 0.7]
     altitude: [8000, 10000]
-  - duration: [600, 900]
+  - name: Descent_Landing
+    duration: [600, 900]
     throttle: [0.2, 0.4]
     altitude: [0, 1000]
