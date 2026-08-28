@@ -29,8 +29,8 @@ def compute_residuals_for_file(filepath: str, output_dir: str) -> None:
         current_time = row["time"]
         dt = current_time - prev_time
         
-        sim.set_throttle(row["throttle"])
-        sim.set_altitude(row["altitude"])
+        sim.set_throttle(float(row["throttle"])) # type: ignore
+        sim.set_altitude(float(row["altitude"])) # type: ignore
         
         if dt > 0:
             sim.step(dt)
@@ -78,7 +78,7 @@ def _process_file_wrapper(args: Tuple[str, str]) -> bool:
         print(f"Error processing {filepath}: {e}")
         return False
 
-def generate_residuals(data_dir: str = "data", output_dir: str = "data_residuals", workers: int = None) -> None:
+def generate_residuals(data_dir: str = "data", output_dir: str = "data_residuals", workers: int | None = None) -> None:
     if workers is None:
         workers = multiprocessing.cpu_count()
         
