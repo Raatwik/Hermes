@@ -4,16 +4,16 @@ import os
 import random
 from dataclasses import dataclass
 
-from datasets.generate_mission import run_pipeline, FaultScheduler, parse_mission_config
+from datasets.generate_mission import run_pipeline, FaultScheduler, parse_mission_config, MissionProfile
 from simulation.fault_manager import KNOWN_FAULTS
 
 @dataclass
 class MissionTask:
     output_dir: str
     fault_class: str
-    profile: dict
+    profile: MissionProfile
 
-def generate_random_profile() -> dict:
+def generate_random_profile() -> MissionProfile:
     current_dir = os.path.dirname(os.path.abspath(__file__))
     missions_dir = os.path.join(current_dir, "missions")
     templates = [os.path.join(missions_dir, f) for f in os.listdir(missions_dir) if f.endswith(".yaml")]
@@ -24,7 +24,7 @@ def generate_random_profile() -> dict:
     return parse_mission_config(template)
 
 def generate_single_mission(task: MissionTask):
-    max_time = task.profile["setpoints"][-1]["time"]
+    max_time = task.profile.setpoints[-1]["time"]
     scheduler = FaultScheduler(max_time, force_fault_class=task.fault_class)
     run_pipeline(profile=task.profile, output_dir=task.output_dir, scheduler=scheduler)
 

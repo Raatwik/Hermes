@@ -44,3 +44,17 @@ data/
 .env.*
 *.pem
 *.key
+
+# Machine Learning & Caches
+models/
+checkpoints/
+tb_logs/
+wandb/
+mlruns/
+*.h5
+*.pt
+*.pth
+*.pkl
+.ipynb_checkpoints/
+.mypy_cache/
+.ruff_cache/
