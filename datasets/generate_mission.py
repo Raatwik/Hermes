@@ -74,23 +74,35 @@ def parse_mission_config(config_path: str) -> dict:
     if not phases:
         raise ValueError("YAML config must contain 'phases'.")
 
+    def sample_val(val):
+        if isinstance(val, list) and len(val) == 2:
+            return random.uniform(val[0], val[1])
+        return val
+
     setpoints = []
     current_time = 0.0
 
     for phase in phases:
+        duration = sample_val(phase["duration"])
+        throttle = sample_val(phase["throttle"])
+        altitude = sample_val(phase["altitude"])
+        
         setpoints.append({
             "time": current_time,
-            "throttle": phase["throttle"],
-            "altitude": phase["altitude"]
+            "throttle": throttle,
+            "altitude": altitude
         })
-        current_time += phase["duration"]
+        current_time += duration
         setpoints.append({
             "time": current_time,
-            "throttle": phase["throttle"],
-            "altitude": phase["altitude"]
+            "throttle": throttle,
+            "altitude": altitude
         })
 
-    return {"setpoints": setpoints}
+    ambient_temp_offset = data.get("ambient_temp_offset", 0.0)
+    ambient_temp_offset = sample_val(ambient_temp_offset)
+
+    return {"setpoints": setpoints, "ambient_temp_offset": ambient_temp_offset}
 
 
 def run_pipeline(config_path: Optional[str] = None, output_dir: str = "data", dt: float = 0.1, scheduler: Optional[FaultScheduler] = None, profile: Optional[dict] = None, noise_seed: Optional[int] = 42) -> None:
@@ -103,7 +115,8 @@ def run_pipeline(config_path: Optional[str] = None, output_dir: str = "data", dt
             raise ValueError("Must provide either config_path or profile")
         profile = parse_mission_config(config_path)
     
-    sim = Simulation(noise_seed=noise_seed)
+    ambient_temp_offset = profile.get("ambient_temp_offset", 0.0)
+    sim = Simulation(noise_seed=noise_seed, ambient_temp_offset=ambient_temp_offset)
     sim.load_profile(profile)
     sim.step(dt=0.0)
     

@@ -69,6 +69,42 @@ def test_parse_mission_config():
     finally:
         os.remove(temp_path)
 
+def test_parse_mission_config_with_ranges():
+    yaml_content = """
+    ambient_temp_offset: [-10.0, 10.0]
+    phases:
+      - duration: [50, 70]
+        throttle: [0.2, 0.4]
+        altitude: [0, 1000]
+    """
+    with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.yaml') as f:
+        f.write(yaml_content)
+        temp_path = f.name
+    
+    try:
+        profile = parse_mission_config(temp_path)
+        assert "setpoints" in profile
+        assert "ambient_temp_offset" in profile
+        
+        amb_temp = profile["ambient_temp_offset"]
+        assert -10.0 <= amb_temp <= 10.0
+        
+        setpoints = profile["setpoints"]
+        assert len(setpoints) == 2
+        
+        # t=0
+        assert setpoints[0]["time"] == 0
+        assert 0.2 <= setpoints[0]["throttle"] <= 0.4
+        assert 0 <= setpoints[0]["altitude"] <= 1000
+        
+        # t=end
+        duration = setpoints[1]["time"]
+        assert 50 <= duration <= 70
+        assert setpoints[1]["throttle"] == setpoints[0]["throttle"]
+        assert setpoints[1]["altitude"] == setpoints[0]["altitude"]
+    finally:
+        os.remove(temp_path)
+
 
 def test_run_pipeline_healthy(tmp_path, dummy_mission_yaml):
     out_dir = tmp_path / "data"

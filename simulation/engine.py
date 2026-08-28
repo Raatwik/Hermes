@@ -105,9 +105,10 @@ def _interp_profile_value(
 
 
 class Simulation:
-    def __init__(self, throttle: float = 0.0, altitude: float = 0.0, noise_seed: int | None = None) -> None:
+    def __init__(self, throttle: float = 0.0, altitude: float = 0.0, noise_seed: int | None = None, ambient_temp_offset: float = 0.0) -> None:
         self._throttle: float = throttle
         self._altitude: float = altitude
+        self._ambient_temp_offset: float = ambient_temp_offset
         self._time: float = 0.0
         self._profile: list[dict[str, float]] | None = None
         self._fault_manager: FaultManager = FaultManager()
@@ -155,8 +156,9 @@ class Simulation:
     def get_environment(self) -> dict[str, float]:
         altitude_ft = self._altitude
         altitude_m = altitude_ft * 0.3048
-        temp_k = 288.15 - 0.0065 * altitude_m
-        pressure_pa = 101325.0 * (temp_k / 288.15) ** 5.2561
+        std_temp_k = 288.15 - 0.0065 * altitude_m
+        temp_k = std_temp_k + self._ambient_temp_offset
+        pressure_pa = 101325.0 * (std_temp_k / 288.15) ** 5.2561
         density = pressure_pa / (287.058 * temp_k)
         return {
             "ambient_temperature": temp_k - 273.15,
