@@ -50,6 +50,7 @@ class TelemetryDataset(Dataset):
     def __init__(self, file_paths: List[str], config: DatasetConfig):
         self.config = config
         self.data_windows = []
+        self.targets = []
         self.feature_cols = None
         
         # Load and slice into sliding windows
@@ -69,19 +70,35 @@ class TelemetryDataset(Dataset):
                 continue
                 
             features = df[self.feature_cols].values
+            num_steps = len(features)
+            
+            # RUL (Remaining Useful Life) in hours
+            if num_steps > 0:
+                if 'time' in df.columns:
+                    max_time = df['time'].iloc[-1]
+                    # Assuming time is in seconds, convert to hours
+                    rul_values = (max_time - df['time']).values / 3600.0
+                else:
+                    # Fallback: assume 1 Hz downsampled frequency = seconds
+                    rul_values = pd.Series(range(num_steps))[::-1].values / 3600.0
+            else:
+                rul_values = []
             
             # Create sliding windows
-            num_windows = len(features) - self.config.window_size + 1
+            num_windows = num_steps - self.config.window_size + 1
             for i in range(num_windows):
                 window = features[i:i + self.config.window_size]
+                target = rul_values[i + self.config.window_size - 1]
                 self.data_windows.append(window)
+                self.targets.append(target)
                 
     def __len__(self) -> int:
         return len(self.data_windows)
         
-    def __getitem__(self, idx: int) -> torch.Tensor:
+    def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor]:
         window = self.data_windows[idx]
-        return torch.tensor(window, dtype=torch.float32)
+        target = self.targets[idx]
+        return torch.tensor(window, dtype=torch.float32), torch.tensor(target, dtype=torch.float32)
 
 def get_dataloaders(data_dir: str, batch_size: int = 32, config: DatasetConfig = None, num_workers: int = 0) -> Tuple[DataLoader, DataLoader]:
     if config is None:

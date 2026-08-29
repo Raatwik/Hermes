@@ -55,7 +55,7 @@ def test_telemetry_dataset_shapes_and_split(dummy_dataset_dir):
     assert len(val_dataset) == 11
     
     # Check item
-    features = train_dataset[0]
+    features, target = train_dataset[0]
     
     # Based on the feature logic:
     # base_cols + residual_cols
@@ -64,6 +64,8 @@ def test_telemetry_dataset_shapes_and_split(dummy_dataset_dir):
     # Total features = 2
     assert features.shape == (config.window_size, 2)
     assert isinstance(features, torch.Tensor)
+    assert isinstance(target, torch.Tensor)
+    assert target.shape == ()
 
 def test_dataloaders(dummy_dataset_dir):
     batch_size = 8
@@ -76,7 +78,8 @@ def test_dataloaders(dummy_dataset_dir):
     )
     
     # Check shapes from dataloader
-    batch_features = next(iter(train_loader))
+    batch_features, batch_targets = next(iter(train_loader))
     
     # features shape should be [batch_size, sequence_length, num_features]
     assert batch_features.shape == (batch_size, config.window_size, 2)
+    assert batch_targets.shape == (batch_size,)
