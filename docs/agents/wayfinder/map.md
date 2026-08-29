@@ -23,6 +23,7 @@ Deliver a fully functional MVP of the MALE-UAV Digital Twin, complete with the s
 - [.scratch/datasets/issues/phase 2/05-sensor-noise.md](../../../.scratch/datasets/issues/phase 2/05-sensor-noise.md) — Added sensor noise to simulation and `time_since_fault_injection` metadata.
 - [.scratch/datasets/issues/phase 2/06-weather-bounds.md](../../../.scratch/datasets/issues/phase 2/06-weather-bounds.md) — Enabled `ambient_temp_offset` and bounds sampling `[min, max]` for mission configurations.
 - [.scratch/datasets/issues/phase 2/07-base-missions.md](../../../.scratch/datasets/issues/phase 2/07-base-missions.md) — Created `takeoff_cruise.yaml` & `loiter.yaml` and refactored bulk generator to use them.
+- [03-ml-engineer.md](03-ml-engineer.md) — ML pipeline architecture finalized: pre-computing residuals via physics-based digital twin, extracting context features, using XGBoost for Stage 1, and mission-based train/test splitting.
 
 ## Open Tickets (The Frontier)
 
