@@ -1,0 +1,119 @@
+.dashboard-grid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.dashboard-columns {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.dashboard-sidebar {
+  display: flex;
+  flex-direction: column;
+}
+
+.vertical-status-panel {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+
+.vertical-status-panel .status-card {
+  padding: 1.5rem;
+}
+
+.status-divider {
+  height: 1px;
+  background-color: var(--border-color);
+  margin: 0 1.5rem;
+}
+
+.dashboard-main-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.section-title {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 1rem;
+  font-weight: 700;
+}
+
+.readouts-panel {
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;
+  padding: 0;
+}
+
+.readout-divider {
+  width: 1px;
+  background-color: var(--border-color);
+  margin: 1rem 0;
+}
+
+.bottom-row {
+  grid-template-columns: 1fr 2fr;
+}
+
+.advisory-panel {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+  border-color: var(--border-warning);
+}
+
+.advisory-panel .alert-banner,
+.advisory-panel .recommendation-banner {
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  background-color: transparent;
+}
+
+.advisory-divider {
+  height: 1px;
+  background-color: var(--border-color);
+  margin: 0;
+}
+
+/* Make sure the core readouts section is cleanly spaced */
+.core-readouts-section {
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 1200px) {
+  .dashboard-columns {
+    grid-template-columns: 320px 1fr;
+  }
+  .readouts-panel {
+    flex-wrap: wrap;
+  }
+  .readout-divider {
+    display: none;
+  }
+  .telemetry-item {
+    flex: 1 1 calc(33% - 1rem);
+  }
+}
+
+@media (max-width: 900px) {
+  .dashboard-columns {
+    grid-template-columns: 1fr;
+  }
+  .bottom-row {
+    grid-template-columns: 1fr;
+  }
+  .telemetry-item {
+    flex: 1 1 calc(50% - 1rem);
+  }
+}
