@@ -39,3 +39,19 @@ We will build a React frontend located in the `/frontend` directory at the repos
 ## Further Notes
 
 - Synchronize with the backend team to agree on the exact WebSocket payloads (telemetry schema) and REST API endpoints.
+
+## Resolutions & Progress
+
+**Operator Dashboard (`/frontend/src/views/Operator`)**
+- Implemented `OperatorDashboard.jsx` layout utilizing a sidebar and main content area.
+- Added live telemetry tracking via `TelemetryTable` (RPM, Oil Pressure, Oil Temperature, and individual cylinder EGT/CHT metrics).
+- Built widgets for `SidebarSummaryPanel` (health, risk), `RulWidget` (Remaining Useful Life), and `MissionProgress` with different flight phases.
+- Integrated `AlertBanner` for mock warnings and a `RecommendationBanner` for receiving active mitigations from the Propulsion Engineer.
+- Handled state via Zustand store (`useEngineStore`).
+
+**Propulsion Engineer Dashboard (`/frontend/src/views/Engineer`)**
+- Implemented `EngineerDashboard.jsx` grid layout for detailed diagnostics and twin comparison.
+- Added a Mission Context Bar displaying Phase, Altitude, RPM, Engine Load, OAT, MAP, and Fuel Flow.
+- Built and integrated key widgets: `FaultProbabilityMatrix`, `EngineHealthWidget`, `DegradationCauseGraph`, `TwinDriftChart`, and `ResidualTimeSeries`.
+- Added what-if capability via `MissionSandboxWidget` and `TwinComparisonWidget`.
+- Connected to live telemetry state via `connectLiveTelemetry` in `useEngineStore`.

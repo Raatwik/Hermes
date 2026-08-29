@@ -24,10 +24,10 @@ Deliver a fully functional MVP of the MALE-UAV Digital Twin, complete with the s
 - [.scratch/datasets/issues/phase 2/06-weather-bounds.md](../../../.scratch/datasets/issues/phase 2/06-weather-bounds.md) — Enabled `ambient_temp_offset` and bounds sampling `[min, max]` for mission configurations.
 - [.scratch/datasets/issues/phase 2/07-base-missions.md](../../../.scratch/datasets/issues/phase 2/07-base-missions.md) — Created `takeoff_cruise.yaml` & `loiter.yaml` and refactored bulk generator to use them.
 - [03-ml-engineer.md](03-ml-engineer.md) — ML pipeline architecture finalized: pre-computing residuals via physics-based digital twin, extracting context features, using XGBoost for Stage 1, and mission-based train/test splitting.
+- [02-frontend.md](02-frontend.md) — Frontend architecture designed and Operator/Engineer dashboards implemented with live telemetry integration and respective widgets.
 
 ## Open Tickets (The Frontier)
 
-- [02-frontend.md](02-frontend.md) — Frontend: Operator Dashboard MVP
 - [03-ml-engineer.md](03-ml-engineer.md) — ML Engineer: Diagnostics & RUL Models (Unblocked)
 - [06-integration.md](06-integration.md) — Integration: Real-Time Backend & MQTT (Blocked by 02, 03, 04)
 

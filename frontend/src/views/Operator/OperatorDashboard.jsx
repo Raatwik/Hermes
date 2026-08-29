@@ -1,4 +1,5 @@
 import React from 'react';
+import useEngineStore from '../../store/useEngineStore';
 import OperatorLayout from '../../components/layout/OperatorLayout';
 import { SidebarSummaryPanel, AlertBanner, TelemetryTable } from '../../components/widgets/Widgets';
 import { RulWidget, MissionProgress, RecommendationBanner } from '../../components/widgets/MissionWidgets';
@@ -10,6 +11,8 @@ import {
 import './OperatorDashboard.css';
 
 export default function OperatorDashboard() {
+  const activeRecommendation = useEngineStore(state => state.activeRecommendation);
+
   const telemetryData = [
     { title: 'RPM', expected: '2,450', current: '2,450', deviation: '0.0%', unit: 'RPM', status: 'NORMAL', icon: Gauge, colorClass: 'good' },
     { title: 'OIL PRESSURE', expected: '65', current: '64', deviation: '-1.5%', unit: 'psi', status: 'NORMAL', icon: Droplet, colorClass: 'good' },
@@ -102,15 +105,19 @@ export default function OperatorDashboard() {
       <div className="bottom-content-grid">
         {/* Recommendation Panel */}
         <div className="card advisory-panel">
-          <RecommendationBanner 
-            title="RECOMMENDATION: EGT MITIGATION"
-            options={[
-              { action: "Stay as is", consequence: "Risk 18%" },
-              { action: "Drop to 15,000 ft", consequence: "Risk 17%, lose 10 min endurance" },
-              { action: "Reduce load", consequence: "Risk 12%, lose 20 min endurance" }
-            ]}
-            isGood={false}
-          />
+          {activeRecommendation ? (
+            <RecommendationBanner 
+              title={activeRecommendation.title}
+              options={activeRecommendation.options}
+              isGood={activeRecommendation.isGood}
+            />
+          ) : (
+            <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+              <CheckCircle2 size={48} style={{ margin: '0 auto 1rem', color: 'var(--color-good)', opacity: 0.5 }} />
+              <div style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>SYSTEM NOMINAL</div>
+              <div style={{ fontSize: '0.8rem' }}>No active mitigations recommended from Propulsion Engineer.</div>
+            </div>
+          )}
         </div>
       </div>
         </div>
