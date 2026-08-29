@@ -41,7 +41,7 @@ Create a new `ml_pipeline` directory containing four main components:
 
 ## Out of Scope
 
-- Stage 2 LSTM (RUL Prediction) is out of scope for this initial baseline iteration.
+- Stage 2 LSTM (RUL Prediction) is tracked in [03.1-ml-engineer-stage-2.md](03.1-ml-engineer-stage-2.md).
 - Advanced PINN-GAT-ODE research.
 - Real-time inference integration with the GCS dashboard.
 
