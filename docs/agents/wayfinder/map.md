@@ -23,16 +23,16 @@ Deliver a fully functional MVP of the MALE-UAV Digital Twin, complete with the s
 - [.scratch/datasets/issues/phase 2/05-sensor-noise.md](../../../.scratch/datasets/issues/phase 2/05-sensor-noise.md) — Added sensor noise to simulation and `time_since_fault_injection` metadata.
 - [.scratch/datasets/issues/phase 2/06-weather-bounds.md](../../../.scratch/datasets/issues/phase 2/06-weather-bounds.md) — Enabled `ambient_temp_offset` and bounds sampling `[min, max]` for mission configurations.
 - [.scratch/datasets/issues/phase 2/07-base-missions.md](../../../.scratch/datasets/issues/phase 2/07-base-missions.md) — Created `takeoff_cruise.yaml` & `loiter.yaml` and refactored bulk generator to use them.
-- [03-ml-engineer.md](03-ml-engineer.md) — ML pipeline architecture finalized: pre-computing residuals via physics-based digital twin, extracting context features, using XGBoost for Stage 1, and mission-based train/test splitting.
+- [03-ml-engineer.md](03-ml-engineer.md) — ML pipeline Stage 1 completed: scripts written for residual generation, feature engineering, and training XGBoost/Isolation Forest.
+- [03.1-ml-engineer-stage-2.md](03.1-ml-engineer-stage-2.md) — ML Stage 2 completed: implemented probabilistic LSTM for RUL prediction using PyTorch, optimized via Negative Log-Likelihood.
+- [03.2-ml-training-guide.md](03.2-ml-training-guide.md) — ML Training Execution Guide: documented step-by-step commands, time estimates, default hyperparams, and RAM limits for offline model training.
 
 ## Open Tickets (The Frontier)
 
 - [02-frontend.md](02-frontend.md) — Frontend: Operator Dashboard MVP
-- [03-ml-engineer.md](03-ml-engineer.md) — ML Engineer: Diagnostics & RUL Models (Unblocked)
-- [03.1-ml-engineer-stage-2.md](03.1-ml-engineer-stage-2.md) — ML Engineer: Stage 2 (Time-Series RUL & Degradation Models)
 - [04.2-simulation-cylinder-faults.md](04.2-simulation-cylinder-faults.md) — Simulation: Phase 3 (Cylinder Specific Faults & Windmilling)
 - [05.3-datasets-cascading-faults.md](05.3-datasets-cascading-faults.md) — Datasets: Phase 3 (Cascading Faults & Schema Evolution)
-- [06-integration.md](06-integration.md) — Integration: Real-Time Backend & MQTT (Blocked by 02, 03, 04)
+- [06-integration.md](06-integration.md) — Integration: Real-Time Backend & MQTT (Blocked by 02, 04)
 
 ## Not yet specified
 
