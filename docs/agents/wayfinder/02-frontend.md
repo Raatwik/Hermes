@@ -55,3 +55,11 @@ We will build a React frontend located in the `/frontend` directory at the repos
 - Built and integrated key widgets: `FaultProbabilityMatrix`, `EngineHealthWidget`, `DegradationCauseGraph`, `TwinDriftChart`, and `ResidualTimeSeries`.
 - Added what-if capability via `MissionSandboxWidget` and `TwinComparisonWidget`.
 - Connected to live telemetry state via `connectLiveTelemetry` in `useEngineStore`.
+
+**Maintenance Dashboard (`/frontend/src/views/Maintenance`)**
+- Implemented `MaintenanceDashboard.jsx` grid layout displaying POST-FLIGHT / IDLE status.
+- Added a sidebar with `RulWidget`, overall engine health degradation bar, and maintenance priority alerts.
+- Built a Diagnosis Panel showing suspected faults (e.g. INJECTOR DEGRADATION) and supporting evidence (residuals, vibration trends).
+- Added an Advisory Panel with maintenance steps and an interactive "GENERATE WORK ORDER" flow.
+- Created `PostFlightLog.jsx` displaying a tabular history of missions, anomalies, and risk levels.
+- Implemented `MissionDetailsModal.jsx` portal to display an anomaly breakdown and peak metrics (EGT, CHT, Oil Temp/Pressure) for selected missions.
