@@ -13,6 +13,7 @@
 .dashboard-sidebar {
   display: flex;
   flex-direction: column;
+  gap: 1.5rem;
 }
 
 .vertical-status-panel {
@@ -46,21 +47,19 @@
   font-weight: 700;
 }
 
-.readouts-panel {
-  display: flex;
-  justify-content: space-between;
-  align-items: stretch;
+.telemetry-table-card {
   padding: 0;
-}
-
-.readout-divider {
-  width: 1px;
-  background-color: var(--border-color);
-  margin: 1rem 0;
+  overflow-x: auto;
 }
 
 .bottom-row {
   grid-template-columns: 1fr 2fr;
+}
+
+.bottom-content-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
 }
 
 .advisory-panel {
@@ -79,10 +78,14 @@
   background-color: transparent;
 }
 
-.advisory-divider {
-  height: 1px;
-  background-color: var(--border-color);
-  margin: 0;
+.sidebar-alert .alert-content {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+}
+
+.sidebar-alert .alert-banner {
+  align-items: flex-start;
 }
 
 /* Make sure the core readouts section is cleanly spaced */
@@ -95,11 +98,11 @@
   .dashboard-columns {
     grid-template-columns: 320px 1fr;
   }
-  .readouts-panel {
-    flex-wrap: wrap;
+  .telemetry-table-card {
+    overflow-x: auto;
   }
-  .readout-divider {
-    display: none;
+  .bottom-content-grid {
+    grid-template-columns: 1fr;
   }
   .telemetry-item {
     flex: 1 1 calc(33% - 1rem);

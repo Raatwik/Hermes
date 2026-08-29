@@ -1,6 +1,6 @@
 import React from 'react';
 import OperatorLayout from '../../components/layout/OperatorLayout';
-import { SidebarSummaryPanel, AlertBanner, TelemetryItem } from '../../components/widgets/Widgets';
+import { SidebarSummaryPanel, AlertBanner, TelemetryTable } from '../../components/widgets/Widgets';
 import { RulWidget, MissionProgress, RecommendationBanner } from '../../components/widgets/MissionWidgets';
 import { 
   Settings, ShieldAlert, CheckCircle2, 
@@ -10,6 +10,23 @@ import {
 import './OperatorDashboard.css';
 
 export default function OperatorDashboard() {
+  const telemetryData = [
+    { title: 'RPM', expected: '2,450', current: '2,450', deviation: '0.0%', unit: 'RPM', status: 'NORMAL', icon: Gauge, colorClass: 'good' },
+    { title: 'OIL PRESSURE', expected: '65', current: '64', deviation: '-1.5%', unit: 'psi', status: 'NORMAL', icon: Droplet, colorClass: 'good' },
+    { title: 'OIL TEMPERATURE', expected: '95', current: '98', deviation: '+3.1%', unit: '°C', status: 'NORMAL', icon: Thermometer, colorClass: 'good' }
+  ];
+
+  const cylinderMetrics = [
+    { type: 'EGT', cyl: 1, expected: 650, current: 645, isWarning: false, unit: '°C' },
+    { type: 'EGT', cyl: 2, expected: 650, current: 652, isWarning: false, unit: '°C' },
+    { type: 'EGT', cyl: 3, expected: 650, current: 672, isWarning: true, unit: '°C' },
+    { type: 'EGT', cyl: 4, expected: 650, current: 648, isWarning: false, unit: '°C' },
+    { type: 'CHT', cyl: 1, expected: 155, current: 154, isWarning: false, unit: '°C' },
+    { type: 'CHT', cyl: 2, expected: 155, current: 155, isWarning: false, unit: '°C' },
+    { type: 'CHT', cyl: 3, expected: 155, current: 156, isWarning: false, unit: '°C' },
+    { type: 'CHT', cyl: 4, expected: 155, current: 153, isWarning: false, unit: '°C' }
+  ];
+
   const missionPhases = [
     { name: 'TAKEOFF', icon: PlaneTakeoff },
     { name: 'CLIMB', icon: TrendingUp },
@@ -54,6 +71,21 @@ export default function OperatorDashboard() {
             riskValue="18%"
             riskColorClass="warning"
           />
+          <RulWidget 
+            hours={143} 
+            text="Adequate for planned mission" 
+            isGood={true} 
+          />
+          <MissionProgress 
+            phases={missionPhases}
+            currentPhaseIndex={2}
+            progressPercent={45}
+            elapsed="02:15:32"
+            remaining="03:44:28"
+          />
+          <div className="card advisory-panel sidebar-alert">
+            <AlertBanner warnings={mockWarnings} />
+          </div>
         </aside>
 
         {/* Right Main Content */}
@@ -61,46 +93,26 @@ export default function OperatorDashboard() {
           {/* Live Core Readouts */}
           <div className="core-readouts-section">
             <h3 className="section-title">LIVE CORE READOUTS</h3>
-        <div className="card readouts-panel">
-          <TelemetryItem title="RPM" value="2,450" unit="RPM" status="NORMAL" icon={Gauge} colorClass="good" />
-          <div className="readout-divider"></div>
-          <TelemetryItem title="EGT" value="672" unit="°C" status="ELEVATED" icon={Thermometer} colorClass="warning" />
-          <div className="readout-divider"></div>
-          <TelemetryItem title="CHT" value="156" unit="°C" status="NORMAL" icon={Thermometer} colorClass="good" />
-          <div className="readout-divider"></div>
-          <TelemetryItem title="OIL PRESSURE" value="64" unit="psi" status="NORMAL" icon={Droplet} colorClass="good" />
-          <div className="readout-divider"></div>
-          <TelemetryItem title="OIL TEMPERATURE" value="98" unit="°C" status="NORMAL" icon={Thermometer} colorClass="good" />
+        <div className="card telemetry-table-card">
+          <TelemetryTable data={telemetryData} cylinderMetrics={cylinderMetrics} />
         </div>
       </div>
 
-      {/* Advisory Panel */}
-      <div className="card advisory-panel">
-        <AlertBanner warnings={mockWarnings} />
-        <div className="advisory-divider"></div>
-        <RecommendationBanner 
-          title="RECOMMENDATION"
-          text="Reduce throttle to 85% to mitigate elevated EGT."
-          subtext="Engine temps are climbing. Reducing engine load will stabilize temperatures without compromising flight envelope."
-          isGood={false}
-        />
-      </div>
-
-      {/* Bottom Widgets Row */}
-      <div className="dashboard-grid bottom-row">
-        <RulWidget 
-          hours={143} 
-          text="Adequate for planned mission" 
-          isGood={true} 
-        />
-        <MissionProgress 
-          phases={missionPhases}
-          currentPhaseIndex={2}
-          progressPercent={45}
-          elapsed="02:15:32"
-          remaining="03:44:28"
-        />
+      {/* Bottom Content Area */}
+      <div className="bottom-content-grid">
+        {/* Recommendation Panel */}
+        <div className="card advisory-panel">
+          <RecommendationBanner 
+            title="RECOMMENDATION: EGT MITIGATION"
+            options={[
+              { action: "Stay as is", consequence: "Risk 18%" },
+              { action: "Drop to 15,000 ft", consequence: "Risk 17%, lose 10 min endurance" },
+              { action: "Reduce load", consequence: "Risk 12%, lose 20 min endurance" }
+            ]}
+            isGood={false}
+          />
         </div>
+      </div>
         </div>
       </div>
     </OperatorLayout>

@@ -360,3 +360,157 @@
   font-size: 2rem;
   font-weight: 700;
 }
+
+/* Telemetry Table */
+.telemetry-table-wrapper {
+  width: 100%;
+}
+
+.telemetry-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.telemetry-table th {
+  padding: 1rem 1.5rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+  border-bottom: 1px solid var(--border-color);
+  white-space: nowrap;
+}
+
+.telemetry-table td {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  vertical-align: middle;
+}
+
+.telemetry-row:hover {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.telemetry-table tr:last-child td {
+  border-bottom: none;
+}
+
+.param-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.param-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background-color: var(--bg-hover);
+  border-radius: 8px;
+}
+
+.param-title {
+  font-weight: 700;
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+.value-cell {
+  white-space: nowrap;
+}
+
+.value-cell .value-main {
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.value-cell .value-unit {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-left: 0.25rem;
+  font-weight: 500;
+}
+
+.deviation-cell {
+  font-weight: 700;
+  font-size: 0.95rem;
+  white-space: nowrap;
+}
+
+.status-cell {
+  white-space: nowrap;
+}
+
+/* Cylinder Sub-table */
+.telemetry-subsection-header td {
+  padding: 1.5rem 1.5rem 0.5rem 1.5rem;
+  border-bottom: none;
+}
+
+.subsection-title {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.cylinder-cell {
+  padding: 0.5rem 1.5rem 1.5rem 1.5rem !important;
+}
+
+.cylinder-grid-8 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.cylinder-card {
+  background-color: var(--bg-hover);
+  border-radius: 8px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.cylinder-card.has-warning {
+  border-color: var(--color-warning);
+  background-color: rgba(234, 179, 8, 0.05);
+}
+
+.cyl-header {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.5rem;
+  text-align: center;
+}
+
+.cyl-data {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.cyl-data-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.875rem;
+}
+
+.cyl-label {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.cyl-val {
+  font-weight: 700;
+}

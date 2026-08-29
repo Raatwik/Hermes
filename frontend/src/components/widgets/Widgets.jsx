@@ -198,3 +198,77 @@ export function SidebarSummaryPanel({ engineHealth, systemStatus, riskValue, ris
     </div>
   );
 }
+
+export function TelemetryTable({ data, cylinderMetrics }) {
+  return (
+    <div className="telemetry-table-wrapper">
+      <table className="telemetry-table">
+        <thead>
+          <tr>
+            <th>PARAMETER</th>
+            <th>TWIN EXPECTED</th>
+            <th>CURRENT ACTUAL</th>
+            <th>DEVIATION</th>
+            <th>STATUS</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((item, idx) => (
+            <tr key={idx} className="telemetry-row">
+              <td className="param-cell">
+                <div className={`param-icon text-${item.colorClass}`}>
+                  <item.icon size={18} />
+                </div>
+                <span className="param-title">{item.title}</span>
+              </td>
+              <td className="value-cell">
+                <span className="value-main">{item.expected}</span>
+                <span className="value-unit">{item.unit}</span>
+              </td>
+              <td className="value-cell">
+                <span className="value-main">{item.current}</span>
+                <span className="value-unit">{item.unit}</span>
+              </td>
+              <td className={`deviation-cell text-${item.colorClass}`}>
+                {item.deviation}
+              </td>
+              <td className="status-cell">
+                <div className={`badge badge-${item.colorClass}`}>{item.status}</div>
+              </td>
+            </tr>
+          ))}
+          {cylinderMetrics && (
+            <>
+              <tr className="telemetry-subsection-header">
+                <td colSpan="5">
+                  <div className="subsection-title">CYLINDER READOUTS (EGT / CHT)</div>
+                </td>
+              </tr>
+              <tr className="telemetry-row cylinder-row">
+                <td colSpan="5" className="cylinder-cell">
+                  <div className="cylinder-grid-8">
+                    {cylinderMetrics.map((metric, idx) => (
+                      <div key={idx} className={`cylinder-card ${metric.isWarning ? 'has-warning' : ''}`}>
+                        <div className="cyl-header">CYL {metric.cyl} {metric.type}</div>
+                        <div className="cyl-data">
+                          <div className="cyl-data-row">
+                            <span className="cyl-label">EXPECTED</span>
+                            <span className="cyl-val">{metric.expected} {metric.unit}</span>
+                          </div>
+                          <div className="cyl-data-row">
+                            <span className="cyl-label">CURRENT</span>
+                            <span className={`cyl-val ${metric.isWarning ? 'text-warning' : ''}`}>{metric.current} {metric.unit}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </td>
+              </tr>
+            </>
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+}
