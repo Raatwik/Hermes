@@ -34,7 +34,12 @@ def main():
     parser.add_argument("--num_missions", type=int, default=12, help="Number of missions to generate")
     parser.add_argument("--workers", type=int, default=multiprocessing.cpu_count(), help="Number of workers")
     
+    import shutil
+    
     args = parser.parse_args()
+    
+    # Wipe the old dataset to ensure a clean schema for ML
+    shutil.rmtree(args.out, ignore_errors=True)
     
     all_classes = ["healthy"] + list(KNOWN_FAULTS)
     tasks = []

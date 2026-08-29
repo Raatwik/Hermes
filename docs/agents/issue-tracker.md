@@ -7,8 +7,8 @@
 - **Milestone 4: End-to-End Integration.** The FastAPI backend seamlessly glues the data generator, ML inference, and frontend together in real-time.
 
 ## 2. Cross-Stream Blockers
-- **Datasets** is complete — **Simulation** and **Datasets** have successfully combined to provide a functional MVEM engine and a highly realistic telemetry generation pipeline. Milestone 1 is fully operational. We have successfully generated 1,000 mission profiles across healthy and faulty classes and stored them in `data/`.
-- **ML Engineer** is now COMPLETE for MVP. The Stage 1 anomaly detection (XGBoost/Isolation Forest) and Stage 2 RUL forecasting (Probabilistic LSTM) are fully operational and have been wrapped into an inference pipeline.
+- **Datasets / Simulation (Phase 3)** is complete — The core engine and bulk pipeline have been updated to support individual cylinder telemetry (`egt_1` to `egt_4`) and secondary cascading faults (e.g., `cylinder_failure`). The dataset generation logic will automatically wipe old data and generate unified schemas for ML training. Milestone 1 is fully operational and enhanced.
+- **ML Engineer** is now COMPLETE for MVP. The Stage 1 anomaly detection (XGBoost/Isolation Forest) and Stage 2 RUL forecasting (Probabilistic LSTM) are fully operational and have been wrapped into an inference pipeline. *Note: ML pipelines have been patched for the Phase 3 schema, and 500 missions of data have been generated. The models just need to be retrained on this new dataset (e.g. via Kaggle).*
 - **Integration** is blocked by **Frontend**; it requires the UI interfaces and ML endpoints to build the final API/MQTT orchestration layer. (Simulation and ML Engineer interfaces are now ready for consumption).
 
 ## 3. Wayfinder Team Tracks Index

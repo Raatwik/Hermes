@@ -27,10 +27,13 @@ Deliver a fully functional MVP of the MALE-UAV Digital Twin, complete with the s
 - [03.1-ml-engineer-stage-2.md](03.1-ml-engineer-stage-2.md) — ML Stage 2 completed: implemented probabilistic LSTM for RUL prediction using PyTorch, optimized via Negative Log-Likelihood.
 - [03.2-ml-training-guide.md](03.2-ml-training-guide.md) — ML Training Execution Guide: documented step-by-step commands, time estimates, default hyperparams, and RAM limits for offline model training.
 
+- [04.2-simulation-cylinder-faults.md](04.2-simulation-cylinder-faults.md) — Simulation Phase 3 completed: added individual cylinder EGTs and windmilling.
+- [05.3-datasets-cascading-faults.md](05.3-datasets-cascading-faults.md) — Datasets Phase 3 completed: cascading secondary faults and updated ML schema generation.
+
 ## Open Tickets (The Frontier)
 
 - [02-frontend.md](02-frontend.md) — Frontend: Operator Dashboard MVP
-- [06-integration.md](06-integration.md) — Integration: Real-Time Backend & MQTT (Blocked by 02, 04)
+- [06-integration.md](06-integration.md) — Integration: Real-Time Backend & MQTT (Blocked by 02)
 
 ## Not yet specified
 

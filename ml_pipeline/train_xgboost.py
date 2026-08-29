@@ -47,7 +47,8 @@ def train_model(data_dir: str = "data_features", output_model: str = "models/xgb
     exclude_cols = [
         "time", target_col, group_col, "throttle", "altitude", 
         "ambient_temperature", "ambient_pressure", "air_density", 
-        "flight_phase", "time_since_fault_injection"
+        "flight_phase", "time_since_fault_injection",
+        "secondary_fault_class", "secondary_fault_severity"
     ]
     
     feature_cols = [c for c in df.columns if c not in exclude_cols and pd.api.types.is_numeric_dtype(df[c])]
