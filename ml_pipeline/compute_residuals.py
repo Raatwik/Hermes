@@ -44,7 +44,7 @@ def compute_residuals_for_file(filepath: str, output_dir: str) -> None:
     expected_df = pd.DataFrame(expected_records)
     
     # Compute residuals for all relevant engine parameters
-    sensor_cols = list(TIME_CONSTANTS.keys()) + ["vibration_index", "engine_load", "injection_timing"]
+    sensor_cols = list(TIME_CONSTANTS.keys()) + ["vibration_index", "engine_load", "injection_timing", "egt_1", "egt_2", "egt_3", "egt_4"]
     
     for col in sensor_cols:
         df[f"{col}_expected"] = expected_df[col]
