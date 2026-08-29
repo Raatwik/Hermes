@@ -8,6 +8,10 @@ SENSOR_NOISE_STD: dict[str, float] = {
     "rpm": 10.0,
     "cht": 2.0,
     "egt": 5.0,
+    "egt_1": 5.0,
+    "egt_2": 5.0,
+    "egt_3": 5.0,
+    "egt_4": 5.0,
     "oil_pressure": 0.5,
     "oil_temp": 1.0,
     "fuel_flow": 0.2,
@@ -175,6 +179,12 @@ class Simulation:
         }
         for key, filt in self._filters.items():
             state[key] = filt.value + mods["output_offsets"].get(key, 0.0)
+            
+        base_egt = state["egt"]
+        for i in range(1, 5):
+            cyl_key = f"egt_{i}"
+            state[cyl_key] = base_egt + mods["output_offsets"].get(cyl_key, 0.0)
+            
         rpm_fraction = state["rpm"] / 5500.0
         baseline_vib = 0.02 + 0.03 * rpm_fraction
         fault_vib = mods["vibration_severity"]

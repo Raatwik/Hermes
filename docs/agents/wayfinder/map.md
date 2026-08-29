@@ -29,6 +29,9 @@ Deliver a fully functional MVP of the MALE-UAV Digital Twin, complete with the s
 
 - [02-frontend.md](02-frontend.md) — Frontend: Operator Dashboard MVP
 - [03-ml-engineer.md](03-ml-engineer.md) — ML Engineer: Diagnostics & RUL Models (Unblocked)
+- [03.1-ml-engineer-stage-2.md](03.1-ml-engineer-stage-2.md) — ML Engineer: Stage 2 (Time-Series RUL & Degradation Models)
+- [04.2-simulation-cylinder-faults.md](04.2-simulation-cylinder-faults.md) — Simulation: Phase 3 (Cylinder Specific Faults & Windmilling)
+- [05.3-datasets-cascading-faults.md](05.3-datasets-cascading-faults.md) — Datasets: Phase 3 (Cascading Faults & Schema Evolution)
 - [06-integration.md](06-integration.md) — Integration: Real-Time Backend & MQTT (Blocked by 02, 03, 04)
 
 ## Not yet specified
