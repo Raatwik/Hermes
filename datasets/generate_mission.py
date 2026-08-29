@@ -56,31 +56,54 @@ class FaultScheduler:
         if self.fault_class == "sensor_drift":
             self.fault_kwargs["sensor"] = random.choice(["cht", "egt", "rpm", "oil_pressure"])
             self.max_offset = 50.0
+        elif self.fault_class == "cylinder_failure":
+            self.fault_kwargs["cylinder"] = random.choice([1, 2, 3, 4])
 
-    def get_severity(self, current_time: float) -> float:
-        if current_time < self.injection_time:
+        # Cascading secondary fault
+        self.secondary_fault_class = "none"
+        self.secondary_injection_time = self.max_time + 1.0
+        self.secondary_fault_kwargs = {}
+        
+        if self.fault_class != "healthy" and random.random() < 0.3:
+            # 30% chance of a secondary fault if a primary fault exists
+            self.secondary_fault_class = random.choice(list(KNOWN_FAULTS - {self.fault_class}))
+            # Must happen after primary injection
+            self.secondary_injection_time = random.uniform(self.injection_time, self.max_time)
+            
+            if self.secondary_fault_class == "sensor_drift":
+                self.secondary_fault_kwargs["sensor"] = random.choice(["cht", "egt", "rpm", "oil_pressure"])
+                self.secondary_fault_kwargs["max_offset"] = 50.0
+            elif self.secondary_fault_class == "cylinder_failure":
+                self.secondary_fault_kwargs["cylinder"] = random.choice([1, 2, 3, 4])
+
+    def get_severity(self, current_time: float, injection_time: float) -> float:
+        if current_time < injection_time:
             return 0.0
             
-        time_remaining = self.max_time - self.injection_time
+        time_remaining = self.max_time - injection_time
         if time_remaining <= 0:
             return 1.0
             
-        time_since_inj = current_time - self.injection_time
+        time_since_inj = current_time - injection_time
         alpha = math.log(2) / time_remaining
         severity = math.exp(alpha * time_since_inj) - 1.0
         return min(max(severity, 0.0), 1.0)
         
     def inject_to(self, sim: Simulation, current_time: float) -> None:
-        if self.fault_class == "healthy" or current_time < self.injection_time:
-            return
+        if self.fault_class != "healthy" and current_time >= self.injection_time:
+            primary_severity = self.get_severity(current_time, self.injection_time)
+            kwargs = dict(self.fault_kwargs)
+            if self.fault_class == "sensor_drift":
+                kwargs["offset"] = primary_severity * self.max_offset
+            sim.inject_fault(self.fault_class, severity=primary_severity, **kwargs)
             
-        severity = self.get_severity(current_time)
-        kwargs = dict(self.fault_kwargs)
-        
-        if self.fault_class == "sensor_drift":
-            kwargs["offset"] = severity * self.max_offset
-            
-        sim.inject_fault(self.fault_class, severity=severity, **kwargs)
+        if self.secondary_fault_class != "none" and current_time >= self.secondary_injection_time:
+            secondary_severity = self.get_severity(current_time, self.secondary_injection_time)
+            kwargs = dict(self.secondary_fault_kwargs)
+            if self.secondary_fault_class == "sensor_drift":
+                kwargs["offset"] = secondary_severity * kwargs.pop("max_offset")
+            sim.inject_fault(self.secondary_fault_class, severity=secondary_severity, **kwargs)
+
 
 
 def parse_mission_config(config_path: str) -> dict:
@@ -169,7 +192,10 @@ def run_pipeline(config_path: Optional[str] = None, output_dir: str = "data", dt
         environment = sim.get_environment()
         row = {**state, **environment}
         row["fault_class"] = scheduler.fault_class
-        row["fault_severity"] = scheduler.get_severity(current_time)
+        row["fault_severity"] = scheduler.get_severity(current_time, scheduler.injection_time) if scheduler.fault_class != "healthy" else 0.0
+        
+        row["secondary_fault_class"] = scheduler.secondary_fault_class
+        row["secondary_fault_severity"] = scheduler.get_severity(current_time, scheduler.secondary_injection_time) if scheduler.secondary_fault_class != "none" else 0.0
         
         # Backward compatibility if profile is still passed as a dict in some tests
         if isinstance(profile, MissionProfile):

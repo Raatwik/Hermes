@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 
 KNOWN_FAULTS = {
     "sensor_drift", "cooling_degradation",
-    "misfire", "injector_abnormalities", "lubrication_issues",
+    "misfire", "injector_abnormalities", "lubrication_issues", "cylinder_failure",
 }
 
 
@@ -59,6 +59,12 @@ class FaultManager:
                 target_offsets["oil_pressure"] = target_offsets.get("oil_pressure", 0.0) - sev * 25.0
                 target_offsets["oil_temp"] = target_offsets.get("oil_temp", 0.0) + sev * 40.0
                 vibration_severity += sev * 0.3
+
+            elif fault.fault_type == "cylinder_failure":
+                cyl = int(fault.params.get("cylinder", 1))
+                output_offsets[f"egt_{cyl}"] = output_offsets.get(f"egt_{cyl}", 0.0) - sev * 300.0
+                target_offsets["rpm"] = target_offsets.get("rpm", 0.0) - sev * 1500.0
+                vibration_severity += sev * 0.8
 
         return {
             "target_offsets": target_offsets,
