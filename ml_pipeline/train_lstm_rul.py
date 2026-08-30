@@ -114,7 +114,7 @@ if __name__ == "__main__":
     parser.add_argument("--batch_size", type=int, default=32, help="Batch size")
     parser.add_argument("--lr", type=float, default=1e-3, help="Learning rate")
     parser.add_argument("--patience", type=int, default=10, help="Patience for early stopping")
-    parser.add_argument("--save_path", type=str, default="best_lstm_model.pt", help="Path to save the best model")
+    parser.add_argument("--save_path", "--model_save_path", dest="save_path", type=str, default="models/best_lstm_model.pt", help="Path to save the best model")
     
     args = parser.parse_args()
     
