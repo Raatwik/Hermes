@@ -86,6 +86,11 @@ RPM_STALL_THRESHOLD = 1000.0
 # meaningful power. A commanded idle (throttle ~0) legitimately sits near 800 RPM.
 STALL_THROTTLE_FLOOR = 0.1
 
+CHT_LIMIT = 250.0
+OIL_PRESSURE_LIMIT = 20.0
+EGT_LIMIT = 900.0
+VIBRATION_LIMIT = 0.9
+
 
 def _interpolate_map(points: list[tuple[float, float, float]], throttle: float, altitude: float) -> float:
     altitudes = sorted(set(p[1] for p in points))
@@ -199,15 +204,11 @@ class Simulation:
         self._time += dt
         self._update_liveness()
 
-    def _update_liveness(self) -> None:
-        """Register a dead state if a running engine has stalled.
+    def _kill(self, reason: str) -> None:
+        self._is_alive = False
+        self._failure_reason = reason
 
-        Only the RPM stall condition is handled here (Issue 01). Other
-        catastrophic limits (CHT, oil pressure, EGT, vibration) are layered on
-        by their own tickets. The stall check is gated on the engine having
-        reached running speed at least once and on throttle being above idle,
-        so neither the spin-up transient nor a commanded idle is a stall.
-        """
+    def _update_liveness(self) -> None:
         state = self._raw_state()
         if state["rpm"] >= RPM_RUNNING_THRESHOLD:
             self._has_run = True
@@ -217,10 +218,24 @@ class Simulation:
             and state["throttle"] > STALL_THROTTLE_FLOOR
             and state["rpm"] < RPM_STALL_THRESHOLD
         ):
-            self._is_alive = False
-            self._failure_reason = (
-                f"RPM {state['rpm']:.0f} below stall threshold {RPM_STALL_THRESHOLD:.0f}"
-            )
+            self._kill(f"RPM {state['rpm']:.0f} below stall threshold {RPM_STALL_THRESHOLD:.0f}")
+            return
+
+        if state["cht"] > CHT_LIMIT:
+            self._kill(f"CHT {state['cht']:.1f} exceeded limit {CHT_LIMIT:.0f}")
+            return
+
+        if state["oil_pressure"] < OIL_PRESSURE_LIMIT:
+            self._kill(f"Oil pressure {state['oil_pressure']:.1f} below limit {OIL_PRESSURE_LIMIT:.0f}")
+            return
+
+        for key in ["egt", "egt_1", "egt_2", "egt_3", "egt_4"]:
+            if state[key] > EGT_LIMIT:
+                self._kill(f"EGT ({key}) {state[key]:.1f} exceeded limit {EGT_LIMIT:.0f}")
+                return
+
+        if state["vibration_index"] > VIBRATION_LIMIT:
+            self._kill(f"Vibration index {state['vibration_index']:.3f} exceeded limit {VIBRATION_LIMIT}")
 
     def get_environment(self) -> dict[str, float]:
         altitude_ft = self._altitude

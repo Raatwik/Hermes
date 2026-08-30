@@ -1,8 +1,8 @@
-"""Tests for Issue 01 — End-to-End Engine Stall Termination.
+"""Tests for engine failure detection — catastrophic threshold breaches.
 
 Covers the catastrophic-failure mechanism: the simulation registers a dead
-state when RPM drops below the stall threshold, refuses to advance further,
-and the telemetry pipeline halts early and exports a shortened dataset.
+state when a critical telemetry threshold is breached, refuses to advance
+further, and the telemetry pipeline halts early and exports a shortened dataset.
 """
 import pytest
 
@@ -63,6 +63,83 @@ class TestSimulationStallDetection:
             sim.step(dt=0.1)
         # Time did not advance past the moment of failure.
         assert sim.get_state()["time"] == pytest.approx(time_at_death)
+
+
+class TestCHTThreshold:
+    def test_cht_over_250_kills_engine(self):
+        sim = Simulation(throttle=1.0, altitude=0.0)
+        _stabilize(sim, seconds=30.0)
+        assert sim.is_alive
+
+        sim.inject_fault("cooling_degradation", severity=1.0)
+        for _ in range(3000):
+            if not sim.is_alive:
+                break
+            sim.step(dt=0.1)
+
+        assert not sim.is_alive
+        assert "CHT" in sim.failure_reason
+
+
+class TestOilPressureThreshold:
+    def test_oil_pressure_below_20_kills_engine(self):
+        sim = Simulation(throttle=0.0, altitude=0.0)
+        _stabilize(sim, seconds=30.0)
+        assert sim.is_alive
+
+        sim.inject_fault("lubrication_issues", severity=1.0)
+        for _ in range(3000):
+            if not sim.is_alive:
+                break
+            sim.step(dt=0.1)
+
+        assert not sim.is_alive
+        assert "Oil" in sim.failure_reason
+
+
+class TestEGTThreshold:
+    def test_egt_over_900_kills_engine(self):
+        sim = Simulation(throttle=1.0, altitude=0.0)
+        _stabilize(sim, seconds=30.0)
+        assert sim.is_alive
+
+        sim.inject_fault("misfire", severity=1.0)
+        for _ in range(3000):
+            if not sim.is_alive:
+                break
+            sim.step(dt=0.1)
+
+        assert not sim.is_alive
+        assert "EGT" in sim.failure_reason
+
+    def test_cylinder_egt_over_900_kills_engine(self):
+        """A single cylinder's EGT spiking past 900 is also catastrophic."""
+        sim = Simulation(throttle=0.5, altitude=0.0)
+        _stabilize(sim, seconds=30.0)
+        assert sim.is_alive
+
+        sim.inject_fault("sensor_drift", sensor="egt_1", offset=350.0)
+        sim.step(dt=0.1)
+
+        assert not sim.is_alive
+        assert "egt_1" in sim.failure_reason
+
+
+class TestVibrationThreshold:
+    def test_vibration_over_09_kills_engine(self):
+        sim = Simulation(throttle=0.5, altitude=0.0)
+        _stabilize(sim, seconds=30.0)
+        assert sim.is_alive
+
+        sim.inject_fault("misfire", severity=1.0)
+        sim.inject_fault("cylinder_failure", cylinder=1, severity=1.0)
+        for _ in range(3000):
+            if not sim.is_alive:
+                break
+            sim.step(dt=0.1)
+
+        assert not sim.is_alive
+        assert "Vibration" in sim.failure_reason or "vibration" in sim.failure_reason
 
 
 def _constant_profile(throttle: float, duration: float) -> MissionProfile:

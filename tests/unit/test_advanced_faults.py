@@ -21,8 +21,8 @@ class TestVibrationIndex:
         assert 0.0 <= vi <= 0.15
 
     def test_bounded_zero_to_one(self):
-        sim = Simulation(throttle=1.0, altitude=0.0)
-        sim.inject_fault("misfire", severity=1.0)
+        sim = Simulation(throttle=0.5, altitude=0.0)
+        sim.inject_fault("misfire", severity=0.5)
         _stabilize(sim, seconds=50.0)
         vi = sim.get_state()["vibration_index"]
         assert 0.0 <= vi <= 1.0

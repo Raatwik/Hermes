@@ -4,10 +4,10 @@
 
 **Blocked by:** 01 — End-to-End Engine Stall Termination.
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Simulation engine successfully registers a dead state if CHT exceeds 250°C.
-- [ ] Simulation engine successfully registers a dead state if Oil Pressure drops below 20 psi.
-- [ ] Simulation engine successfully registers a dead state if EGT exceeds 900°C (across any cylinder).
-- [ ] Simulation engine successfully registers a dead state if Vibration Index exceeds 0.9.
-- [ ] Unit tests assert that forcing any of these parameters beyond their threshold correctly triggers the failure mechanism.
+- [x] Simulation engine successfully registers a dead state if CHT exceeds 250°C.
+- [x] Simulation engine successfully registers a dead state if Oil Pressure drops below 20 psi.
+- [x] Simulation engine successfully registers a dead state if EGT exceeds 900°C (across any cylinder).
+- [x] Simulation engine successfully registers a dead state if Vibration Index exceeds 0.9.
+- [x] Unit tests assert that forcing any of these parameters beyond their threshold correctly triggers the failure mechanism.
