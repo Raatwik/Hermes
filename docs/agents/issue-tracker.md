@@ -3,7 +3,7 @@
 ## 1. High-Level Milestones
 - **Milestone 1: Synthetic Data Pipeline Operational.** (COMPLETE) The Simulation engine successfully parses YAML mission profiles, applies fault injections, and outputs bulk CSV/Parquet telemetry for ML training.
 - **Milestone 2: Twin Core & Diagnostics Live.** (COMPLETE) The XGBoost and LSTM models are trained, validated against the residuals, and wrapped into an inference pipeline. 
-- **Milestone 3: Operator Dashboard MVP.** The Next.js frontend is actively subscribing to live MQTT/WebSocket streams, rendering the What-If sandbox and EHI telemetry.
+- **Milestone 3: Operator Dashboard MVP.** (COMPLETE) The Vite-based React frontend is built and ready for integration.
 - **Milestone 4: End-to-End Integration.** The FastAPI backend seamlessly glues the data generator, ML inference, and frontend together in real-time.
 
 ## 2. Cross-Stream Blockers
@@ -11,7 +11,8 @@
 - **05.4-Datasets** is COMPLETE. `dynamic_maneuvers.yaml` added with 9 aggressive alternating phases for transient training data. `"compound"` added to `all_classes` in `generate_datasets.py`. `FaultScheduler` guarantees 2 overlapping fault injections at 100% probability when `force_fault_class="compound"`.
 - **03.3-ML Engineer** is COMPLETE. XGBoost `MultiOutputClassifier` migration is DONE (issue 01). Isolation Forest tightened to healthy-only training with `0.001` contamination is DONE (issue 02). LSTM retrained on physically-terminating datasets is DONE (issue 03): `TelemetryDataset` now uses the pre-computed `Remaining_Useful_Life` column anchored to engine death instead of a naive countdown, and the model weights are saved to `models/best_lstm_model.pt`.
 - **07-Final Logic Fixes** is COMPLETE. Solved right-censored RUL contamination for LSTM, prevented primary fault masking in compound scenarios for XGBoost, and aligned Djibouti scenario RUL anchor with exact engine seizure time.
-- **Integration** is blocked by **Frontend**; it requires the UI interfaces and ML endpoints to build the final API/MQTT orchestration layer. (Simulation and ML Engineer interfaces are now ready for consumption).
+- **Frontend** is COMPLETE. The user has built the Vite React application.
+- **Integration** is now the ONLY remaining blocker; it requires building the final API/MQTT orchestration layer to connect the completed ML pipeline and Frontend.
 
 ## 3. Wayfinder Team Tracks Index
 

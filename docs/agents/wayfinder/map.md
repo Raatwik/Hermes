@@ -34,10 +34,10 @@ Deliver a fully functional MVP of the MALE-UAV Digital Twin, complete with the s
 - [05.4-datasets-remediation.md](05.4-datasets-remediation.md) — Datasets Remediation completed: added `dynamic_maneuvers.yaml` with 9 short aggressive alternating phases for transient training data, added `"compound"` to `all_classes` in the bulk orchestrator, and updated `FaultScheduler` to guarantee 2 overlapping fault injections (100% probability) when `force_fault_class="compound"`.
 - [03.3-ml-remediation.md](03.3-ml-remediation.md) — ML Remediation completed: XGBoost migrated to `MultiOutputClassifier`, Isolation Forest tightened to healthy-only training, LSTM retrained on physically-terminating datasets with `TelemetryDataset` using pre-computed `Remaining_Useful_Life` column.
 - [07-ml-data-final-fixes.md](07-ml-data-final-fixes.md) — Final Logic Fixes completed: fixed right-censored RUL contamination for LSTM, prevented primary fault masking in compound scenarios for XGBoost, and aligned Djibouti scenario RUL anchor with exact engine seizure time.
+- [02-frontend.md](02-frontend.md) — Frontend: Operator Dashboard MVP completed: Vite-based React application created and fully configured by user.
 
 ## Open Tickets (The Frontier)
 
-- [02-frontend.md](02-frontend.md) — Frontend: Operator Dashboard MVP
 - [06-integration.md](06-integration.md) — Integration: Real-Time Backend & MQTT (Blocked by 02)
 
 ## Not yet specified
