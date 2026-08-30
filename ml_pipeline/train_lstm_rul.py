@@ -63,6 +63,8 @@ def train_model(
     best_val_loss = float('inf')
     epochs_without_improvement = 0
     
+    os.makedirs(os.path.dirname(model_save_path) or ".", exist_ok=True)
+
     print("Starting training loop...")
     for epoch in range(epochs):
         model.train()
@@ -90,7 +92,6 @@ def train_model(
             best_val_loss = val_loss
             epochs_without_improvement = 0
             
-            # Save the .pt weights of the model to disk when validation loss improves
             torch.save(model.state_dict(), model_save_path)
             print(f"  -> Validation loss improved. Saved model weights to {model_save_path}")
         else:
