@@ -3,6 +3,13 @@ labels: ["in-progress"]
 ---
 # [wayfinder:task] Integration: Real-Time Backend & MQTT
 
+## Progress
+
+- **Issue 01 (MQTT Broker & Sim Playback):** COMPLETE — `integration/broker.py`, `integration/sim_publisher.py`
+- **Issue 02 (ML Subscriber):** COMPLETE — `integration/ml_subscriber.py`
+- **Issue 03 (FastAPI WebSocket Gateway):** COMPLETE — `backend/main.py`, `frontend/src/api/websocket.js`, store + dashboard wired to live data
+- **Issue 04 (What-If Sandbox REST API):** UNBLOCKED, ready-for-agent — `POST /api/what-if` endpoint with simulation fast-forward and LSTM projection
+
 ## Problem Statement
 
 The user needs a Real-Time Backend Integration layer that connects the physical simulation data, the machine learning diagnostic models, and the frontend dashboard. Currently, these pieces exist in isolation: the frontend uses mock data, the physics engine produces offline data, and the ML models are trained offline. We need a live pipeline to ingest real-time telemetry, compute Digital Twin residuals and drift, serve ML predictions synchronously and asynchronously, and stream this unified state to the dashboard.

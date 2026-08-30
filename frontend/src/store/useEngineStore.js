@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { connectWebSocket, disconnectWebSocket } from '../api/websocket';
 
 // Generate mock time-series data for the last 60 minutes
 const generateMockTimeSeries = () => {
@@ -69,62 +70,71 @@ const useEngineStore = create((set, get) => ({
   // --- Actions ---
   pushRecommendationToOperator: (recommendation) => set({ activeRecommendation: recommendation }),
   
-  // Decoupled action to connect to a WebSocket (placeholder for real implementation)
   connectLiveTelemetry: () => {
-    console.log("Connecting to live telemetry WebSocket...");
-    // Mocking real-time updates every second
-    const interval = setInterval(() => {
+    connectWebSocket((data) => {
       set((state) => {
-        const newData = [...state.timeSeriesData];
-        newData.shift(); // remove oldest
-        
-        const lastData = newData[newData.length - 1];
         const newTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        const expectedEGT = 600 + Math.sin(Date.now() / 10000) * 50;
-        const actualEGT = expectedEGT + (Math.random() * 20 - 5);
-        
+
+        const newData = [...state.timeSeriesData];
+        if (newData.length >= 61) newData.shift();
         newData.push({
           time: newTime,
-          drift: 0.2 + Math.random() * 0.25,
-          expectedEGT,
-          actualEGT,
-          residual: actualEGT - expectedEGT,
+          drift: data.twin_drift_score ?? 0,
+          expectedEGT: 600,
+          actualEGT: data.egt ?? 600,
+          residual: (data.egt ?? 600) - 600,
           upperBound: 15,
           lowerBound: -15,
         });
 
-        // Add some random fluctuation to mission context for realism
-        const newContext = { ...state.missionContext };
-        newContext.altitude += Math.floor(Math.random() * 10 - 5);
-        newContext.rpm += Math.floor(Math.random() * 4 - 2);
-        
-        // Occasional EHI fluctuation
-        if (Math.random() > 0.8) {
-          newContext.ehi = Math.max(0, Math.min(100, newContext.ehi + (Math.random() > 0.5 ? 1 : -1)));
-        }
+        const newContext = {
+          ...state.missionContext,
+          altitude: data.altitude ?? state.missionContext.altitude,
+          rpm: data.rpm ?? state.missionContext.rpm,
+          engineLoad: typeof data.engine_load === 'number' ? Math.round(data.engine_load * 100) : state.missionContext.engineLoad,
+          oat: data.ambient_temperature ?? state.missionContext.oat,
+          fuelFlow: data.fuel_flow ?? state.missionContext.fuelFlow,
+          rul: data.lstm_rul_mean ?? state.missionContext.rul,
+          rulLowerBound: data.lstm_rul_mean != null && data.lstm_rul_std != null
+            ? Math.round(data.lstm_rul_mean - 2 * data.lstm_rul_std)
+            : state.missionContext.rulLowerBound,
+          rulUpperBound: data.lstm_rul_mean != null && data.lstm_rul_std != null
+            ? Math.round(data.lstm_rul_mean + 2 * data.lstm_rul_std)
+            : state.missionContext.rulUpperBound,
+        };
 
-        // Fluctuate twinComparisonData
-        const newTwinData = JSON.parse(JSON.stringify(state.twinComparisonData)); // deep clone
-        newTwinData.globals.rpm.actual = newContext.rpm;
-        newTwinData.globals.rpm.deviation = ((newContext.rpm - newTwinData.globals.rpm.expected) / newTwinData.globals.rpm.expected * 100).toFixed(1);
-        
-        newTwinData.globals.oilPressure.actual += (Math.random() * 1 - 0.5);
+        const newTwinData = JSON.parse(JSON.stringify(state.twinComparisonData));
+        newTwinData.globals.rpm.actual = data.rpm ?? newTwinData.globals.rpm.actual;
+        newTwinData.globals.rpm.deviation = ((newTwinData.globals.rpm.actual - newTwinData.globals.rpm.expected) / newTwinData.globals.rpm.expected * 100).toFixed(1);
+        newTwinData.globals.oilPressure.actual = data.oil_pressure ?? newTwinData.globals.oilPressure.actual;
         newTwinData.globals.oilPressure.deviation = ((newTwinData.globals.oilPressure.actual - newTwinData.globals.oilPressure.expected) / newTwinData.globals.oilPressure.expected * 100).toFixed(1);
+        newTwinData.globals.oilTemp.actual = data.oil_temp ?? newTwinData.globals.oilTemp.actual;
+        newTwinData.globals.oilTemp.deviation = ((newTwinData.globals.oilTemp.actual - newTwinData.globals.oilTemp.expected) / newTwinData.globals.oilTemp.expected * 100).toFixed(1);
 
-        newTwinData.cylinders.forEach(cyl => {
-          cyl.egt.actual += (Math.random() * 4 - 2); // +/- 2 degrees
-          cyl.cht.actual += (Math.random() * 2 - 1); // +/- 1 degree
-          // Keep Cyl 3 EGT abnormally high to match the "Combustion Degradation" fault
-          if (cyl.id === 3) {
-            cyl.egt.actual = Math.max(665, cyl.egt.actual); // Keep it above 665
-          }
+        const egtKeys = ['egt_1', 'egt_2', 'egt_3', 'egt_4'];
+        newTwinData.cylinders.forEach((cyl, i) => {
+          if (data[egtKeys[i]] != null) cyl.egt.actual = data[egtKeys[i]];
+          if (data.cht != null) cyl.cht.actual = data.cht;
         });
 
-        return { timeSeriesData: newData, missionContext: newContext, twinComparisonData: newTwinData };
-      });
-    }, 2000); // 2 second interval for demo
+        const faultProbabilities = (data.xgboost_faults && data.xgboost_faults.length > 0)
+          ? data.xgboost_faults.map((name, idx) => ({
+              name,
+              probability: 1 / data.xgboost_faults.length,
+              ci: [0, 1],
+            }))
+          : state.faultProbabilities;
 
-    return () => clearInterval(interval);
+        return {
+          timeSeriesData: newData,
+          missionContext: newContext,
+          twinComparisonData: newTwinData,
+          faultProbabilities,
+        };
+      });
+    });
+
+    return () => disconnectWebSocket();
   },
 
   fetchMissionContext: async () => {

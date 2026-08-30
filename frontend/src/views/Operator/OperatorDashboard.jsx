@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import useEngineStore from '../../store/useEngineStore';
 import OperatorLayout from '../../components/layout/OperatorLayout';
 import { SidebarSummaryPanel, AlertBanner, TelemetryTable } from '../../components/widgets/Widgets';
@@ -12,23 +12,26 @@ import './OperatorDashboard.css';
 
 export default function OperatorDashboard() {
   const activeRecommendation = useEngineStore(state => state.activeRecommendation);
+  const connectLiveTelemetry = useEngineStore(state => state.connectLiveTelemetry);
+  const twinData = useEngineStore(state => state.twinComparisonData);
+  const missionContext = useEngineStore(state => state.missionContext);
 
+  useEffect(() => {
+    const disconnect = connectLiveTelemetry();
+    return disconnect;
+  }, [connectLiveTelemetry]);
+
+  const g = twinData.globals;
   const telemetryData = [
-    { title: 'RPM', expected: '2,450', current: '2,450', deviation: '0.0%', unit: 'RPM', status: 'NORMAL', icon: Gauge, colorClass: 'good' },
-    { title: 'OIL PRESSURE', expected: '65', current: '64', deviation: '-1.5%', unit: 'psi', status: 'NORMAL', icon: Droplet, colorClass: 'good' },
-    { title: 'OIL TEMPERATURE', expected: '95', current: '98', deviation: '+3.1%', unit: '°C', status: 'NORMAL', icon: Thermometer, colorClass: 'good' }
+    { title: 'RPM', expected: String(g.rpm.expected), current: String(g.rpm.actual), deviation: `${g.rpm.deviation}%`, unit: 'RPM', status: 'NORMAL', icon: Gauge, colorClass: 'good' },
+    { title: 'OIL PRESSURE', expected: String(g.oilPressure.expected), current: String(Math.round(g.oilPressure.actual)), deviation: `${g.oilPressure.deviation}%`, unit: 'psi', status: 'NORMAL', icon: Droplet, colorClass: 'good' },
+    { title: 'OIL TEMPERATURE', expected: String(g.oilTemp.expected), current: String(Math.round(g.oilTemp.actual)), deviation: `${g.oilTemp.deviation}%`, unit: '°C', status: 'NORMAL', icon: Thermometer, colorClass: 'good' }
   ];
 
-  const cylinderMetrics = [
-    { type: 'EGT', cyl: 1, expected: 650, current: 645, isWarning: false, unit: '°C' },
-    { type: 'EGT', cyl: 2, expected: 650, current: 652, isWarning: false, unit: '°C' },
-    { type: 'EGT', cyl: 3, expected: 650, current: 672, isWarning: true, unit: '°C' },
-    { type: 'EGT', cyl: 4, expected: 650, current: 648, isWarning: false, unit: '°C' },
-    { type: 'CHT', cyl: 1, expected: 155, current: 154, isWarning: false, unit: '°C' },
-    { type: 'CHT', cyl: 2, expected: 155, current: 155, isWarning: false, unit: '°C' },
-    { type: 'CHT', cyl: 3, expected: 155, current: 156, isWarning: false, unit: '°C' },
-    { type: 'CHT', cyl: 4, expected: 155, current: 153, isWarning: false, unit: '°C' }
-  ];
+  const cylinderMetrics = twinData.cylinders.flatMap((cyl) => [
+    { type: 'EGT', cyl: cyl.id, expected: cyl.egt.expected, current: Math.round(cyl.egt.actual), isWarning: Math.abs(cyl.egt.actual - cyl.egt.expected) > 20, unit: '°C' },
+    { type: 'CHT', cyl: cyl.id, expected: cyl.cht.expected, current: Math.round(cyl.cht.actual), isWarning: Math.abs(cyl.cht.actual - cyl.cht.expected) > 10, unit: '°C' },
+  ]);
 
   const missionPhases = [
     { name: 'TAKEOFF', icon: PlaneTakeoff },
@@ -74,10 +77,10 @@ export default function OperatorDashboard() {
             riskValue="18%"
             riskColorClass="warning"
           />
-          <RulWidget 
-            hours={143} 
-            text="Adequate for planned mission" 
-            isGood={true} 
+          <RulWidget
+            hours={missionContext.rul != null ? Math.round(missionContext.rul) : 143}
+            text={missionContext.rul != null ? "Live RUL estimate" : "Awaiting live data"}
+            isGood={missionContext.rul == null || missionContext.rul > 50}
           />
           <MissionProgress 
             phases={missionPhases}

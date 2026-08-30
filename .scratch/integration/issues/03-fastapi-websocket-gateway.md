@@ -4,11 +4,11 @@
 
 **Blocked by:** 02 — ML Subscriber with Live Physics Residuals and AI Inference
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] A FastAPI application (`backend/main.py`) exposes a `/ws` WebSocket endpoint.
-- [ ] The FastAPI app maintains an internal MQTT client that subscribes to `telemetry/engine` and `telemetry/predictions`.
-- [ ] Incoming prediction payloads are cached in memory.
-- [ ] When new telemetry arrives, it is merged with the cached predictions and broadcast to all connected WebSocket clients.
-- [ ] The React frontend (`frontend/src/api/websocket.js`) connects to `ws://localhost:8000/ws` and correctly parses the merged payload.
-- [ ] The Operator Dashboard renders the live data without relying on hardcoded mock intervals.
+- [x] A FastAPI application (`backend/main.py`) exposes a `/ws` WebSocket endpoint.
+- [x] The FastAPI app maintains an internal MQTT client that subscribes to `telemetry/engine` and `telemetry/predictions`.
+- [x] Incoming prediction payloads are cached in memory.
+- [x] When new telemetry arrives, it is merged with the cached predictions and broadcast to all connected WebSocket clients.
+- [x] The React frontend (`frontend/src/api/websocket.js`) connects to `ws://localhost:8000/ws` and correctly parses the merged payload.
+- [x] The Operator Dashboard renders the live data without relying on hardcoded mock intervals.
