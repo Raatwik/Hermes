@@ -36,6 +36,8 @@ telemetry.json
 *.parquet
 *.zip
 data/
+data_residuals/
+data_features/
 !synthetic_data/
 !synthetic_data/**
 
