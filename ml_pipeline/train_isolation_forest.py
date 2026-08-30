@@ -7,30 +7,30 @@ import joblib
 # We can reuse load_data from train_xgboost
 from ml_pipeline.train_xgboost import load_data
 
-def train_isolation_forest(data_dir: str = "data_features", output_model: str = "models/iso_forest.joblib", contamination: float | str = "auto", downsample_rate: int = 1) -> IsolationForest | None:
-    """
-    Trains an Isolation Forest model on a mixed dataset of healthy and faulty missions
-    to detect out-of-distribution behaviors.
-    """
+def train_isolation_forest(data_dir: str = "data_features", output_model: str = "models/iso_forest.joblib", contamination: float | str = 0.001, downsample_rate: int = 1) -> IsolationForest | None:
     df = load_data(data_dir, downsample_rate=downsample_rate)
     if df.empty:
         print("No data found")
         return None
-        
-    # Exclude non-feature columns
+
+    df = df[df["fault_class"] == "healthy"]
+    if df.empty:
+        print("No healthy data found after filtering")
+        return None
+
     exclude_cols = [
-        "time", "fault_class", "mission_id", "throttle", "altitude", 
-        "ambient_temperature", "ambient_pressure", "air_density", 
+        "time", "fault_class", "mission_id", "throttle", "altitude",
+        "ambient_temperature", "ambient_pressure", "air_density",
         "flight_phase", "time_since_fault_injection", "fault_severity",
         "Remaining_Useful_Life",
         "secondary_fault_class", "secondary_fault_severity"
     ]
-    
+
     feature_cols = [c for c in df.columns if c not in exclude_cols and pd.api.types.is_numeric_dtype(df[c])]
-    
+
     X = df[feature_cols]
-    
-    print(f"Training Isolation Forest on {len(X)} samples with {len(feature_cols)} features...")
+
+    print(f"Training Isolation Forest on {len(X)} healthy samples with {len(feature_cols)} features...")
     
     model = IsolationForest(
         n_estimators=100,
@@ -59,7 +59,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train Isolation Forest Anomaly Detector")
     parser.add_argument("--data_dir", type=str, default="data_features", help="Input dataset directory")
     parser.add_argument("--out", type=str, default="models/iso_forest.joblib", help="Output model path")
-    parser.add_argument("--contamination", type=float, default=0.01, help="Expected proportion of outliers")
+    parser.add_argument("--contamination", type=float, default=0.001, help="Expected proportion of outliers")
     parser.add_argument("--downsample_rate", type=int, default=5, help="Row downsampling stride for memory safety")
     
     args = parser.parse_args()
