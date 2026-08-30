@@ -7,8 +7,8 @@
 - **Milestone 4: End-to-End Integration.** The FastAPI backend seamlessly glues the data generator, ML inference, and frontend together in real-time.
 
 ## 2. Cross-Stream Blockers
-- **Datasets / Simulation (Phase 3)** is complete — The core engine and bulk pipeline have been updated to support individual cylinder telemetry (`egt_1` to `egt_4`) and secondary cascading faults (e.g., `cylinder_failure`). The dataset generation logic will automatically wipe old data and generate unified schemas for ML training. Milestone 1 is fully operational and enhanced.
-- **ML Engineer** is now COMPLETE for MVP. The Stage 1 anomaly detection (XGBoost/Isolation Forest) and Stage 2 RUL forecasting (Probabilistic LSTM) are fully operational and have been wrapped into an inference pipeline. *Note: ML pipelines have been patched for the Phase 3 schema, and 500 missions of data have been generated. The models just need to be retrained on this new dataset (e.g. via Kaggle).*
+- **Datasets / Simulation** is BLOCKED. The simulation engine must be updated to physically terminate when critical thresholds are reached (e.g., CHT > 250, RPM < 1000) so LSTM RUL labels are dynamic. It also needs to generate healthy transient missions (throttle/altitude jumps) and compound faults to fix XGBoost false alarms.
+- **ML Engineer** is BLOCKED. An extensive evaluation against the master spec revealed critical flaws: XGBoost fails on healthy transient maneuvers and masks compound faults (requires MultiOutputClassifier), LSTM RUL acts as a static countdown timer due to non-terminating simulations, and Isolation Forest fails entirely due to contamination from faulty training data. Models must be retrained on new dynamic datasets.
 - **Integration** is blocked by **Frontend**; it requires the UI interfaces and ML endpoints to build the final API/MQTT orchestration layer. (Simulation and ML Engineer interfaces are now ready for consumption).
 
 ## 3. Wayfinder Team Tracks Index

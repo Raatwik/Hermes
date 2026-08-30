@@ -59,3 +59,10 @@ mlruns/
 .ipynb_checkpoints/
 .mypy_cache/
 .ruff_cache/
+
+# Evaluation Scripts and Temp Data
+eval_residuals/
+tmp_residuals/
+eval_tmp/
+extensive_test.py
+evaluate_all_models.py
