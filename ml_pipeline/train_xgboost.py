@@ -7,15 +7,23 @@ from sklearn.model_selection import GroupShuffleSplit
 from sklearn.metrics import classification_report, accuracy_score
 import joblib
 
-def load_data(data_dir: str) -> pd.DataFrame:
+def load_data(data_dir: str, downsample_rate: int = 1) -> pd.DataFrame:
     """
-    Loads all parquet files from data_dir, extracts mission_id from filename,
-    and returns a concatenated DataFrame.
+    Loads all parquet files from data_dir, downsamples rows and casts float64 to float32
+    to stay well within memory limits, extracts mission_id, and returns a DataFrame.
     """
     files = glob.glob(os.path.join(data_dir, "**/*.parquet"), recursive=True)
     dfs = []
     for f in files:
         df = pd.read_parquet(f)
+        
+        if downsample_rate > 1:
+            df = df.iloc[::downsample_rate].copy()
+            
+        float_cols = df.select_dtypes(include=['float64']).columns
+        if len(float_cols) > 0:
+            df[float_cols] = df[float_cols].astype('float32')
+
         # Extract mission_id from filename
         mission_id = os.path.basename(f).replace(".parquet", "")
         df["mission_id"] = mission_id
@@ -35,8 +43,8 @@ def load_data(data_dir: str) -> pd.DataFrame:
         
     return pd.concat(dfs, ignore_index=True)
 
-def train_model(data_dir: str = "data_features", output_model: str = "models/xgb_model.json", n_estimators: int = 100) -> xgb.XGBClassifier | None:
-    df = load_data(data_dir)
+def train_model(data_dir: str = "data_features", output_model: str = "models/xgb_model.json", n_estimators: int = 100, downsample_rate: int = 1) -> xgb.XGBClassifier | None:
+    df = load_data(data_dir, downsample_rate=downsample_rate)
     if df.empty:
         print("No data found")
         return None
@@ -138,6 +146,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train XGBoost Classifier")
     parser.add_argument("--data_dir", type=str, default="data_features", help="Input dataset directory")
     parser.add_argument("--out", type=str, default="models/xgb_model.json", help="Output model path")
+    parser.add_argument("--downsample_rate", type=int, default=5, help="Row downsampling stride for memory safety")
     
     args = parser.parse_args()
-    train_model(data_dir=args.data_dir, output_model=args.out)
+    train_model(data_dir=args.data_dir, output_model=args.out, downsample_rate=args.downsample_rate)

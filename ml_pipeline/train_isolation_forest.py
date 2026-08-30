@@ -7,12 +7,12 @@ import joblib
 # We can reuse load_data from train_xgboost
 from ml_pipeline.train_xgboost import load_data
 
-def train_isolation_forest(data_dir: str = "data_features", output_model: str = "models/iso_forest.joblib", contamination: float | str = "auto") -> IsolationForest | None:
+def train_isolation_forest(data_dir: str = "data_features", output_model: str = "models/iso_forest.joblib", contamination: float | str = "auto", downsample_rate: int = 1) -> IsolationForest | None:
     """
     Trains an Isolation Forest model on a mixed dataset of healthy and faulty missions
     to detect out-of-distribution behaviors.
     """
-    df = load_data(data_dir)
+    df = load_data(data_dir, downsample_rate=downsample_rate)
     if df.empty:
         print("No data found")
         return None
@@ -59,6 +59,7 @@ if __name__ == "__main__":
     parser.add_argument("--data_dir", type=str, default="data_features", help="Input dataset directory")
     parser.add_argument("--out", type=str, default="models/iso_forest.joblib", help="Output model path")
     parser.add_argument("--contamination", type=float, default=0.01, help="Expected proportion of outliers")
+    parser.add_argument("--downsample_rate", type=int, default=5, help="Row downsampling stride for memory safety")
     
     args = parser.parse_args()
-    train_isolation_forest(data_dir=args.data_dir, output_model=args.out, contamination=args.contamination)
+    train_isolation_forest(data_dir=args.data_dir, output_model=args.out, contamination=args.contamination, downsample_rate=args.downsample_rate)
