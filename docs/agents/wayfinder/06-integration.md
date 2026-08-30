@@ -8,7 +8,7 @@ labels: ["in-progress"]
 - **Issue 01 (MQTT Broker & Sim Playback):** COMPLETE — `integration/broker.py`, `integration/sim_publisher.py`
 - **Issue 02 (ML Subscriber):** COMPLETE — `integration/ml_subscriber.py`
 - **Issue 03 (FastAPI WebSocket Gateway):** COMPLETE — `backend/main.py`, `frontend/src/api/websocket.js`, store + dashboard wired to live data
-- **Issue 04 (What-If Sandbox REST API):** UNBLOCKED, ready-for-agent — `POST /api/what-if` endpoint with simulation fast-forward and LSTM projection
+- **Issue 04 (What-If Sandbox REST API):** COMPLETE — `POST /api/what-if` endpoint in `backend/main.py` with 5-min simulation fast-forward, LSTM projection (graceful degradation when model absent), `current_state` initialization, and frontend `MissionSandboxWidget` wired via `restClient.js`. 10 tests in `tests/test_what_if.py`.
 
 ## Problem Statement
 

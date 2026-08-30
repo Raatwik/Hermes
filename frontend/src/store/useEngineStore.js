@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { connectWebSocket, disconnectWebSocket } from '../api/websocket';
+import { postWhatIf } from '../api/restClient';
 
 // Generate mock time-series data for the last 60 minutes
 const generateMockTimeSeries = () => {
@@ -145,39 +146,70 @@ const useEngineStore = create((set, get) => ({
   },
 
   simulateMission: async (params) => {
-    // Mock simulation logic based on counterfactual parameters
-    return new Promise(resolve => {
-      setTimeout(() => {
-        const { altitude, rpm, engineLoad } = params;
-        const currentContext = get().missionContext;
-        
-        // Simple mock heuristic for risk
-        let riskScore = 65; // Base risk
-        
-        // Lower load reduces risk
-        if (engineLoad < currentContext.engineLoad) riskScore -= (currentContext.engineLoad - engineLoad) * 0.8;
-        if (engineLoad > currentContext.engineLoad) riskScore += (engineLoad - currentContext.engineLoad) * 1.2;
-        
-        // Lower RPM reduces risk
-        if (rpm < currentContext.rpm) riskScore -= (currentContext.rpm - rpm) * 0.02;
-        if (rpm > currentContext.rpm) riskScore += (rpm - currentContext.rpm) * 0.03;
-        
-        // Altitude effects
-        if (altitude < currentContext.altitude) riskScore -= 5;
-        
-        // Bound risk score
-        riskScore = Math.max(10, Math.min(95, riskScore));
-        
-        // Impact on RUL
-        const rulImpact = (65 - riskScore) / 5; // e.g., if risk is 40, impact is +5 hours
-        
-        resolve({
-          simulatedRisk: Math.round(riskScore),
-          currentRisk: 65,
-          rulImpact: Math.round(rulImpact * 10) / 10
-        });
-      }, 800); // Simulate network/compute delay
-    });
+    const { altitude, engineLoad } = params;
+    const throttle = Math.max(0, Math.min(1, (engineLoad ?? 68) / 100));
+    const currentContext = get().missionContext;
+    const currentRul = currentContext.rul ?? 145;
+
+    try {
+      const data = await postWhatIf({
+        throttle,
+        altitude: altitude ?? 0,
+        currentState: {
+          rpm: currentContext.rpm ?? 2420,
+          cht: 165,
+          egt: 620,
+          oil_pressure: 65,
+          oil_temp: 95,
+          fuel_flow: currentContext.fuelFlow ?? 24.1,
+          battery_voltage: 13.6,
+        },
+      });
+      const traj = data.trajectory ?? [];
+      const last = traj.length > 0 ? traj[traj.length - 1] : {};
+
+      let simulatedRisk = 65;
+      if (data.rul_mean != null) {
+        simulatedRisk = Math.max(5, Math.min(95, Math.round(100 - data.rul_mean)));
+      } else {
+        const cht = last.cht ?? 165;
+        const egt = last.egt ?? 620;
+        simulatedRisk = Math.round(Math.min(95, Math.max(5, (cht / 250) * 50 + (egt / 900) * 50)));
+      }
+
+      const currentRisk = Math.max(5, Math.min(95, Math.round(100 - currentRul)));
+
+      let rulImpact = 0;
+      if (data.rul_mean != null) {
+        rulImpact = Math.round((data.rul_mean - currentRul) * 10) / 10;
+      } else {
+        rulImpact = Math.round((currentRisk - simulatedRisk) / 5 * 10) / 10;
+      }
+
+      return {
+        simulatedRisk,
+        currentRisk,
+        rulImpact,
+        trajectory: traj,
+        engineAlive: data.engine_alive,
+        failureReason: data.failure_reason,
+      };
+    } catch (err) {
+      console.error('What-If API failed, falling back to heuristic:', err);
+      const { rpm } = params;
+      let riskScore = 65;
+      if (engineLoad < currentContext.engineLoad) riskScore -= (currentContext.engineLoad - engineLoad) * 0.8;
+      if (engineLoad > currentContext.engineLoad) riskScore += (engineLoad - currentContext.engineLoad) * 1.2;
+      if (rpm < currentContext.rpm) riskScore -= (currentContext.rpm - rpm) * 0.02;
+      if (rpm > currentContext.rpm) riskScore += (rpm - currentContext.rpm) * 0.03;
+      if (altitude < currentContext.altitude) riskScore -= 5;
+      riskScore = Math.max(10, Math.min(95, riskScore));
+      return {
+        simulatedRisk: Math.round(riskScore),
+        currentRisk: 65,
+        rulImpact: Math.round((65 - riskScore) / 5 * 10) / 10,
+      };
+    }
   }
 }));
 

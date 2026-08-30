@@ -3,8 +3,8 @@
 ## 1. High-Level Milestones
 - **Milestone 1: Synthetic Data Pipeline Operational.** (COMPLETE) The Simulation engine successfully parses YAML mission profiles, applies fault injections, and outputs bulk CSV/Parquet telemetry for ML training.
 - **Milestone 2: Twin Core & Diagnostics Live.** (COMPLETE) The XGBoost and LSTM models are trained, validated against the residuals, and wrapped into an inference pipeline. 
-- **Milestone 3: Operator Dashboard MVP.** (IN PROGRESS) The React frontend is now subscribing to live WebSocket streams and rendering telemetry, twin comparison, cylinder metrics, and RUL from real data. What-If sandbox widget still uses mock simulation (pending Issue 04).
-- **Milestone 4: End-to-End Integration.** (IN PROGRESS) MQTT broker, sim publisher, ML subscriber, and FastAPI WebSocket gateway are complete. Remaining: What-If REST API (Issue 04).
+- **Milestone 3: Operator Dashboard MVP.** (COMPLETE) The React frontend subscribes to live WebSocket streams and renders telemetry, twin comparison, cylinder metrics, and RUL from real data. What-If sandbox widget wired to real `POST /api/what-if` endpoint.
+- **Milestone 4: End-to-End Integration.** (COMPLETE) MQTT broker, sim publisher, ML subscriber, FastAPI WebSocket gateway, and What-If REST API are all complete.
 
 ## 2. Cross-Stream Blockers
 - **04.3-Simulation** is COMPLETE. Engine failure thresholds implemented (`EngineFailureException` raised on RPM < 1000, CHT > 250°C, Oil Pressure < 20 psi, EGT > 900°C, Vibration > 0.9). Simulations now physically terminate on catastrophic faults, and `run_pipeline` anchors RUL to the true moment of engine death.
@@ -13,7 +13,7 @@
 - **Integration** issue 01 (MQTT Broker & Sim Playback) is COMPLETE. Embedded `amqtt` broker in `integration/broker.py` and `integration/sim_publisher.py` reads `djibouti_aligned.parquet` row-by-row, publishing JSON to `telemetry/engine` with adjustable speed factor.
 - **Integration** issue 02 (ML Subscriber) is COMPLETE. `integration/ml_subscriber.py` subscribes to `telemetry/engine`, computes physics residuals via local `Simulation`, maintains a 60-step rolling window, computes Twin Drift score, runs XGBoost/LSTM/IsolationForest inference (graceful degradation when models absent), applies anomaly override logic, and publishes unified predictions to `telemetry/predictions`.
 - **Integration** issue 03 (FastAPI WebSocket Gateway) is COMPLETE. `backend/main.py` — FastAPI app with internal MQTT client subscribing to `telemetry/engine` and `telemetry/predictions`. Caches latest predictions, merges with telemetry on arrival (telemetry keys take precedence over cached prediction keys), broadcasts unified JSON to all connected `/ws` WebSocket clients. `frontend/src/api/websocket.js` connects to the gateway with auto-reconnect. `useEngineStore.js` `connectLiveTelemetry` wired to live WebSocket stream replacing mock data. OperatorDashboard renders live telemetry/twin comparison/RUL from the store. Shared `broker_port` fixture extracted to `tests/conftest.py`.
-- **Integration** issue 04 (What-If Sandbox REST API) is UNBLOCKED. `POST /api/what-if` endpoint, localized simulation fast-forward, LSTM projection, and frontend widget wiring remain.
+- **Integration** issue 04 (What-If Sandbox REST API) is COMPLETE. `POST /api/what-if` endpoint in `backend/main.py` runs a 5-minute localized `Simulation` fast-forward, computes residuals, evaluates LSTM for What-If RUL (graceful degradation when model absent). `current_state` initializes simulation filters from live telemetry. Frontend `restClient.js` calls the endpoint; `useEngineStore.js` `simulateMission` wired to real API with heuristic fallback. 10 tests in `tests/test_what_if.py`.
 
 ## 3. Wayfinder Team Tracks Index
 

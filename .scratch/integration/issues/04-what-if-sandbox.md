@@ -4,11 +4,11 @@
 
 **Blocked by:** 03 — FastAPI WebSocket Gateway & Frontend Integration
 
-**Status:** ready-for-agent
+**Status:** complete
 
-- [ ] A new FastAPI endpoint `POST /api/what-if` accepts a JSON body with the engine's current state and proposed throttle/altitude values.
-- [ ] The endpoint spins up a new localized `Simulation` instance initialized to the current telemetry state.
-- [ ] The simulation is run in a fast-forward loop for a fixed 5-minute horizon, generating a physical trajectory of expected temperatures/pressures.
-- [ ] The trajectory is evaluated synchronously by the LSTM model (loaded in the FastAPI memory space) to project a "What-If RUL".
-- [ ] The endpoint returns the physical trajectory array and projected RUL as a JSON response.
-- [ ] The frontend What-If widget triggers this API and displays the result correctly.
+- [x] A new FastAPI endpoint `POST /api/what-if` accepts a JSON body with the engine's current state and proposed throttle/altitude values.
+- [x] The endpoint spins up a new localized `Simulation` instance initialized to the current telemetry state.
+- [x] The simulation is run in a fast-forward loop for a fixed 5-minute horizon, generating a physical trajectory of expected temperatures/pressures.
+- [x] The trajectory is evaluated synchronously by the LSTM model (loaded in the FastAPI memory space) to project a "What-If RUL".
+- [x] The endpoint returns the physical trajectory array and projected RUL as a JSON response.
+- [x] The frontend What-If widget triggers this API and displays the result correctly.
