@@ -1,0 +1,516 @@
+/* Status Card */
+.status-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.status-card-title {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 1rem;
+  text-align: center;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.status-alert-marker {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--color-warning);
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  box-shadow: 0 0 6px var(--color-warning);
+}
+
+.status-card-body {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  justify-content: center;
+}
+
+.status-icon-wrapper {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.status-progress-ring {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: rotate(-90deg);
+}
+
+.status-icon {
+  z-index: 1;
+}
+
+.status-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  align-items: flex-start;
+}
+
+.status-value {
+  font-size: 2.25rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.value-sub {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.status-text {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-top: 0.25rem;
+}
+
+/* Alert Banner Container */
+.alert-banner-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.alert-banner {
+  display: flex;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 0;
+  box-shadow: var(--shadow-sm);
+  gap: 1.5rem;
+  transition: background-color 0.2s ease;
+}
+
+.alert-banner.clickable {
+  cursor: pointer;
+}
+.alert-banner.clickable:hover {
+  filter: brightness(0.97);
+}
+
+/* Color Coding */
+.alert-banner.level-warning,
+.alert-history-item.level-warning {
+  background-color: var(--bg-banner-warning);
+}
+.alert-banner.level-warning .alert-title,
+.alert-history-item.level-warning .alert-title {
+  color: var(--color-warning);
+}
+.alert-banner.level-warning .alert-icon-wrapper,
+.alert-history-item.level-warning .alert-icon-wrapper {
+  color: var(--color-warning);
+}
+
+.alert-banner.level-critical,
+.alert-history-item.level-critical {
+  background-color: #fee2e2; /* Red 100 */
+}
+.alert-banner.level-critical .alert-title,
+.alert-history-item.level-critical .alert-title {
+  color: var(--color-critical);
+}
+.alert-banner.level-critical .alert-icon-wrapper,
+.alert-history-item.level-critical .alert-icon-wrapper {
+  color: var(--color-critical);
+}
+
+.alert-banner.level-info,
+.alert-history-item.level-info {
+  background-color: #e0f2fe; /* Sky 100 */
+}
+.alert-banner.level-info .alert-title,
+.alert-history-item.level-info .alert-title {
+  color: #0284c7; /* Sky 600 */
+}
+.alert-banner.level-info .alert-icon-wrapper,
+.alert-history-item.level-info .alert-icon-wrapper {
+  color: #0284c7;
+}
+
+.alert-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.alert-icon-wrapper.small {
+  margin-right: 0.5rem;
+}
+
+.alert-chevron {
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+}
+
+.alert-history {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border-color);
+  border-top: none;
+  background-color: var(--bg-card);
+}
+
+.alert-history-item {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  gap: 1.5rem;
+}
+
+.alert-history-item:last-child {
+  border-bottom: none;
+}
+
+.alert-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.alert-title {
+  font-weight: 700;
+  font-size: 0.875rem;
+  letter-spacing: 0.05em;
+}
+
+.alert-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.warning-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.125rem 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: 0;
+}
+
+.warning-badge.resolved {
+  background-color: var(--border-color);
+  color: var(--text-secondary);
+}
+
+.warning-badge.active-critical {
+  background-color: var(--color-critical);
+  color: white;
+  animation: pulse-glow-red 2s infinite;
+}
+
+@keyframes pulse-glow-red {
+  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+  70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+.alert-message {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.alert-timestamp {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Telemetry Item */
+.telemetry-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem 1rem;
+  flex: 1;
+}
+
+.telemetry-header {
+  margin-bottom: 1rem;
+}
+
+.telemetry-title {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+}
+
+.telemetry-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.telemetry-value-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  margin-bottom: 0.5rem;
+  justify-content: center;
+}
+
+.telemetry-value {
+  font-size: 1.875rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.telemetry-unit {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.telemetry-data {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Sidebar Summary Panel */
+.sidebar-summary-panel {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.summary-left-table {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.summary-table-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem 0;
+}
+
+.summary-table-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+}
+
+.summary-table-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.summary-table-divider {
+  height: 1px;
+  background-color: var(--border-color);
+  width: 100%;
+}
+
+.summary-right-risk {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.summary-risk-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+}
+
+.status-icon-wrapper.large {
+  width: 112px;
+  height: 112px;
+}
+
+.enlarged-risk-value {
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+/* Telemetry Table */
+.telemetry-table-wrapper {
+  width: 100%;
+}
+
+.telemetry-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.telemetry-table th {
+  padding: 1rem 1.5rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+  border-bottom: 1px solid var(--border-color);
+  white-space: nowrap;
+}
+
+.telemetry-table td {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  vertical-align: middle;
+}
+
+.telemetry-row:hover {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.telemetry-table tr:last-child td {
+  border-bottom: none;
+}
+
+.param-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.param-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background-color: var(--bg-hover);
+  border-radius: 8px;
+}
+
+.param-title {
+  font-weight: 700;
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+.value-cell {
+  white-space: nowrap;
+}
+
+.value-cell .value-main {
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.value-cell .value-unit {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-left: 0.25rem;
+  font-weight: 500;
+}
+
+.deviation-cell {
+  font-weight: 700;
+  font-size: 0.95rem;
+  white-space: nowrap;
+}
+
+.status-cell {
+  white-space: nowrap;
+}
+
+/* Cylinder Sub-table */
+.telemetry-subsection-header td {
+  padding: 1.5rem 1.5rem 0.5rem 1.5rem;
+  border-bottom: none;
+}
+
+.subsection-title {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.cylinder-cell {
+  padding: 0.5rem 1.5rem 1.5rem 1.5rem !important;
+}
+
+.cylinder-grid-8 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.cylinder-card {
+  background-color: var(--bg-hover);
+  border-radius: 8px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.cylinder-card.has-warning {
+  border-color: var(--color-warning);
+  background-color: rgba(234, 179, 8, 0.05);
+}
+
+.cyl-header {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.5rem;
+  text-align: center;
+}
+
+.cyl-data {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.cyl-data-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.875rem;
+}
+
+.cyl-label {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.cyl-val {
+  font-weight: 700;
+}

@@ -1,0 +1,82 @@
+.post-flight-table-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.post-flight-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.post-flight-table th {
+  padding: 0.75rem 1rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-color);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.post-flight-table td {
+  padding: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 0.9rem;
+  vertical-align: middle;
+}
+
+.post-flight-table tr:last-child td {
+  border-bottom: none;
+}
+
+.post-flight-table tr:hover td {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.anomaly-badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  background-color: var(--border-color);
+  color: var(--text-secondary);
+  font-weight: bold;
+}
+
+.anomaly-badge.has-anomalies {
+  background-color: rgba(239, 68, 68, 0.2);
+  color: var(--color-critical);
+}
+
+.risk-indicator {
+  font-weight: bold;
+}
+
+.risk-indicator.high {
+  color: var(--color-critical);
+}
+
+.risk-indicator.low {
+  color: var(--color-warning);
+}
+
+.risk-indicator.nominal {
+  color: var(--color-good);
+}
+
+.btn-view-details {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 0.4rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  transition: all 0.2s ease;
+}
+
+.btn-view-details:hover {
+  background: var(--border-color);
+}
