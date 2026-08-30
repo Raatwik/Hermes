@@ -32,8 +32,9 @@ Deliver a fully functional MVP of the MALE-UAV Digital Twin, complete with the s
 
 ## Open Tickets (The Frontier)
 
-- **Datasets: Dynamic Training Updates:** Simulation engine must physically terminate upon reaching critical thresholds to provide accurate RUL labels. Generate healthy transient missions and compound faults. (See pipeline_remediation_plan.md)
-- **ML Engineer: Dynamic Training Remediation:** XGBoost must be refactored into a MultiOutputClassifier for compound faults. Isolation Forest must be retrained purely on healthy data. LSTM must be retrained on physically terminating datasets. (See pipeline_remediation_plan.md)
+- [04.3-simulation-remediation.md](04.3-simulation-remediation.md) — Simulation: Engine Failure Thresholds (RPM, CHT, Oil Pressure, EGT, Vibration) to physically terminate simulations.
+- [05.4-datasets-remediation.md](05.4-datasets-remediation.md) — Datasets: Dynamic Missions (`dynamic_maneuvers.yaml`) & Explicit Compound Fault Generation.
+- [03.3-ml-remediation.md](03.3-ml-remediation.md) — ML Engineer: XGBoost `MultiOutputClassifier`, Tuned Isolation Forest on purely healthy data, and LSTM retraining.
 - [02-frontend.md](02-frontend.md) — Frontend: Operator Dashboard MVP
 - [06-integration.md](06-integration.md) — Integration: Real-Time Backend & MQTT (Blocked by 02)
 
