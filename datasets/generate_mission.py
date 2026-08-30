@@ -7,7 +7,7 @@ import uuid
 from typing import Optional, List, Dict
 from dataclasses import dataclass
 
-from simulation.engine import Simulation
+from simulation.engine import Simulation, EngineFailureException
 from simulation.fault_manager import KNOWN_FAULTS
 
 RUL_MAX = 500.0
@@ -208,15 +208,26 @@ def run_pipeline(config_path: Optional[str] = None, output_dir: str = "data", dt
     record_state(0.0)
     
     num_steps = int(max_time / dt)
+    # Defaults to the scheduled end; a catastrophic failure shortens it so that
+    # the RUL below anchors to the true moment of engine death.
+    effective_end_time = max_time
     for i in range(1, num_steps + 1):
         current_time = i * dt
-        
+
         sim.clear_faults()
         scheduler.inject_to(sim, current_time)
-        
-        sim.step(dt)
+
+        try:
+            sim.step(dt)
+        except EngineFailureException as exc:
+            print(
+                f"Engine failure at t={current_time - dt:.1f}s ({exc.reason}); "
+                f"terminating mission early"
+            )
+            effective_end_time = current_time - dt
+            break
         record_state(current_time)
-        
+
     df = pd.DataFrame(records)
     
     # Post-processing RUL Calculation
@@ -231,7 +242,7 @@ def run_pipeline(config_path: Optional[str] = None, output_dir: str = "data", dt
             if t < scheduler.injection_time:
                 return RUL_MAX
             else:
-                return min(RUL_MAX, max_time - t)
+                return min(RUL_MAX, max(0.0, effective_end_time - t))
         
         def calc_tsfi(t):
             if t < scheduler.injection_time:

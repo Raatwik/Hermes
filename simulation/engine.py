@@ -61,6 +61,32 @@ INITIAL_VALUES: dict[str, float] = {
 }
 
 
+class EngineFailureException(RuntimeError):
+    """Raised when a stepped simulation has entered a catastrophic failure state.
+
+    The engine registers a dead state the moment a critical telemetry threshold
+    is breached; any further call to :meth:`Simulation.step` raises this so that
+    downstream consumers stop time-stepping a destroyed engine.
+    """
+
+    def __init__(self, reason: str) -> None:
+        super().__init__(f"Engine failure: {reason}")
+        self.reason = reason
+
+
+# Speed at or above which the engine is considered to have started running. Once
+# the engine has run, a later drop below RPM_STALL_THRESHOLD is a genuine stall
+# rather than the normal spin-up transient.
+RPM_RUNNING_THRESHOLD = 1000.0
+
+# RPM at or below which a running engine has stalled (catastrophic, non-recoverable).
+RPM_STALL_THRESHOLD = 1000.0
+
+# The RPM stall check only applies when the engine is being commanded to produce
+# meaningful power. A commanded idle (throttle ~0) legitimately sits near 800 RPM.
+STALL_THROTTLE_FLOOR = 0.1
+
+
 def _interpolate_map(points: list[tuple[float, float, float]], throttle: float, altitude: float) -> float:
     altitudes = sorted(set(p[1] for p in points))
     if len(altitudes) == 1 or altitude <= altitudes[0]:
@@ -121,6 +147,19 @@ class Simulation:
             for key in TIME_CONSTANTS
         }
         self._rng = random.Random(noise_seed) if noise_seed is not None else None
+        self._is_alive: bool = True
+        self._failure_reason: str | None = None
+        self._has_run: bool = False
+
+    @property
+    def is_alive(self) -> bool:
+        """False once a critical threshold has been breached."""
+        return self._is_alive
+
+    @property
+    def failure_reason(self) -> str | None:
+        """Human-readable description of the breach, or None while alive."""
+        return self._failure_reason
 
     def inject_fault(self, fault_type: str, **kwargs: object) -> None:
         self._fault_manager.inject(fault_type, **kwargs)
@@ -143,6 +182,8 @@ class Simulation:
         self._profile = None
 
     def step(self, dt: float) -> None:
+        if not self._is_alive:
+            raise EngineFailureException(self._failure_reason or "engine is not running")
         if self._profile is not None:
             self._throttle = _interp_profile_value(self._profile, self._time, "throttle")
             self._altitude = _interp_profile_value(self._profile, self._time, "altitude")
@@ -156,6 +197,30 @@ class Simulation:
             filt.step(target, dt)
             filt.tau = original_tau
         self._time += dt
+        self._update_liveness()
+
+    def _update_liveness(self) -> None:
+        """Register a dead state if a running engine has stalled.
+
+        Only the RPM stall condition is handled here (Issue 01). Other
+        catastrophic limits (CHT, oil pressure, EGT, vibration) are layered on
+        by their own tickets. The stall check is gated on the engine having
+        reached running speed at least once and on throttle being above idle,
+        so neither the spin-up transient nor a commanded idle is a stall.
+        """
+        state = self._raw_state()
+        if state["rpm"] >= RPM_RUNNING_THRESHOLD:
+            self._has_run = True
+
+        if (
+            self._has_run
+            and state["throttle"] > STALL_THROTTLE_FLOOR
+            and state["rpm"] < RPM_STALL_THRESHOLD
+        ):
+            self._is_alive = False
+            self._failure_reason = (
+                f"RPM {state['rpm']:.0f} below stall threshold {RPM_STALL_THRESHOLD:.0f}"
+            )
 
     def get_environment(self) -> dict[str, float]:
         altitude_ft = self._altitude
@@ -172,6 +237,14 @@ class Simulation:
         }
 
     def get_state(self) -> dict[str, float]:
+        state = self._raw_state()
+        if self._rng is not None:
+            for key, std in SENSOR_NOISE_STD.items():
+                if key in state:
+                    state[key] += self._rng.gauss(0.0, std)
+        return state
+
+    def _raw_state(self) -> dict[str, float]:
         mods = self._fault_manager.get_modifiers()
         state: dict[str, float] = {
             "time": self._time,
@@ -191,10 +264,5 @@ class Simulation:
         state["vibration_index"] = min(baseline_vib + fault_vib, 1.0)
         state["engine_load"] = min(self._throttle * rpm_fraction, 1.0)
         state["injection_timing"] = 24.0 + 8.0 * rpm_fraction
-
-        if self._rng is not None:
-            for key, std in SENSOR_NOISE_STD.items():
-                if key in state:
-                    state[key] += self._rng.gauss(0.0, std)
 
         return state
