@@ -21,7 +21,8 @@ def train_isolation_forest(data_dir: str = "data_features", output_model: str = 
     exclude_cols = [
         "time", "fault_class", "mission_id", "throttle", "altitude", 
         "ambient_temperature", "ambient_pressure", "air_density", 
-        "flight_phase", "time_since_fault_injection",
+        "flight_phase", "time_since_fault_injection", "fault_severity",
+        "Remaining_Useful_Life",
         "secondary_fault_class", "secondary_fault_severity"
     ]
     

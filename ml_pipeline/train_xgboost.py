@@ -26,16 +26,26 @@ def load_data(data_dir: str, downsample_rate: int = 1) -> pd.DataFrame:
 
         # Extract mission_id from filename
         mission_id = os.path.basename(f).replace(".parquet", "")
-        df["mission_id"] = mission_id
         
         # Ensure fault_class is present
-        if "fault_class" not in df.columns:
+        fault_class = "healthy"
+        if "fault_class" in df.columns:
+            fault_class = df["fault_class"].iloc[0]
+        else:
             parts = f.split(os.sep)
             for p in parts:
                 if p.startswith("fault_class="):
-                    df["fault_class"] = p.split("=")[1]
+                    fault_class = p.split("=")[1]
                     break
-        
+            df["fault_class"] = fault_class
+            
+        # Dynamically set healthy label for pre-injection periods
+        if "fault_severity" in df.columns:
+            df.loc[df["fault_severity"] == 0.0, "fault_class"] = "healthy"
+        elif "time_since_fault_injection" in df.columns:
+            df.loc[df["time_since_fault_injection"] == 0.0, "fault_class"] = "healthy"
+
+        df = df.assign(mission_id=mission_id)
         dfs.append(df)
         
     if not dfs:
@@ -55,7 +65,8 @@ def train_model(data_dir: str = "data_features", output_model: str = "models/xgb
     exclude_cols = [
         "time", target_col, group_col, "throttle", "altitude", 
         "ambient_temperature", "ambient_pressure", "air_density", 
-        "flight_phase", "time_since_fault_injection",
+        "flight_phase", "time_since_fault_injection", "fault_severity",
+        "Remaining_Useful_Life",
         "secondary_fault_class", "secondary_fault_severity"
     ]
     
