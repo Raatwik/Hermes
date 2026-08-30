@@ -30,10 +30,11 @@ Deliver a fully functional MVP of the MALE-UAV Digital Twin, complete with the s
 - [04.2-simulation-cylinder-faults.md](04.2-simulation-cylinder-faults.md) — Simulation Phase 3 completed: added individual cylinder EGTs and windmilling.
 - [05.3-datasets-cascading-faults.md](05.3-datasets-cascading-faults.md) — Datasets Phase 3 completed: cascading secondary faults and updated ML schema generation.
 
+- [04.3-simulation-remediation.md](04.3-simulation-remediation.md) — Simulation Remediation completed: added `EngineFailureException` with physical failure thresholds (RPM < 1000, CHT > 250°C, Oil Pressure < 20 psi, EGT > 900°C, Vibration > 0.9) that terminate simulations early, and `run_pipeline` catches the exception to anchor RUL to the true moment of engine death.
+- [05.4-datasets-remediation.md](05.4-datasets-remediation.md) — Datasets Remediation completed: added `dynamic_maneuvers.yaml` with 9 short aggressive alternating phases for transient training data, added `"compound"` to `all_classes` in the bulk orchestrator, and updated `FaultScheduler` to guarantee 2 overlapping fault injections (100% probability) when `force_fault_class="compound"`.
+
 ## Open Tickets (The Frontier)
 
-- [04.3-simulation-remediation.md](04.3-simulation-remediation.md) — Simulation: Engine Failure Thresholds (RPM, CHT, Oil Pressure, EGT, Vibration) to physically terminate simulations.
-- [05.4-datasets-remediation.md](05.4-datasets-remediation.md) — Datasets: Dynamic Missions (`dynamic_maneuvers.yaml`) & Explicit Compound Fault Generation.
 - [03.3-ml-remediation.md](03.3-ml-remediation.md) — ML Engineer: XGBoost `MultiOutputClassifier`, Tuned Isolation Forest on purely healthy data, and LSTM retraining.
 - [02-frontend.md](02-frontend.md) — Frontend: Operator Dashboard MVP
 - [06-integration.md](06-integration.md) — Integration: Real-Time Backend & MQTT (Blocked by 02)
