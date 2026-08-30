@@ -34,7 +34,10 @@ Thumbs.db
 synthetic_telemetry.csv
 telemetry.json
 *.parquet
+*.zip
 data/
+data_residuals/
+data_features/
 !synthetic_data/
 !synthetic_data/**
 
@@ -58,3 +61,10 @@ mlruns/
 .ipynb_checkpoints/
 .mypy_cache/
 .ruff_cache/
+
+# Evaluation Scripts and Temp Data
+eval_residuals/
+tmp_residuals/
+eval_tmp/
+extensive_test.py
+evaluate_all_models.py

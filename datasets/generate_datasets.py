@@ -41,7 +41,7 @@ def main():
     # Wipe the old dataset to ensure a clean schema for ML
     shutil.rmtree(args.out, ignore_errors=True)
     
-    all_classes = ["healthy"] + list(KNOWN_FAULTS)
+    all_classes = ["healthy"] + list(KNOWN_FAULTS) + ["compound"]
     tasks = []
     
     for i in range(args.num_missions):

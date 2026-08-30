@@ -1,5 +1,6 @@
 import os
 import glob
+import numpy as np
 import pandas as pd
 import torch
 from torch.utils.data import Dataset, DataLoader
@@ -71,24 +72,26 @@ class TelemetryDataset(Dataset):
                 
             features = df[self.feature_cols].values
             num_steps = len(features)
-            
-            # RUL (Remaining Useful Life) in hours
-            if num_steps > 0:
-                if 'time' in df.columns:
-                    max_time = df['time'].iloc[-1]
-                    # Assuming time is in seconds, convert to hours
-                    rul_values = (max_time - df['time']).values / 3600.0
-                else:
-                    # Fallback: assume 1 Hz downsampled frequency = seconds
-                    rul_values = pd.Series(range(num_steps))[::-1].values / 3600.0
+
+            if num_steps == 0:
+                continue
+
+            # Use pre-computed RUL anchored to engine death when available
+            if 'Remaining_Useful_Life' in df.columns:
+                rul_values = df['Remaining_Useful_Life'].values / 3600.0
+            elif 'time' in df.columns:
+                max_time = df['time'].iloc[-1]
+                rul_values = (max_time - df['time']).values / 3600.0
             else:
-                rul_values = []
-            
-            # Create sliding windows
+                raise ValueError(f"Parquet file must contain 'Remaining_Useful_Life' or 'time' column")
+
+            # Create sliding windows, skipping any with NaN
             num_windows = num_steps - self.config.window_size + 1
             for i in range(num_windows):
                 window = features[i:i + self.config.window_size]
                 target = rul_values[i + self.config.window_size - 1]
+                if np.isnan(window).any() or np.isnan(target):
+                    continue
                 self.data_windows.append(window)
                 self.targets.append(target)
                 
