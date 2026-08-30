@@ -4,12 +4,12 @@
 
 **Blocked by:** 01 — Standalone MQTT Broker and Simulation Playback
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] A subscriber script (`integration/ml_subscriber.py`) listens to the `telemetry/engine` topic.
-- [ ] On each tick, it queries a local `Simulation` instance to compute `Actual - Expected` residuals for key sensors.
-- [ ] It computes a Twin Drift score using a normalized rolling mean-squared-error of the residuals.
-- [ ] It feeds the residuals and rolling statistics into the XGBoost and LSTM models.
-- [ ] It feeds the data into the Isolation Forest; if an anomaly is detected, XGBoost's output is overridden to `UNKNOWN_ANOMALY` and the LSTM's RUL is suppressed to `None`.
-- [ ] The unified prediction object is published as JSON to `telemetry/predictions`.
-- [ ] The script automatically loads updated model weights (`.pt`/`.joblib`) upon restart without code changes.
+- [x] A subscriber script (`integration/ml_subscriber.py`) listens to the `telemetry/engine` topic.
+- [x] On each tick, it queries a local `Simulation` instance to compute `Actual - Expected` residuals for key sensors.
+- [x] It computes a Twin Drift score using a normalized rolling mean-squared-error of the residuals.
+- [x] It feeds the residuals and rolling statistics into the XGBoost and LSTM models.
+- [x] It feeds the data into the Isolation Forest; if an anomaly is detected, XGBoost's output is overridden to `UNKNOWN_ANOMALY` and the LSTM's RUL is suppressed to `None`.
+- [x] The unified prediction object is published as JSON to `telemetry/predictions`.
+- [x] The script automatically loads updated model weights (`.pt`/`.joblib`) upon restart without code changes.

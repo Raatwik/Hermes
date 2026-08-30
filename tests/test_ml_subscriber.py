@@ -1,0 +1,143 @@
+"""Tests for the ML subscriber integration pipeline.
+
+Verifies: telemetry published to telemetry/engine flows through the
+subscriber and produces valid prediction JSON on telemetry/predictions.
+"""
+
+import asyncio
+import json
+import socket
+import threading
+import time
+from pathlib import Path
+
+import paho.mqtt.client as mqtt
+import pytest
+
+from integration.sim_publisher import load_data
+
+DATA_PATH = (
+    Path(__file__).resolve().parent.parent
+    / "djibouti_data"
+    / "djibouti_flight_path"
+    / "djibouti_aligned.parquet"
+)
+
+TELEMETRY_TOPIC = "telemetry/engine"
+PREDICTIONS_TOPIC = "telemetry/predictions"
+
+
+def _free_port():
+    with socket.socket() as s:
+        s.bind(("", 0))
+        return s.getsockname()[1]
+
+
+@pytest.fixture(scope="module")
+def broker_port():
+    port = _free_port()
+    loop = asyncio.new_event_loop()
+    stop_event = asyncio.Event()
+
+    async def _run():
+        from amqtt.broker import Broker
+
+        cfg = {
+            "listeners": {"default": {"type": "tcp", "bind": f"0.0.0.0:{port}"}},
+            "auth": {"allow-anonymous": True},
+            "topic-check": {"enabled": False},
+        }
+        b = Broker(cfg)
+        await b.start()
+        await stop_event.wait()
+        await b.shutdown()
+
+    thread = threading.Thread(
+        target=lambda: loop.run_until_complete(_run()), daemon=True
+    )
+    thread.start()
+    time.sleep(1)
+    yield port
+    loop.call_soon_threadsafe(stop_event.set)
+    thread.join(timeout=5)
+
+
+def test_subscriber_produces_predictions(broker_port):
+    """Publish a few telemetry rows, verify predictions appear with correct schema."""
+    from integration.ml_subscriber import MLSubscriber
+
+    sub = MLSubscriber(host="localhost", port=broker_port)
+    sub_thread = threading.Thread(target=sub.run, daemon=True)
+    sub_thread.start()
+    time.sleep(1)
+
+    predictions = []
+
+    def on_message(_client, _userdata, msg):
+        predictions.append(json.loads(msg.payload))
+
+    listener = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+    listener.on_message = on_message
+    listener.connect("localhost", broker_port)
+    listener.subscribe(PREDICTIONS_TOPIC)
+    listener.loop_start()
+    time.sleep(0.5)
+
+    pub = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+    pub.connect("localhost", broker_port)
+    pub.loop_start()
+
+    df = load_data(DATA_PATH).head(10)
+    for _, row in df.iterrows():
+        pub.publish(TELEMETRY_TOPIC, json.dumps(row.to_dict()))
+        time.sleep(0.05)
+
+    time.sleep(2)
+
+    pub.loop_stop()
+    pub.disconnect()
+    listener.loop_stop()
+    listener.disconnect()
+    sub.stop()
+
+    assert len(predictions) == 10, f"Expected 10 predictions, got {len(predictions)}"
+
+    for pred in predictions:
+        assert "tick" in pred
+        assert "twin_drift_score" in pred
+        assert "xgboost_faults" in pred
+        assert "lstm_rul_mean" in pred
+        assert "lstm_rul_std" in pred
+        assert "isolation_forest_anomaly" in pred
+        assert isinstance(pred["twin_drift_score"], (int, float))
+        assert isinstance(pred["xgboost_faults"], list)
+        assert isinstance(pred["isolation_forest_anomaly"], bool)
+
+
+def test_anomaly_override_logic(broker_port):
+    """When Isolation Forest detects anomaly, XGBoost should be UNKNOWN_ANOMALY and LSTM RUL None."""
+    from integration.ml_subscriber import MLSubscriber
+
+    sub = MLSubscriber(host="localhost", port=broker_port)
+
+    residuals = {"rpm_residual": 100.0, "cht_residual": 50.0}
+    rolling_stats = {"rpm_residual_roll_mean": 80.0}
+
+    result = sub._apply_anomaly_override(
+        is_anomaly=True,
+        xgb_faults=["misfire"],
+        rul_mean=42.0,
+        rul_std=5.0,
+    )
+    assert result["xgboost_faults"] == ["UNKNOWN_ANOMALY"]
+    assert result["lstm_rul_mean"] is None
+    assert result["lstm_rul_std"] is None
+
+    result_normal = sub._apply_anomaly_override(
+        is_anomaly=False,
+        xgb_faults=["misfire"],
+        rul_mean=42.0,
+        rul_std=5.0,
+    )
+    assert result_normal["xgboost_faults"] == ["misfire"]
+    assert result_normal["lstm_rul_mean"] == 42.0
