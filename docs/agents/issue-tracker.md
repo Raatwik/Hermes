@@ -10,7 +10,7 @@
 - **04.3-Simulation** is COMPLETE. Engine failure thresholds implemented (`EngineFailureException` raised on RPM < 1000, CHT > 250°C, Oil Pressure < 20 psi, EGT > 900°C, Vibration > 0.9). Simulations now physically terminate on catastrophic faults, and `run_pipeline` anchors RUL to the true moment of engine death.
 - **05.4-Datasets** is COMPLETE. `dynamic_maneuvers.yaml` added with 9 aggressive alternating phases for transient training data. `"compound"` added to `all_classes` in `generate_datasets.py`. `FaultScheduler` guarantees 2 overlapping fault injections at 100% probability when `force_fault_class="compound"`.
 - **03.3-ML Engineer** is COMPLETE. XGBoost `MultiOutputClassifier` migration is DONE (issue 01). Isolation Forest tightened to healthy-only training with `0.001` contamination is DONE (issue 02). LSTM retrained on physically-terminating datasets is DONE (issue 03): `TelemetryDataset` now uses the pre-computed `Remaining_Useful_Life` column anchored to engine death instead of a naive countdown, and the model weights are saved to `models/best_lstm_model.pt`.
-- **Integration** is blocked by **Frontend**; it requires the UI interfaces and ML endpoints to build the final API/MQTT orchestration layer. (Simulation and ML Engineer interfaces are now ready for consumption).
+- **Integration** issue 01 (MQTT Broker & Sim Playback) is COMPLETE. Embedded `amqtt` broker in `integration/broker.py` and `integration/sim_publisher.py` reads `djibouti_aligned.parquet` row-by-row, publishing JSON to `telemetry/engine` with adjustable speed factor. Remaining integration issues (ML subscriber, FastAPI gateway, What-If API) are blocked by **Frontend**.
 
 ## 3. Wayfinder Team Tracks Index
 

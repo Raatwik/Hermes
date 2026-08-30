@@ -38,6 +38,7 @@ Deliver a fully functional MVP of the MALE-UAV Digital Twin, complete with the s
 
 - [02-frontend.md](02-frontend.md) — Frontend: Operator Dashboard MVP
 - [06-integration.md](06-integration.md) — Integration: Real-Time Backend & MQTT (Blocked by 02)
+  - [.scratch/integration/issues/01-mqtt-broker-sim-playback.md](../../../.scratch/integration/issues/01-mqtt-broker-sim-playback.md) — DONE: Embedded MQTT broker (`integration/broker.py`) and simulation publisher (`integration/sim_publisher.py`) with adjustable speed playback of `djibouti_aligned.parquet`.
 
 ## Not yet specified
 
