@@ -23,13 +23,21 @@ Deliver a fully functional MVP of the MALE-UAV Digital Twin, complete with the s
 - [.scratch/datasets/issues/phase 2/05-sensor-noise.md](../../../.scratch/datasets/issues/phase 2/05-sensor-noise.md) — Added sensor noise to simulation and `time_since_fault_injection` metadata.
 - [.scratch/datasets/issues/phase 2/06-weather-bounds.md](../../../.scratch/datasets/issues/phase 2/06-weather-bounds.md) — Enabled `ambient_temp_offset` and bounds sampling `[min, max]` for mission configurations.
 - [.scratch/datasets/issues/phase 2/07-base-missions.md](../../../.scratch/datasets/issues/phase 2/07-base-missions.md) — Created `takeoff_cruise.yaml` & `loiter.yaml` and refactored bulk generator to use them.
-- [03-ml-engineer.md](03-ml-engineer.md) — ML pipeline architecture finalized: pre-computing residuals via physics-based digital twin, extracting context features, using XGBoost for Stage 1, and mission-based train/test splitting.
-- [02-frontend.md](02-frontend.md) — Frontend architecture designed and Operator/Engineer dashboards implemented with live telemetry integration and respective widgets.
+- [03-ml-engineer.md](03-ml-engineer.md) — ML pipeline Stage 1 completed: scripts written for residual generation, feature engineering, and training XGBoost/Isolation Forest.
+- [03.1-ml-engineer-stage-2.md](03.1-ml-engineer-stage-2.md) — ML Stage 2 completed: implemented probabilistic LSTM for RUL prediction using PyTorch, optimized via Negative Log-Likelihood.
+- [03.2-ml-training-guide.md](03.2-ml-training-guide.md) — ML Training Execution Guide: documented step-by-step commands, time estimates, default hyperparams, and RAM limits for offline model training.
+
+- [04.2-simulation-cylinder-faults.md](04.2-simulation-cylinder-faults.md) — Simulation Phase 3 completed: added individual cylinder EGTs and windmilling.
+- [05.3-datasets-cascading-faults.md](05.3-datasets-cascading-faults.md) — Datasets Phase 3 completed: cascading secondary faults and updated ML schema generation.
+
+- [04.3-simulation-remediation.md](04.3-simulation-remediation.md) — Simulation Remediation completed: added `EngineFailureException` with physical failure thresholds (RPM < 1000, CHT > 250°C, Oil Pressure < 20 psi, EGT > 900°C, Vibration > 0.9) that terminate simulations early, and `run_pipeline` catches the exception to anchor RUL to the true moment of engine death.
+- [05.4-datasets-remediation.md](05.4-datasets-remediation.md) — Datasets Remediation completed: added `dynamic_maneuvers.yaml` with 9 short aggressive alternating phases for transient training data, added `"compound"` to `all_classes` in the bulk orchestrator, and updated `FaultScheduler` to guarantee 2 overlapping fault injections (100% probability) when `force_fault_class="compound"`.
+- [03.3-ml-remediation.md](03.3-ml-remediation.md) — ML Remediation completed: XGBoost migrated to `MultiOutputClassifier`, Isolation Forest tightened to healthy-only training, LSTM retrained on physically-terminating datasets with `TelemetryDataset` using pre-computed `Remaining_Useful_Life` column.
 
 ## Open Tickets (The Frontier)
 
-- [03-ml-engineer.md](03-ml-engineer.md) — ML Engineer: Diagnostics & RUL Models (Unblocked)
-- [06-integration.md](06-integration.md) — Integration: Real-Time Backend & MQTT (Blocked by 02, 03, 04)
+- [02-frontend.md](02-frontend.md) — Frontend: Operator Dashboard MVP
+- [06-integration.md](06-integration.md) — Integration: Real-Time Backend & MQTT (Blocked by 02)
 
 ## Not yet specified
 

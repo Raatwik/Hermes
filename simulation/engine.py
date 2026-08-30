@@ -8,6 +8,10 @@ SENSOR_NOISE_STD: dict[str, float] = {
     "rpm": 10.0,
     "cht": 2.0,
     "egt": 5.0,
+    "egt_1": 5.0,
+    "egt_2": 5.0,
+    "egt_3": 5.0,
+    "egt_4": 5.0,
     "oil_pressure": 0.5,
     "oil_temp": 1.0,
     "fuel_flow": 0.2,
@@ -55,6 +59,37 @@ INITIAL_VALUES: dict[str, float] = {
     "fuel_flow": 6.0,
     "battery_voltage": 12.2,
 }
+
+
+class EngineFailureException(RuntimeError):
+    """Raised when a stepped simulation has entered a catastrophic failure state.
+
+    The engine registers a dead state the moment a critical telemetry threshold
+    is breached; any further call to :meth:`Simulation.step` raises this so that
+    downstream consumers stop time-stepping a destroyed engine.
+    """
+
+    def __init__(self, reason: str) -> None:
+        super().__init__(f"Engine failure: {reason}")
+        self.reason = reason
+
+
+# Speed at or above which the engine is considered to have started running. Once
+# the engine has run, a later drop below RPM_STALL_THRESHOLD is a genuine stall
+# rather than the normal spin-up transient.
+RPM_RUNNING_THRESHOLD = 1000.0
+
+# RPM at or below which a running engine has stalled (catastrophic, non-recoverable).
+RPM_STALL_THRESHOLD = 1000.0
+
+# The RPM stall check only applies when the engine is being commanded to produce
+# meaningful power. A commanded idle (throttle ~0) legitimately sits near 800 RPM.
+STALL_THROTTLE_FLOOR = 0.1
+
+CHT_LIMIT = 250.0
+OIL_PRESSURE_LIMIT = 20.0
+EGT_LIMIT = 900.0
+VIBRATION_LIMIT = 0.9
 
 
 def _interpolate_map(points: list[tuple[float, float, float]], throttle: float, altitude: float) -> float:
@@ -117,6 +152,19 @@ class Simulation:
             for key in TIME_CONSTANTS
         }
         self._rng = random.Random(noise_seed) if noise_seed is not None else None
+        self._is_alive: bool = True
+        self._failure_reason: str | None = None
+        self._has_run: bool = False
+
+    @property
+    def is_alive(self) -> bool:
+        """False once a critical threshold has been breached."""
+        return self._is_alive
+
+    @property
+    def failure_reason(self) -> str | None:
+        """Human-readable description of the breach, or None while alive."""
+        return self._failure_reason
 
     def inject_fault(self, fault_type: str, **kwargs: object) -> None:
         self._fault_manager.inject(fault_type, **kwargs)
@@ -139,6 +187,8 @@ class Simulation:
         self._profile = None
 
     def step(self, dt: float) -> None:
+        if not self._is_alive:
+            raise EngineFailureException(self._failure_reason or "engine is not running")
         if self._profile is not None:
             self._throttle = _interp_profile_value(self._profile, self._time, "throttle")
             self._altitude = _interp_profile_value(self._profile, self._time, "altitude")
@@ -152,6 +202,40 @@ class Simulation:
             filt.step(target, dt)
             filt.tau = original_tau
         self._time += dt
+        self._update_liveness()
+
+    def _kill(self, reason: str) -> None:
+        self._is_alive = False
+        self._failure_reason = reason
+
+    def _update_liveness(self) -> None:
+        state = self._raw_state()
+        if state["rpm"] >= RPM_RUNNING_THRESHOLD:
+            self._has_run = True
+
+        if (
+            self._has_run
+            and state["throttle"] > STALL_THROTTLE_FLOOR
+            and state["rpm"] < RPM_STALL_THRESHOLD
+        ):
+            self._kill(f"RPM {state['rpm']:.0f} below stall threshold {RPM_STALL_THRESHOLD:.0f}")
+            return
+
+        if state["cht"] > CHT_LIMIT:
+            self._kill(f"CHT {state['cht']:.1f} exceeded limit {CHT_LIMIT:.0f}")
+            return
+
+        if state["oil_pressure"] < OIL_PRESSURE_LIMIT:
+            self._kill(f"Oil pressure {state['oil_pressure']:.1f} below limit {OIL_PRESSURE_LIMIT:.0f}")
+            return
+
+        for key in ["egt", "egt_1", "egt_2", "egt_3", "egt_4"]:
+            if state[key] > EGT_LIMIT:
+                self._kill(f"EGT ({key}) {state[key]:.1f} exceeded limit {EGT_LIMIT:.0f}")
+                return
+
+        if state["vibration_index"] > VIBRATION_LIMIT:
+            self._kill(f"Vibration index {state['vibration_index']:.3f} exceeded limit {VIBRATION_LIMIT}")
 
     def get_environment(self) -> dict[str, float]:
         altitude_ft = self._altitude
@@ -168,6 +252,14 @@ class Simulation:
         }
 
     def get_state(self) -> dict[str, float]:
+        state = self._raw_state()
+        if self._rng is not None:
+            for key, std in SENSOR_NOISE_STD.items():
+                if key in state:
+                    state[key] += self._rng.gauss(0.0, std)
+        return state
+
+    def _raw_state(self) -> dict[str, float]:
         mods = self._fault_manager.get_modifiers()
         state: dict[str, float] = {
             "time": self._time,
@@ -175,16 +267,17 @@ class Simulation:
         }
         for key, filt in self._filters.items():
             state[key] = filt.value + mods["output_offsets"].get(key, 0.0)
+            
+        base_egt = state["egt"]
+        for i in range(1, 5):
+            cyl_key = f"egt_{i}"
+            state[cyl_key] = base_egt + mods["output_offsets"].get(cyl_key, 0.0)
+            
         rpm_fraction = state["rpm"] / 5500.0
         baseline_vib = 0.02 + 0.03 * rpm_fraction
         fault_vib = mods["vibration_severity"]
         state["vibration_index"] = min(baseline_vib + fault_vib, 1.0)
         state["engine_load"] = min(self._throttle * rpm_fraction, 1.0)
         state["injection_timing"] = 24.0 + 8.0 * rpm_fraction
-
-        if self._rng is not None:
-            for key, std in SENSOR_NOISE_STD.items():
-                if key in state:
-                    state[key] += self._rng.gauss(0.0, std)
 
         return state

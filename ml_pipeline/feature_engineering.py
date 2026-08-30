@@ -26,6 +26,7 @@ def compute_rolling_features(
     temp_df.index = time_index
     
     cols_to_roll = sensor_cols + residual_cols
+    new_features = {}
     
     for window in windows_s:
         # e.g., '10s'
@@ -34,28 +35,20 @@ def compute_rolling_features(
         # Calculate rolling statistics
         rolled = temp_df[cols_to_roll].rolling(window=window_str, min_periods=1)
         
-        means = rolled.mean() # type: ignore
-        variances = rolled.var() # type: ignore
-        mins = rolled.min() # type: ignore
-        maxs = rolled.max() # type: ignore
+        means = rolled.mean().reset_index(drop=True)
+        variances = rolled.var().reset_index(drop=True).fillna(0.0)
+        mins = rolled.min().reset_index(drop=True)
+        maxs = rolled.max().reset_index(drop=True)
         
-        # Reset index to align back with integer index of out_df
-        means.reset_index(drop=True, inplace=True) # type: ignore
-        variances.reset_index(drop=True, inplace=True) # type: ignore
-        mins.reset_index(drop=True, inplace=True) # type: ignore
-        maxs.reset_index(drop=True, inplace=True) # type: ignore
-        
-        # For variance, a window of size 1 yields NaN. Fill with 0.
-        variances.fillna(0.0, inplace=True) # type: ignore
-        
-        # Add to out_df
+        # Store features in a dictionary to prevent DataFrame fragmentation
         for col in cols_to_roll:
-            out_df[f"{col}_roll_{window}_mean"] = means[col] # type: ignore
-            out_df[f"{col}_roll_{window}_var"] = variances[col] # type: ignore
-            out_df[f"{col}_roll_{window}_min"] = mins[col] # type: ignore
-            out_df[f"{col}_roll_{window}_max"] = maxs[col] # type: ignore
+            new_features[f"{col}_roll_{window}_mean"] = means[col].values
+            new_features[f"{col}_roll_{window}_var"] = variances[col].values
+            new_features[f"{col}_roll_{window}_min"] = mins[col].values
+            new_features[f"{col}_roll_{window}_max"] = maxs[col].values
             
-    return out_df
+    features_df = pd.DataFrame(new_features, index=df.index)
+    return pd.concat([df, features_df], axis=1)
 
 def process_file_features(filepath: str, output_dir: str, windows_s: List[int]) -> None:
     df = pd.read_parquet(filepath)

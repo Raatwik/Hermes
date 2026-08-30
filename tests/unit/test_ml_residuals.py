@@ -27,7 +27,9 @@ def test_residual_generation_healthy_run(temp_data_dir):
     
     mock_scheduler = mock.Mock()
     mock_scheduler.fault_class = "healthy"
+    mock_scheduler.secondary_fault_class = "none"
     mock_scheduler.injection_time = 10.0
+    mock_scheduler.secondary_injection_time = 0.0
     mock_scheduler.get_severity.return_value = 0.0
     
     run_pipeline(

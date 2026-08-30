@@ -1,0 +1,785 @@
+UNITED STATES AIR FORCE
+AIRCRAFT ACCIDENT INVESTIGATION
+BOARD REPORT
+
+MQ-1B T/N 08-3228
+432D WING
+CREECH AIR FORCE BASE, NEVADA
+
+LOCATION: REPUBLIC OF DJIBOUTI
+DATE OF ACCIDENT: 14 JANUARY 2011
+BOARD PRESIDENT: LIEUTENANT COLONEL JEFFREY S SCHWOOB
+Conducted IAW Air Force Instruction 51-503
+Abbreviate Accident Investigation pursuant to Chapter 11
+MQ-1B, T/N 08-3228, 14 January 2011
+i
+
+EXECUTIVE SUMMARY
+ABBREVIATED AIRCRAFT ACCIDENT INVESTIGATION
+MQ-1B T/N 08-3228, Republic of Djibouti
+14 JANUARY 2011
+On 14 January 2011, at 1617 Zulu (Z) time, the mishap remotely piloted aircraft (MRPA), a MQ1B Predator, tail number (T/N) 08-3228, crashed in the Gulf of Aden while returning to an
+undisclosed base approximately nine and a half hours after takeoff. Destruction of the MRPA
+with two missiles was assessed to be a financial loss of $4,120,000. No injuries, damage to other
+government property, or damage to private property occurred as a result of the mishap.
+The aircraft belonged to the 432d Wing at Creech Air Force Base (AFB), Nevada, but was
+deployed at the time in support of Operation HORN OF AFRICA. The crew flying the aircraft at
+the time of the mishap was from the 3rd Special Operations Squadron at Cannon AFB.
+Maintenance support was provided by the 49th Aircraft Maintenance Squadron, Holloman AFB.
+After normal pre-flight checks, the MRPA taxied and departed a Forward Operating Base (FOB)
+at 0702Z. Handover procedures from the Launch and Recovery Element to the first Mission
+Control Element (MCE) were uneventful. At 1330Z the MRPA oil pressure became erratic with
+momentary deviations below 30 pounds per square inch with no other engine abnormalities. The
+MCE ran appropriate procedures and elected to return to the FOB. On the return leg no further
+abnormal engine indications were observed and the MCE crew swapped out with the mishap
+crew (MC). The MC began a descent from the cruise altitude into the approach control structure
+approximately 144 miles from the FOB. During an intermediate level off the MC noticed erratic
+and low oil pressure indications which prompted the MC to run the low oil pressure procedures.
+The MC then descended the MRPA to 12,500 feet, leveled off for approximately 25 minutes
+until a piston, piston ring, valve, valve spring, push-rod, or rocker-arm in cylinder #3
+experienced a catastrophic failure. The cylinder head and piston were likely heavily damaged
+and pumped engine oil out of the cylinder. The wind-milling engine continued driving the oil
+pump, which pumped the remaining oil out of the tank until the oil tank was empty and the
+engine seized. The MRPA glided approximately 30 miles before making a forced water-landing
+three miles off-shore. The MRPA was a total loss and not recovered.
+The Accident Investigation Board President determined by clear and convincing evidence that
+the cause of the mishap was engine failure. Specifically, the catastrophic failure of the #3
+cylinder resulted in the depletion of the oil system and subsequent engine seizure. The Board
+President was not able to determine the cause of the cylinder failure since the MRPA’s engine
+was not recovered.
+Under 10 U.S.C. 2254(d), any opinion of the accident investigators as to the cause of, or the factors
+contributing to, the accident set forth in the accident investigation report may not be considered as
+evidence in any civil or criminal proceeding arising from the accident, nor may such information be
+considered an admission of liability of the United States or by any person referred to in those
+conclusions or statements.
+
+MQ-1B, T/N 08-3228, 14 January 2011
+ii
+
+SUMMARY OF FACTS AND STATEMENT OF OPINION
+MQ-1B T/N 08-3228
+14 JANUARY 2011
+
+TABLE OF CONTENTS
+TABLE OF CONTENTS ................................................................................................... iii
+COMMONLY USED ACRONYMS & ABBREVIATION ...............................................v
+SUMMARY OF FACTS .....................................................................................................1
+1. AUTHORITY AND PURPOSE ...................................................................................1
+a. Authority. ................................................................................................................. 1
+b. Purpose. .................................................................................................................... 1
+2. ACCIDENT SUMMARY .............................................................................................1
+3. BACKGROUND...........................................................................................................2
+4. SEQUENCE OF EVENTS ...........................................................................................6
+a. Summary of Previous Missions. ............................................................................... 6
+b. Planning. ................................................................................................................... 6
+c. Preflight. ................................................................................................................... 6
+d. Summary of Accident. .............................................................................................. 6
+e. Impact. ...................................................................................................................... 7
+f. Egress and Aircrew Flight Equipment. .................................................................... 7
+g. Search and Rescue. ................................................................................................... 7
+h. Recovery of Remains. .............................................................................................. 7
+5. MAINTENANCE..........................................................................................................8
+a. Forms Documentation. ............................................................................................. 8
+b. Inspections. ............................................................................................................... 8
+c. Maintenance Procedures........................................................................................... 9
+d. Maintenance Personnel and Supervision:................................................................. 9
+e. Fuel, Hydraulic and Oil Inspection Analysis. .......................................................... 9
+f. Unscheduled Maintenance. .................................................................................... 10
+6. AIRCRAFT AND AIRFRAME, MISSILE, OR SPACE VEHICLE SYSTEMS ......10
+a. Structures and Systems. .......................................................................................... 10
+b. Engineering Evaluations and Analyses. ................................................................. 10
+7. WEATHER .................................................................................................................10
+a. Forecast Weather. ................................................................................................... 10
+b. Observed Weather. ................................................................................................. 10
+c. Operations. ............................................................................................................. 10
+8. CREW QUALIFICATIONS .......................................................................................11
+a. MCE Crew Pilot ..................................................................................................... 11
+b. MCE Crew Operator .............................................................................................. 11
+a. Mishap Pilot ........................................................................................................... 12
+b. Mishap Sensor Operator ......................................................................................... 12
+MQ-1B, T/N 08-3228, 14 January 2011
+iii
+
+9. MEDICAL...................................................................................................................13
+a. Qualifications. ........................................................................................................ 13
+b. Health. .................................................................................................................... 13
+c. Pathology. ............................................................................................................... 13
+d. Lifestyle. ................................................................................................................. 13
+e. Crew Rest and Crew Duty Time. ........................................................................... 13
+10. OPERATIONS AND SUPERVISION .......................................................................13
+a. Operations. ............................................................................................................. 13
+b. Supervision. ............................................................................................................ 13
+11. HUMAN FACTORS ANALYSIS ............................................................................144
+12. GOVERNING DIRECTIVES AND PUBLICATIONS .............................................14
+a. Primary Operations Directives and Publications.................................................... 14
+b. Maintenance Directives and Publications. ............................................................. 14
+c. Known or Suspected Deviations from Directives or Publications. ........................ 15
+13. ADDITIONAL AREA OF CONCERN ......................................................................15
+STATEMENT OF OPINION ............................................................................................16
+INDEX OF TABS ..............................................................................................................18
+
+MQ-1B, T/N 08-3228, 14 January 2011
+iv
+
+COMMONLY USED ACRONYMS & ABBREVIATION
+ACC
+AEW
+AIB
+AAIB
+AF
+AFB
+AFI
+AFTO
+AFSOC
+ATC
+EGT
+FOB
+GA
+GCS
+HUD
+IMDS
+IAW
+ISR
+JBB
+KIAS
+L
+LOS
+LRE
+MC
+
+Air Combat Command
+Air Expeditionary Wing
+Accident Investigation Board
+Abbreviated Accident Investigation
+Board
+Air Force
+Air Force Base
+Air Force Instruction
+Air Force Technical Order
+Air Force Special Operations
+Command
+Air Traffic Control
+Exhaust Gas Temperature
+Forward Operating Base
+General Atomics
+Ground Control Station
+Head-up Display
+Integrated Maintenance Data System
+In Accordance With
+Intelligence, Surveillance and
+Reconnaissance
+Joint Base Balad
+Knots Indicated Airspeed
+Local Time
+Line of Sight
+Launch and Recovery Element
+Mishap Crew
+
+MCE
+ME
+MIS
+MP
+MRPA
+MS
+MSL
+MSO
+OG
+PPSL
+RPA
+RPM
+RS
+RW
+S/N
+SOF
+SOS
+SATCOM
+TCTO
+TO
+TV
+USAF
+USAFCENT
+USCENTCOM
+Z
+
+Mission Crew Element
+Mishap Engine
+Maintenance Information System
+Mishap Pilot
+Mishap Remotely Piloted Aircraft
+Mishap Sortie
+Mean Sea Level
+Mishap Sensor Operator
+Operations Group
+Predator Primary Satellite Link
+Remotely Piloted Aircraft
+Revolutions Per Minute
+Reconnaissance Squadron
+Reconnaissance Wing
+Serial Number
+Special Operations Forces
+Special Operations Squadron
+Satellite Communications
+Time Compliance Technical Order
+Technical Order
+Television
+United States Air Force
+United States Air Forces Central
+United States Central Command
+Zulu or Greenwich Meridian Time
+(GMT)
+
+The above list was compiled from the Summary of Facts, the Statement of Opinion, the Index of Tabs,
+and witness testimony (Tab V).
+
+MQ-1B, T/N 08-3228, 14 January 2011
+v
+
+SUMMARY OF FACTS
+1. AUTHORITY AND PURPOSE
+a. Authority.
+On 15 February 2011, Lieutenant General William J. Rew, Vice Commander Air Combat
+Command, appointed Lieutenant Colonel Jeffrey S. Schwoob as the Abbreviated Accident
+Investigation Board (AAIB) President to investigate the 14 January 2011 crash of an MQ-1B
+Predator aircraft, tail number T/N 08-3228. An abbreviated AIB was conducted at Nellis Air
+Force Base (AFB), Nevada, from 23 February 2011 to 10 March 2011, pursuant to Chapter 11 of
+Air Force Instruction (AFI) 51-503, Aerospace Accident Investigations. A Legal Advisor and
+Recorder were also appointed to the AAIB. A pilot, doctor, and maintenance officer were
+detailed as Functional Area Experts. (Tab Y-3, Y-4)
+b. Purpose.
+This is a legal investigation convened to inquire into the facts surrounding the aircraft or
+aerospace accident, to prepare a publicly-releasable report, and to gather and preserve all
+available evidence for use in litigation, claims, disciplinary actions, administrative proceedings,
+and for other purposes.
+2. ACCIDENT SUMMARY
+After preflight checks, the MRPA taxied and departed from a Forward Operating Base (FOB) in
+the Republic of Djibouti, at 0702Z. Approximately nine hours into the flight, the MRPA
+experienced a catastrophic oil leak causing the engine to seize. The MRPA was beyond glide
+distance to any suitable landing location and crashed approximately three miles off the coast of
+the Republic of Djibouti in the Gulf of Aden. The aircraft was totally destroyed upon impact
+with the loss valued at $4,120,000. There were no injuries or damage to personal property.
+(Tabs P-3 and DD-6, DD-7, GG-5)
+
+MQ-1B, T/N 08-3228, 14 January 2011
+1
+
+3. BACKGROUND
+a. Units and Organization
+(1) Air Combat Command (ACC)
+Air Combat Command is a major command of the United States Air
+Force and primary force provider of combat airpower to America’s
+warfighting commands. Its mission is to organize, train, equip, and
+maintain combat-ready forces for rapid deployment and employment
+while ensuring strategic air defense forces are ready to meet the challenges of peacetime air
+sovereignty and wartime air defense. ACC operates fighter, bomber, reconnaissance, battlemanagement, and electronic-control aircraft and provides command, control, communications,
+and intelligence systems and conducts global information operations. Over 67,000 active duty
+members, 13,500 civilians, and when mobilized, 50,000 Air National Guard and Reserve
+members compose ACC, and its units operate 1,800 aircraft. (Tab CC-5, CC-6, CC-7)
+(2) Air Force Special Operations Command (AFSOC)
+AFSOC is headquartered at Hurlburt Field, FL, and is one of ten major Air
+Force commands. AFSOC provides Air Force special operations forces
+for worldwide deployment and assignment to regional unified commands.
+The command's Special Operations Forces (SOF) are composed of highly
+trained, rapidly deployable Airmen conducting global special operations
+missions ranging from precision application of firepower, to infiltration,
+ex-filtration, resupply and refueling of SOF operational elements. (Tab CC-8, CC-9, CC-10)
+
+(3) 12th Air Force (12 AF)
+12th Air Force controls ACC’s conventional forces in the western United
+States and has the warfighting responsibility for U.S. Southern Command
+as well as the U.S. Southern Air Forces. It manages all Air Force assets
+and personnel in the AFSOUTH AOR, which includes Central and South
+America. 12th Air Force has worked closely with nations in the
+Caribbean, Central and South America in the Global War on Terrorism by
+providing forces to OEF, OIF, and Operation NOBLE EAGLE, and it also has supported efforts
+to stem the flow of illegal drugs into the U.S. and neighboring countries. 12th Air Force directs
+10 active duty wings and one direct reporting unit as well as 13 gained wings and other units of
+the Air National Guard and Reserve. (Tab CC-11, CC-12)
+
+MQ-1B, T/N 08-3228, 14 January 2011
+2
+
+(4) 432d Wing (432 WG)
+The 432d Wing (432 WG), stationed at Creech AFB, Nevada, flies the MQ1B Predator and MQ-9 Reaper remotely piloted aircraft (RPA) systems to
+provide real-time reconnaissance, surveillance, and precision attack against
+fixed and time-critical targets to support American and coalition forces
+worldwide. The 432 WG also conducts initial qualification training for
+aircrew, intelligence, weather, and maintenance personnel who will fly and support RPA
+systems. The wing’s organization includes two groups, six RPA flying squadrons, an operational
+support squadron, and a maintenance squadron. The wing and its subordinate units are
+components of the Air Force’s ACC and 12 AF. (Tab CC-15)
+
+(5) 432d Operations Group (432 OG)
+The 432d Operations Group employs RPA in 24-hour Combat Air Patrols in
+support of combatant commander needs, and deploys combat support forces
+worldwide. This includes combat command and control, tactics
+development, intelligence support, weather support, and standardization and
+evaluation oversight for ACC, USAFCENT, Air Force Material Command,
+Air National Guard, the United Kingdom Royal Air Force, seven
+geographic combatant commanders, and Air Reserve Command RPA units. The Group is also
+responsible for all air traffic control, airfield management, and weather services for RPA
+operations at Creech AFB, NV. (Tab CC-15)
+(6) 3rd Special Operations Squadron (3 SOS)
+The 3rd SOS accomplishes global special operations tasking as a member of
+the Air Force component of United States Special Operations Command. It
+directly supports theater commanders by providing precision weapons
+employment and persistent intelligence, surveillance, and reconnaissance. It
+also plans, prepares, and executes MQ-1B Predator missions supporting
+special operations forces. (Tab CC-13, CC-14)
+
+MQ-1B, T/N 08-3228, 14 January 2011
+3
+
+b. Aircraft: MQ-1B Predator
+The MQ-1B Predator is a medium- altitude, long-endurance, unmanned aircraft system with
+primary missions of close air support, air interdiction, and ISR. It acts as a Joint Forces Air
+Component Commander-owned theater asset for reconnaissance, surveillance and target
+acquisition in support of the Joint Forces Commander. The MQ-1B is actually a system, not just
+an aircraft, which consists of four aircraft (with sensors and weapons), a GCS, a Predator
+Primary Satellite Link (PPSL), and spare equipment along with operations and maintenance
+crews for deployed 24-hour operations. The entire
+Figure 1. Fully Armed MQ-1B Predator Taxiing
+system is deployable worldwide for operations and can
+be transported on almost any Air Force cargo aircraft.
+(Tab CC-3, CC-4)
+
+Figure 2. Typical Components of the MQ-1B System
+
+MQ-1B, T/N 08-3228, 14 January 2011
+4
+
+Figure 3. Inside View of Ground Control Station
+
+The basic crew for the Predator consists of a pilot to control the aircraft and command the
+mission and an enlisted aircrew member to operate sensors and weapons plus a mission
+coordinator, when required. The crew employs the aircraft from inside a GCS via a line-of-sight
+data link or a satellite data link for beyond line-of-sight operations. The MQ-1B carries the
+Multi-spectral Targeting System, or MTS-A, which integrates an infrared sensor, a
+color/monochrome daylight television (TV) camera, an image-intensified TV camera, a laser
+designator and a laser illuminator into a single package. The full motion video from each of the
+imaging sensors can be viewed as separate video streams or fused together. The aircraft can
+employ two laser-guided AGM-114 Hellfire missiles which possess a highly accurate, low
+collateral damage, and anti-armor and anti-personnel engagement capability. The aircraft has a
+wingspan of 55 feet, a maximum takeoff weight of 2,250 pounds, and cruises at 84 miles per
+hour. (Tab CC-3, CC-4)
+The aircraft is initially controlled by a launch and recovery element (LRE), which
+consists of a crew in a GCS at the same airfield as the aircraft, using line-of-sight data link
+connections between the aircraft and ground data terminal, which is a radio antenna at the same
+airfield. The LRE is typically deployed in a theater of operations, where it will launch the
+aircraft, get it to a specified altitude, accomplish a systems check, and via either multi-user
+internet relay chat or a phone call, hand the aircraft off to a stateside GCS in what is called
+remote split operations. The stateside GCS crew will control the aircraft via Ku-band satellite
+data link and performs the designated mission until the aircraft is ready to land at which time
+control is returned to the LRE. Some missions, however, such as local base defense missions,
+are performed entirely by the LRE using the line-of-sight data link with the aircraft. (Tab CC-3,
+CC-4)
+MQ-1B, T/N 08-3228, 14 January 2011
+5
+
+4. SEQUENCE OF EVENTS
+a. Summary of Previous Missions.
+On 7 January 2011 the mishap engine (ME), serial number 6773403, was installed onto the
+mishap remotely piloted aircraft (MRPA) in order to perform periodic maintenance on the
+replaced engine. On its first three flights, 10 January, 11 January and 12 January 2011, the
+MRPA air aborted for low oil quantity. As evidenced by the sortie durations for these three
+flights, 15.6 hours, 17.8 hours and 17.1 hours respectively, the indications that triggered the
+decision to return early were encountered late in the mission profile. (Tab D, Tab DD-8) Post
+flight maintenance on the first sortie included a calibration of the oil sensor. On the second
+abort, there was visible fluid leaking from the back of the MRPA. Maintenance corrective action
+included the replacement of the #4 cylinder head O-ring. On the third air abort, a leak in the
+turbo oil sensor was identified and corrected and the oil level sensor was replaced and calibrated.
+On 13 January, the MRPA flew a 17.4 hour sortie and landed at 0031 Zulu (Z) on 14 January
+2011, without incident. The mishap sortie launched at 0702Z on 14 January 2011. (Tab K-5)
+b. Planning.
+The mishap crew (MC), functioning as the second Mission Crew Element (MCE), was assigned
+to the 3 SOS, Cannon AFB, and the MRPA was assigned to the 432 Wing at Creech AFB.
+The MRPA launched from the Republic of Djibouti at 0702Z by the LRE using line of sight
+(LOS) C-Band transmitters then handed off at 0722Z to the first MCE crew via Ku Band satellite
+transmissions. (Tab K-5, Tab V-2.2 through V-2.4)
+The MC accomplished all preflight mission requirements and briefed in accordance with
+standard operating procedures. (Tab V-2.4) This was their first sortie of the day and the third
+crew to pilot the MRPA, including the Launch and Recovery Element (LRE). (Tab K-5, Tab V2.2) The MC assumed control of the MRPA on its return leg, approximately 7 hours and 28
+minutes into the flight. (Tab T-3)
+c. Preflight.
+The LRE conducted a normal preflight, launch, and handoff. (Tab V-3.3)
+d. Summary of Accident.
+Prior to the MCE crew handoff, the LRE did not notice any anomalies with the MRPA and did
+not pass any information of abnormal indications to the MCE crew. (Tab V-3.3) The first MCE
+crew to pilot the MRPA gained control at 0722Z. (Tab K-5) No other anomalies were reported
+during the climb out, transit and mission execution. Approximately six hours into the mission,
+the MCE crew noticed three momentary spikes of low oil pressure over the course of three to
+five. The oil pressure went from the normal operating range of 32-90 pounds per square inch
+(psi) to below the minimum of 28 psi for four to five seconds then returned to normal. The MCE
+MQ-1B, T/N 08-3228, 14 January 2011
+6
+
+crew ran the Low Oil Pressure Checklist and referenced the expanded T.O. 1Q-1(M)B-1, which
+prompted the decision to return to base (RTB) at approximately 1330Z (Tab K-5, Tab V-3.3
+through V-3.4, and Tab DD-3). The initial portion of the RTB was flown at 18,000 feet and 71
+knots (Tab DD-5 through DD-6).
+At 1430Z, the MC assumed control of the MRPA per scheduled handover. The MCE crew
+briefed the MC regarding the RTB plan and the need to monitor the oil system (Tab V-1.3, and
+V-2.2). At 1502Z the MC began a descent from 18,000 to 15,500 feet. A few minutes after the
+MRPA leveled off, the oil pressure began fluctuating between 40-80 psi with momentary spikes
+into the 20s, which continued until complete engine failure (Tab DD-3). The MC ran the Low
+Oil Pressure Checklist and referenced the expanded T.O. 1Q-1(M)B-1(Tab V-1.4 and V-2.3). At
+1518Z the MC descended from 15,500 to 12,500 feet, and leveled off at 1524Z. (Tab DD-5
+through DD-6) At 1546Z the engine became very erratic but maintained between 4400 and 5000
+revolutions per minute (RPM) (Tab DD-5 through DD-6). Two minutes later the RPM jumped
+into the low 5000s and the Exhaust Gas Temperature on cylinder #3 dropped to 574° F (Tab
+DD-3, Tab DD-5 through DD-6). At 1550Z the RPM fell to 1000 and stabilized for 2 minutes.
+During this time the Mishap Sensor Operator (MSO) turned the camera aft and confirmed the
+propeller was windmilling. (Tab V-2.3 and Tab DD-5 through DD-6) Windmilling refers to the
+propeller being driven by air stream rather than engine power. The RPM went back into normal
+operating range for about thirty seconds before engine seizure at 1552Z (Tab DD-5 through DD6). Without power, the MC followed engine failure procedures and established the best rate of
+glide toward the FOB. As the MQ-1B was beyond glide distance from a suitable landing site,
+the MC performed a forced water-landing (Tab V-2.3, and Tab DD-5 through DD-6).
+e. Impact
+At 1617Z, the MRPA impacted the water approximately 3 miles from the shore and 52 miles
+from the FOB (Tab DD-5 through DD-6). Other RPA assets and rescue personnel were
+employed to search for the MRPA shortly after impact (Tab DD-3). The MRPA wreckage,
+including the attached missiles, was not recovered. The total cost for the MRPA and equipment
+is estimated at $4,120,000.00.
+f. Egress and Aircrew Flight Equipment.
+This section is not applicable for mishaps involving RPA.
+g. Search and Rescue.
+This section is not applicable for mishaps involving RPA.
+h. Recovery of Remains.
+This section is not applicable for mishaps involving RPA.
+
+MQ-1B, T/N 08-3228, 14 January 2011
+7
+
+5. MAINTENANCE
+a. Forms Documentation.
+The active 781-series forms for the MRPA were documented in accordance with (IAW)
+applicable maintenance guidance for the MQ-1B, and the forms indicated that the MRPA had no
+outstanding maintenance issues that would prevent it from flying. The Air Force Technical
+Order (AFTO) Form 781A for the MRPA only had three outstanding issues; a 28-day battery
+check for the #1 battery, a 28-day battery check for the #2 battery, and a required satellite
+communications radome removal documentation entry. (Tab D-12) No delayed discrepancies
+were noted on the AFTO Form 781K, and the production superintendent, the maintainer who
+ultimately approves the aircraft for flight, approved the aircraft for flight after reviewing all
+forms. The production superintendent certified the aircraft for flight. (Tab D-25)
+A 30-day pre-mishap history check in Maintenance Information System (MIS) and AFTO 781series forms, revealed several maintenance issues in the seven days leading up to the mishap.
+(Tab DD-8) On 7 January 2011, the ME was installed onto the MRPA. The ME had all required
+operational checks performed and documented in the AFTO 781-series forms. The ME
+underwent a 360/720-hour inspection completed 15 December 2010. (Tab D-199) On 10
+January 2011, the MRPA air aborted due to a low oil quantity indication with the oil level
+decreasing to 36% in descent with 53% observed in level flight. (Tab DD-8) Upon return
+maintenance calibrated the oil level sensor IAW applicable maintenance guidance and serviced
+the engine with 3 quarts of oil. A ground engine run and oil servicing check was performed with
+no defects noted. (Tab D-166) On 11 January 2011, the MRPA air aborted a second time due to
+a low oil quantity indication, with the oil level decreasing to 33% in a descent with 53%
+observed during level flight. Upon return, maintenance identified a leak from the #4 cylinder Oring seals. The O-ring seals were replaced IAW applicable maintenance guidance and the ME
+was serviced with 9 quarts of oil followed by a ground run with no defects noted. (Tab D-71) On
+12 January 2011, the MRPA air aborted for a third time due to low oil quantity indication with
+oil level decreasing to 46%. Upon return, maintenance tightened the turbo oil temperature sensor
+and oil drain port. During a subsequent engine run, the discrepancy continued. Maintenance
+replaced the oil level sensor and performed calibration and operational checkout procedures IAW
+applicable maintenance guidance. At the same time, maintenance elected to perform the 150hour airframe and 60-hour engine inspection. No defects were noted during either inspection.
+An in-flight operational check for the oil quantity system was performed with no defects on 13
+January 2011. On 14 January 2011, maintenance performed a thru-flight inspection, serviced
+fuel and launched the aircraft on the mishap sortie. (Tab D-83, Tab D-86, and Tab D-98)
+b. Inspections.
+All required inspections were accomplished on the MRPA, and there were no overdue
+Aircraft Time Compliance Technical Orders directing the modification of the aircraft or the
+performance of any inspection for the aircraft. The MRPA’s next scheduled inspection was a 28day battery check due 15 January 2011 and a 60-hour engine inspection due in 41 flying hours.
+(Tab D-5 through Tab D-35)
+MQ-1B, T/N 08-3228, 14 January 2011
+8
+
+c. Maintenance Procedures.
+Review of maintenance procedures noted the following discrepancies.
+1. The second air abort for low oil quantity was a repeat discrepancy. Air Force
+Instruction (AFI) 21-101 Holloman AFB Sup 1, 6 October 2010 paragraph 4.7.6.1 states “All
+repeat/recurs are identified on automated debriefing sortie recaps and in the AFTO Form/IMT 781A
+by automated method, stamp, pen, marker, etc.” (Tab BB-3) The AFTO 781As were not
+documented IAW this paragraph.
+2. As a result of the failure to correctly identify the discrepancy as a repeat, the
+discrepancy was signed off at the wrong level as required by AFI 21-101 Holloman AFB Sup 1.
+(Tab BB-3)
+3. Similarly, the third air abort should have been written up as a second repeat IAW the
+AFI. This discrepancy should have been reviewed by AMU supervision IAW the same
+supplement, paragraph 4.7.6.1.1. (Tab BB-3) These requirements are mirrored by 380 AEWI
+21-101, 28 September 2009 paragraph 6.10.1.1. (Tab BB-5) Although this review was not
+documented, it was not considered causal or contributory to this accident. (Tab DD-8)
+4. Finally, the MIS debrief recap for the flight prior to the mishap shows a take-off time
+of 2310Z and a land time of 1631Z. The AFTO 781 reflects a take-off time of 0710Z and a land
+time of 0031Z. (Tab T-3) Thru-flight inspection documentation corroborates the AFTO 781
+documented time as being correct, therefore the debrief entry time was made in error. (Tab T-3)
+d. Maintenance Personnel and Supervision:
+Aircraft maintenance records and statements provided by maintenance personnel indicated all
+preflight maintenance and supervisory activities were normal. (Tab DD-8) A thorough review
+of the training records provided and special certification rosters of those who performed
+maintenance on the MRPA were accomplished. Absent above discrepancies, all individual
+training records indicate they were trained and qualified. Maintenance personnel qualification
+and proficiencies were not a factor in this mishap. (Tab DD-8)
+e. Fuel, Hydraulic and Oil Inspection Analysis.
+Maintenance personnel properly serviced fuel tanks and oil reservoirs in accordance with
+technical data. The servicing certification on the AFTO Form 781H reflected full oil levels and
+adequate fuel levels. The “Info Note” page correctly reflected the 3 to 2 ratio in the forward and
+aft fuel tanks per the applicable technical order. (Tab D-7, and Tab D-25). Fuel and oil samples
+were not performed due to the wreckage being unrecoverable. The General Atomics (GA) report
+lists as a possible factor poor fuel quality may have caused damaged pistons or cylinder walls,
+however, fuel could not be tested and numerous sorties from same location have been flown
+without incident. (Tab EE- 7) The GA report also listed debris in the oil system as a possible
+cause; however, no oil was recovered for testing. (Tab EE-8)
+
+MQ-1B, T/N 08-3228, 14 January 2011
+9
+
+f. Unscheduled Maintenance.
+All necessary repairs or replacements were properly made when required independent of
+maintenance schedules and were not relevant to the mishap.
+6. AIRCRAFT AND AIRFRAME, MISSILE, OR SPACE VEHICLE
+
+SYSTEMS
+a. Structures and Systems.
+The MRPA impacted the water and was not recovered. The ground control station (GCS) was
+immediately sequestered for test and evaluation. (Tab GG-7 and Tab GG-8)
+b. Engineering Evaluations and Analyses.
+GA analyzed the data logger files from the GCS since the MRPA was not recovered. The GA
+report concluded that the turbocharger, propeller, and throttle assemblies were working properly
+up to the time of engine failure. The first indication of engine problem noted by the report is a
+drop in the #3 cylinder exhaust gas temperature (EGT), an increase in Manifold Absolute
+Pressure (MAP), engine speed and oil pressure. GA concluded the mishap was most likely
+caused by a failed piston, piston ring, valve, valve spring, push-rod, or rocker-arm in cylinder #3.
+The report indicated that either debris in the oil system or a collapsed oil feed line most likely
+caused the failure of a component in the cylinder. It further states that failure to remove an old
+O-ring when replacing it could lead to fragmentation of any extruding rubber thereby introducing
+the debris into the oil system. (Tab EE-8)
+7. WEATHER
+a. Forecast Weather.
+The forecasted weather for the FOB at the time of the incident was winds out of 110 degrees at 9
+knots, visibility of 7 statute miles and few clouds at 3000 feet above the ground. The transit
+forecast was few clouds from 2000 to 6000 Mean Sea Level (MSL) and few clouds from 15000
+to 17000 MSL. The freezing level was expected to be at 14000 MSL, and there were no other
+significant weather issues in the forecast.
+b. Observed Weather.
+Satellite imagery for the mishap location and where the aircraft was operating is classified. Also,
+no weather observations were able to be obtained for the mishap date.
+c. Operations.
+
+MQ-1B, T/N 08-3228, 14 January 2011
+10
+
+There was no significant weather in the forecast that would affect the ability for the MQ-1B to
+effectively operate. No evidence suggests weather was a factor in the mishap.
+(Tab F)
+8. CREW QUALIFICATIONS
+a. MCE crew Pilot
+(1) Training
+MCE crew pilot was qualified in the MQ-1B as a pilot since 6 March 2008.
+(2) Experience
+The MCE crew pilot had a total flight time of 3402.6 hours, with 1475.8 hours in the MQ-1B.
+The MQ-1B was the MCE crew pilot’s second assigned aircraft after the KC-10. The MCE crew
+pilot was designated as an “Experienced” crewmember in the MQ-1B (had more than 500 hours
+flying the aircraft). The MCE crew pilot’s flight time during the 90 days before the mishap was
+as follows:
+
+30 days
+60 days
+90 days
+
+Hours
+53.4
+95.7
+126.5
+
+Sorties
+23
+51
+80
+
+(Tabs G-4 through G-34 and G-98)
+b. MCE Sensor Operator
+(1) Training
+The MCE SO has been a qualified MQ-1B sensor operator since 10 August 2010.
+(2) Experience
+The MCE SO had a total flight time of 235.9 hours, all in the MQ-1B. The MQ-1B was the
+MCE SO’s first flight operations assignment. Prior to becoming a MQ-1 B sensor operator, the
+MCE SO was in a non-aviation career field. The MCE SO was not designated as an
+“Experienced” crewmember in the MQ-1B. The MCE SO’s flight time during the 90 days
+before the mishap was as follows:
+
+30 days
+
+Hours
+108.5
+
+Sorties
+16
+
+MQ-1B, T/N 08-3228, 14 January 2011
+11
+
+60 days
+90 days
+
+224.1
+235.9
+
+46
+49
+
+(Tabs G-36 through G-54 and G-99)
+c. Mishap Pilot
+(1) Training
+MP was qualified in the MQ-1B as a pilot since 3 November 2009.
+(2) Experience
+MP had a total flight time of 2770.8 hours, with 760.4 hours in the MQ-1B. The MQ-1B was
+MP’s second assigned aircraft after the UH-1N. MP was designated as an “Experienced”
+crewmember in the MQ-1B. The MP’s flight time during the 90 days before the mishap was as
+follows:
+
+30 days
+60 days
+90 days
+
+Hours
+40.7
+77.1
+102.3
+
+Sorties
+11
+32
+63
+
+(Tabs G-55 through G-81 and G-100)
+d. Mishap Sensor Operator
+(1) Training
+MSO has been a qualified MQ-1B sensor operator since 7 September 2010.
+(2) Experience
+MSO had a total flight time of 127.4 hours, all in the MQ-1B. The MQ-1B was MSO’s first
+flight operations assignment. Prior to becoming a MQ-1 B sensor operator, the MSO was in a
+non-aviation career field. MSO was not designated as an “Experienced” crewmember in the
+MQ-1B. The MSO’s flight time during the 90 days before the mishap was as follows:
+
+30 days
+60 days
+90 days
+
+Hours
+79.4
+102.9
+102.9
+
+Sorties
+12
+18
+18
+
+(Tabs G-82 through G-96 and G-101)
+
+MQ-1B, T/N 08-3228, 14 January 2011
+12
+
+9. MEDICAL
+a. Qualifications.
+At the time of the mishap flight, both crew members had current flight physicals, no known
+illnesses or injuries, and were medically qualified to perform flying duties. (Tab DD-11)
+b. Health.
+No health issues for the mishap crew members were relevant to the cause of the mishap.
+c. Pathology.
+Pathology was not applicable to this mishap.
+d. Lifestyle.
+No lifestyle factors were found to be relevant to this mishap.
+e. Crew Rest and Crew Duty Time.
+Aircrew members are required to have 12 hours of crew rest, eight of which must be
+uninterrupted, and both mishap crew members reported having the required amount of sleep
+prior to the mishap.
+(Tab DD-11)
+10. OPERATIONS AND SUPERVISION
+a. Operations.
+Operations tempo was thoroughly investigated and found not a factor in this mishap flight.
+b. Supervision.
+Operations supervision was thoroughly investigated and found not a factor in this mishap flight.
+
+MQ-1B, T/N 08-3228, 14 January 2011
+13
+
+11. HUMAN FACTORS ANALYSIS
+A human factor is any environmental or individual physical or psychological factor a human
+being experiences that contributes to or influences his performance during a task. There is no
+evidence to suggest that any human factors contributed to this mishap.
+12. GOVERNING DIRECTIVES AND PUBLICATIONS
+a. Primary Operations Directives and Publications.
+(1) T.O. 1Q-1(M)B-1, USAF Series MQ-1B and RQ-1B Systems, 1 November 2003,
+incorporating change 13, 8 April 2009
+(2) T.O. 1Q-1(M)B-1CL-1, USAF Series MQ-1B and RQ-1B Systems Flight Checklist,
+1 November 2003, incorporating Change 15, 8 April 2009
+(3) AFI 11-2MQ-1, Volume 1, MQ-1 Aircrew Training, 21 January 2010
+(4) AFI 11-2MQ-1, Volume 2, MQ-1 Crew Evaluation Criteria, 28 November 2008
+(5) AFI 11-2MQ-1, Volume 3, MQ-1 Operations Procedures, 29 November 2007
+(6) AFI 11-418, Operations Supervision, 21 October 2005, incorporating Change 1, 20
+March 2007
+(7) AFI 11-401, Aviation Management, 7 March 2007, incorporating through Change 2,
+18 May 2009
+(8) AFI 11-202, Volume 3, General Flight Rules, 22 October 2010
+b. Maintenance Directives and Publications.
+(1) T.O. 1Q-1(M)B-2-93GS-00-1, General System Surveillance, 8 February 2010
+(2) T.O. 1Q-1(M)B-5-1, Basic Weight Checklists, USAF Series, MQ-1B Remotely
+Piloted Aircraft, 26 March 2010
+(3) T.O. 00-20-1, Aerospace Equipment Maintenance Inspection, Documentation,
+Policies, and Procedures, 1 September 2010
+(4) T.O. 1Q-1(M)B-2-48JG-00-1, Job Guide, Communication/Navigation/Identification,
+General, USAF Series, MQ-1B Remotely Piloted Aircraft, 09 October 2009
+(5) T.O. 1Q-1(M)B-2-32JG-10-1, Job Guide, Landing Gear, Main Gear,
+Extension/Retraction, USAF Series, MQ-1B Remotely Piloted Aircraft, 2 January
+2010
+(6) T.O. 1Q-1(M)B-2-32JG-10-1, Job Guide, Landing Gear, Main Gear,
+Extension/Retraction, USAF Series, MQ-1B Remotely Piloted Aircraft, 2 January
+2010
+(7) T.O. 1Q-1(M)B-2-05JG-10-1, Ground Handling USAF Series, MQ-1B Remotely
+Piloted Aircraft, 9 Jun 2009, thru change 5 21 July 2010
+(8) T.O. 1Q-1(M)B-6WC-1, Preflight, Thruflight, Basic Postflight, Combined Basic
+Postflight/Preflight inspection requirements, ASAF Series, MQ-1B Remotely Piloted
+Aircraft, 21 January 2010
+(9) T.O. 1Q-1(M)B-6WC-2, Aircraft Periodic Inspections and Maintenance
+Requirements, USAF Series, MQ-1B Remotely Piloted Aircraft, 21 January 2010
+MQ-1B, T/N 08-3228, 14 January 2011
+14
+
+STATEMENT OF OPINION
+MQ-1B T/N 08-3228 ACCIDENT
+14 JANUARY 2011
+Under 10 U.S.C. 2254(d), any opinion of the accident investigators as to the cause of, or the factors
+contributing to, the accident set forth in the accident investigation report, if any, may not be considered
+as evidence in any civil or criminal proceeding arising from the accident, nor may such information be
+considered an admission of liability of the United States or by any person referred to in those conclusions
+or statements.
+
+1. OPINION SUMMARY:
+Based on maintenance records, interviews with the individuals involved in the maintenance
+accomplished prior to the crash, interviews with the MCE crew and MC, the GA report and
+information provided by the functional area experts, I find by clear and convincing evidence that
+the cause of the mishap was engine failure. This failure was most likely caused by a catastrophic
+malfunction in the #3 cylinder. This malfunction could have been the result of material failure of
+the cylinder parts, debris in the oil system or oil feed line collapse; none of which could be
+conclusively labeled as causal since the recovery of the MRPA was not possible.
+3. DISCUSSION OF OPINION:
+On 14 January 2011, an MQ-1B (T/N 08-3228) suffered catastrophic engine seizure due to loss
+of oil and crashed 3 miles off the coast of the Republic of Djibouti. The aircraft’s engine was
+replaced on 7 January 2011 and flew four times prior to the crash. Three of the previous flights
+were aborted early due to low oil quantity readings. On the sortie prior to the mishap, the aircraft
+flew an uneventful 17.4 hour sortie indicating that previous maintenance solved the low oil
+quantity problem.
+During the mishap sortie, the MCE crew returned to the FOB because of low oil pressure. The
+MCE crew swapped out with the MC at approximately 1430 hours. When the MRPA descended
+to 15,500 feet, the MC noticed the low #3 EGT indication, this was followed shortly by the
+seizure of the engine. This was confirmed by the GCS data logger, as well as the HUD tape.
+The GA Report concluded the failure of the #3 cylinder could have been caused by debris in the
+oil system. The extensive maintenance accomplished on the MRPA from the time the ME was
+placed into service to the mishap sortie suggests that several opportunities existed for debris to
+enter the oil system. However, since all maintenance tasks were IAW with procedures and the
+aircraft flew in excess of 24 hours prior to exhibiting the first low oil pressure indication, I find
+that the preponderance of the evidence suggests that debris in the oil system was not a
+contributing factor to the engine seizure.
+Further, the fact that the AFTO 781 repeat write-ups were not signed off by the appropriate level
+did not mean that the corrective actions did not fix the original low oil quantity problems. I
+concluded these maintenance discrepancies were neither causal nor contributory to this accident.
+MQ-1B, T/N 08-3228, 14 January 2011
+16
+
+
