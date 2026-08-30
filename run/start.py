@@ -14,7 +14,9 @@ Usage:
 
 import argparse
 import os
+import shutil
 import signal
+import socket
 import subprocess
 import sys
 import time
@@ -38,33 +40,67 @@ def colored(text: str, code: str) -> str:
     return f"{code}{text}{RESET}"
 
 
+def port_in_use(port: int) -> bool:
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        return s.connect_ex(("127.0.0.1", port)) == 0
+
+
+def free_port(port: int, label: str) -> None:
+    """Kill whatever is occupying a port so the new service can bind."""
+    if not port_in_use(port):
+        return
+    print(f"  {colored('!', YELLOW)} Port {port} ({label}) is in use — freeing it...")
+    if sys.platform == "win32":
+        subprocess.run(
+            f'for /f "tokens=5" %a in (\'netstat -aon ^| findstr :{port}\') do taskkill /PID %a /F',
+            shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        )
+    else:
+        subprocess.run(
+            ["fuser", "-k", f"{port}/tcp"],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        )
+    time.sleep(1)
+
+
 def banner(backend_port: int, frontend_port: int) -> None:
     print()
-    print(colored("=" * 52, CYAN))
-    print(colored("  DIH — Digital Twin Full Stack", BOLD + CYAN))
-    print(colored("=" * 52, CYAN))
+    print(colored("=" * 56, CYAN))
+    print(colored("   DIH — Digital Twin Full Stack", BOLD + CYAN))
+    print(colored("=" * 56, CYAN))
     print()
-    print(f"  {colored('Frontend', GREEN)}     →  {colored(f'http://localhost:{frontend_port}', BOLD)}")
-    print(f"  {colored('Backend API', GREEN)}  →  {colored(f'http://localhost:{backend_port}', BOLD)}")
-    print(f"  {colored('WebSocket', GREEN)}    →  {colored(f'ws://localhost:{backend_port}/ws', BOLD)}")
-    print(f"  {colored('What-If API', GREEN)}  →  {colored(f'POST http://localhost:{backend_port}/api/what-if', BOLD)}")
-    print(f"  {colored('MQTT Broker', GREEN)}  →  {colored('localhost:1883', BOLD)}")
+    print(f"   {colored('Frontend', GREEN)}     →  {colored(f'http://localhost:{frontend_port}', BOLD)}")
+    print(f"   {colored('Backend API', GREEN)}  →  {colored(f'http://localhost:{backend_port}', BOLD)}")
+    print(f"   {colored('WebSocket', GREEN)}    →  {colored(f'ws://localhost:{backend_port}/ws', BOLD)}")
+    print(f"   {colored('What-If API', GREEN)}  →  {colored(f'POST http://localhost:{backend_port}/api/what-if', BOLD)}")
+    print(f"   {colored('MQTT Broker', GREEN)}  →  {colored('localhost:1883', BOLD)}")
     print()
-    print(colored("=" * 52, CYAN))
-    print(f"  Press {colored('Ctrl+C', YELLOW)} to stop all services")
-    print(colored("=" * 52, CYAN))
+    print(colored("=" * 56, CYAN))
+    print(f"   Press {colored('Ctrl+C', YELLOW)} to stop all services")
+    print(colored("=" * 56, CYAN))
     print()
 
 
-def start_service(name: str, cmd: list[str], cwd: Path | None = None, delay: float = 1.0):
+def start_service(
+    name: str,
+    cmd: list[str],
+    cwd: Path,
+    delay: float = 1.0,
+    log_path: Path | None = None,
+):
     env = os.environ.copy()
     env["PYTHONUNBUFFERED"] = "1"
 
+    log_file = None
+    if log_path:
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        log_file = open(log_path, "w")
+
     kwargs = dict(
-        cwd=str(cwd or ROOT_DIR),
+        cwd=str(cwd),
         env=env,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
+        stdout=log_file or subprocess.DEVNULL,
+        stderr=subprocess.STDOUT if log_file else subprocess.PIPE,
     )
 
     if sys.platform == "win32":
@@ -77,10 +113,19 @@ def start_service(name: str, cmd: list[str], cwd: Path | None = None, delay: flo
     time.sleep(delay)
 
     if proc.poll() is not None:
-        print(f"  {colored('✗', RED)} {name} exited immediately (code {proc.returncode})")
-        return None
+        err = ""
+        if proc.stderr:
+            err = proc.stderr.read().decode(errors="replace").strip()
+        if log_file:
+            log_file.close()
+            err = log_path.read_text(errors="replace").strip()[-500:]
+        print(f"  {colored('✗', RED)} {name} exited (code {proc.returncode})")
+        if err:
+            for line in err.splitlines()[-5:]:
+                print(f"      {colored(line, DIM)}")
+        return None, log_file
 
-    return proc
+    return proc, log_file
 
 
 def kill_proc(proc: subprocess.Popen) -> None:
@@ -97,42 +142,81 @@ def kill_proc(proc: subprocess.Popen) -> None:
 
 def main():
     parser = argparse.ArgumentParser(description="Launch the full DIH stack")
-    parser.add_argument("--speed", type=float, default=10.0, help="Sim publisher playback speed (default: 10)")
-    parser.add_argument("--backend-port", type=int, default=8000, help="FastAPI backend port (default: 8000)")
-    parser.add_argument("--frontend-port", type=int, default=5173, help="Vite dev server port (default: 5173)")
+    parser.add_argument("--speed", type=float, default=10.0,
+                        help="Sim publisher playback speed (default: 10)")
+    parser.add_argument("--data", type=str, default=None,
+                        help="Path to flight data CSV or Parquet file for playback")
+    parser.add_argument("--backend-port", type=int, default=8000,
+                        help="FastAPI backend port (default: 8000)")
+    parser.add_argument("--frontend-port", type=int, default=5173,
+                        help="Vite dev server port (default: 5173)")
     args = parser.parse_args()
 
     py = sys.executable
-    npm = "npm.cmd" if sys.platform == "win32" else "npm"
+    npm = shutil.which("npm") or ("npm.cmd" if sys.platform == "win32" else "npm")
+
+    log_dir = ROOT_DIR / "run" / "logs"
+    log_dir.mkdir(parents=True, exist_ok=True)
 
     services: list[tuple[str, subprocess.Popen]] = []
+    log_files: list = []
 
     print()
     print(colored("  Starting services...", DIM))
     print()
 
-    procs = [
-        ("MQTT Broker", [py, "-m", "integration.broker"], ROOT_DIR, 2.0),
-        ("Sim Publisher", [py, "integration/sim_publisher.py", "--speed", str(args.speed)], ROOT_DIR, 1.0),
-        ("ML Subscriber", [py, "-m", "integration.ml_subscriber"], ROOT_DIR, 1.0),
-        ("FastAPI Backend", [py, "-m", "uvicorn", "backend.main:app",
-                            "--host", "0.0.0.0", "--port", str(args.backend_port), "--reload"], ROOT_DIR, 1.5),
-        ("Frontend Dev Server", [npm, "run", "dev", "--", "--port", str(args.frontend_port)], FRONTEND_DIR, 2.0),
+    # Install frontend dependencies if needed
+    if not (FRONTEND_DIR / "node_modules").exists():
+        print(f"  {colored('↓', CYAN)} Installing frontend dependencies (npm install)...")
+        subprocess.run([npm, "install"], cwd=str(FRONTEND_DIR), check=True)
+        print()
+
+    # Free ports that may be held by leftover processes
+    free_port(1883, "MQTT")
+    free_port(args.backend_port, "Backend")
+    free_port(args.frontend_port, "Frontend")
+
+    service_defs = [
+        ("MQTT Broker",
+         [py, "-m", "integration.broker"],
+         ROOT_DIR, 2.0),
+        ("Sim Publisher",
+         [py, "integration/sim_publisher.py", "--speed", str(args.speed)]
+         + (["--data", str(Path(args.data).resolve())] if args.data else []),
+         ROOT_DIR, 1.0),
+        ("ML Subscriber",
+         [py, "-m", "integration.ml_subscriber"],
+         ROOT_DIR, 1.0),
+        ("FastAPI Backend",
+         [py, "-m", "uvicorn", "backend.main:app",
+          "--host", "0.0.0.0", "--port", str(args.backend_port), "--reload"],
+         ROOT_DIR, 1.5),
+        ("Frontend Dev Server",
+         [npm, "run", "dev", "--", "--port", str(args.frontend_port)],
+         FRONTEND_DIR, 2.0),
     ]
 
-    for name, cmd, cwd, delay in procs:
-        proc = start_service(name, cmd, cwd, delay)
+    for name, cmd, cwd, delay in service_defs:
+        slug = name.lower().replace(" ", "_")
+        proc, lf = start_service(name, cmd, cwd, delay, log_dir / f"{slug}.log")
+        if lf:
+            log_files.append(lf)
         if proc:
             services.append((name, proc))
 
     banner(args.backend_port, args.frontend_port)
+    print(f"   Logs: {colored(str(log_dir), DIM)}")
+    print()
 
     try:
         while True:
+            dead = []
             for name, proc in services:
                 if proc.poll() is not None:
                     print(f"  {colored('✗', RED)} {name} exited (code {proc.returncode})")
-                    services = [(n, p) for n, p in services if p is not proc]
+                    dead.append(proc)
+            if dead:
+                services = [(n, p) for n, p in services if p not in dead]
             if not services:
                 print(colored("\n  All services have exited.", RED))
                 break
@@ -150,6 +234,11 @@ def main():
                 proc.wait(timeout=5)
             except subprocess.TimeoutExpired:
                 proc.kill()
+        for lf in log_files:
+            try:
+                lf.close()
+            except Exception:
+                pass
         print(colored("  All services stopped.\n", YELLOW))
 
 

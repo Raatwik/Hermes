@@ -62,6 +62,9 @@ mlruns/
 .mypy_cache/
 .ruff_cache/
 
+# Run logs
+run/logs/
+
 # Evaluation Scripts and Temp Data
 eval_residuals/
 tmp_residuals/

@@ -15,8 +15,12 @@ TOPIC = "telemetry/engine"
 
 def load_data(path: Path) -> pd.DataFrame:
     if path.suffix == ".parquet":
-        return pd.read_parquet(path)
-    return pd.read_csv(path)
+        df = pd.read_parquet(path)
+    else:
+        df = pd.read_csv(path)
+    if "time" not in df.columns and "time_sec" in df.columns:
+        df = df.rename(columns={"time_sec": "time"})
+    return df
 
 
 def publish_telemetry(host: str, port: int, data_path: Path, speed: float):
