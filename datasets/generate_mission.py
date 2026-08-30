@@ -36,22 +36,25 @@ class FaultScheduler:
     def __init__(self, max_time: float, force_fault_class: Optional[str] = None):
         self.max_time = max_time
         
-        if force_fault_class is not None:
+        is_compound = force_fault_class == "compound"
+
+        if is_compound:
+            faults = random.sample(list(KNOWN_FAULTS), 2)
+            self.fault_class = faults[0]
+        elif force_fault_class is not None:
             self.fault_class = force_fault_class
         else:
-            # 50% chance of healthy vs faulty
             if random.random() < 0.5:
                 self.fault_class = "healthy"
             else:
                 self.fault_class = random.choice(list(KNOWN_FAULTS))
-            
+
         self.injection_time = (
             random.uniform(0.0, self.max_time)
             if self.fault_class != "healthy"
             else self.max_time + 1.0
         )
-        
-        # Configuration for specific faults that need extra params
+
         self.fault_kwargs = {}
         if self.fault_class == "sensor_drift":
             self.fault_kwargs["sensor"] = random.choice(["cht", "egt", "rpm", "oil_pressure"])
@@ -59,22 +62,30 @@ class FaultScheduler:
         elif self.fault_class == "cylinder_failure":
             self.fault_kwargs["cylinder"] = random.choice([1, 2, 3, 4])
 
-        # Cascading secondary fault
         self.secondary_fault_class = "none"
         self.secondary_injection_time = self.max_time + 1.0
         self.secondary_fault_kwargs = {}
-        
-        if self.fault_class != "healthy" and random.random() < 0.3:
-            # 30% chance of a secondary fault if a primary fault exists
-            self.secondary_fault_class = random.choice(list(KNOWN_FAULTS - {self.fault_class}))
-            # Must happen after primary injection
+
+        if is_compound:
+            self._primary_real_fault = faults[0]
+            self.fault_class = "compound"
+            self.secondary_fault_class = faults[1]
             self.secondary_injection_time = random.uniform(self.injection_time, self.max_time)
-            
-            if self.secondary_fault_class == "sensor_drift":
-                self.secondary_fault_kwargs["sensor"] = random.choice(["cht", "egt", "rpm", "oil_pressure"])
-                self.secondary_fault_kwargs["max_offset"] = 50.0
-            elif self.secondary_fault_class == "cylinder_failure":
-                self.secondary_fault_kwargs["cylinder"] = random.choice([1, 2, 3, 4])
+            self._configure_secondary_kwargs()
+        else:
+            self._primary_real_fault = self.fault_class
+
+        if not is_compound and self.fault_class != "healthy" and random.random() < 0.3:
+            self.secondary_fault_class = random.choice(list(KNOWN_FAULTS - {self.fault_class}))
+            self.secondary_injection_time = random.uniform(self.injection_time, self.max_time)
+            self._configure_secondary_kwargs()
+
+    def _configure_secondary_kwargs(self) -> None:
+        if self.secondary_fault_class == "sensor_drift":
+            self.secondary_fault_kwargs["sensor"] = random.choice(["cht", "egt", "rpm", "oil_pressure"])
+            self.secondary_fault_kwargs["max_offset"] = 50.0
+        elif self.secondary_fault_class == "cylinder_failure":
+            self.secondary_fault_kwargs["cylinder"] = random.choice([1, 2, 3, 4])
 
     def get_severity(self, current_time: float, injection_time: float) -> float:
         if current_time < injection_time:
@@ -93,9 +104,10 @@ class FaultScheduler:
         if self.fault_class != "healthy" and current_time >= self.injection_time:
             primary_severity = self.get_severity(current_time, self.injection_time)
             kwargs = dict(self.fault_kwargs)
-            if self.fault_class == "sensor_drift":
+            inject_as = self._primary_real_fault if self.fault_class == "compound" else self.fault_class
+            if inject_as == "sensor_drift":
                 kwargs["offset"] = primary_severity * self.max_offset
-            sim.inject_fault(self.fault_class, severity=primary_severity, **kwargs)
+            sim.inject_fault(inject_as, severity=primary_severity, **kwargs)
             
         if self.secondary_fault_class != "none" and current_time >= self.secondary_injection_time:
             secondary_severity = self.get_severity(current_time, self.secondary_injection_time)
