@@ -4,7 +4,7 @@
 
 **Blocked by:** None — can start immediately.
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [x] `train_isolation_forest.py` explicitly filters the loaded dataset to include only rows where `fault_class == "healthy"`.
 - [x] Isolation Forest `contamination` parameter is updated to `0.001` (or equivalent tuned value).

@@ -35,7 +35,7 @@ Deliver a fully functional MVP of the MALE-UAV Digital Twin, complete with the s
 
 ## Open Tickets (The Frontier)
 
-- [03.3-ml-remediation.md](03.3-ml-remediation.md) — ML Engineer: XGBoost `MultiOutputClassifier`, Tuned Isolation Forest on purely healthy data, and LSTM retraining.
+- [03.3-ml-remediation.md](03.3-ml-remediation.md) — ML Engineer: XGBoost `MultiOutputClassifier` (DONE), Tuned Isolation Forest on purely healthy data (DONE), LSTM retraining (remaining).
 - [02-frontend.md](02-frontend.md) — Frontend: Operator Dashboard MVP
 - [06-integration.md](06-integration.md) — Integration: Real-Time Backend & MQTT (Blocked by 02)
 

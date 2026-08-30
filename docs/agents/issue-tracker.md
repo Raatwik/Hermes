@@ -9,7 +9,7 @@
 ## 2. Cross-Stream Blockers
 - **04.3-Simulation** is COMPLETE. Engine failure thresholds implemented (`EngineFailureException` raised on RPM < 1000, CHT > 250°C, Oil Pressure < 20 psi, EGT > 900°C, Vibration > 0.9). Simulations now physically terminate on catastrophic faults, and `run_pipeline` anchors RUL to the true moment of engine death.
 - **05.4-Datasets** is COMPLETE. `dynamic_maneuvers.yaml` added with 9 aggressive alternating phases for transient training data. `"compound"` added to `all_classes` in `generate_datasets.py`. `FaultScheduler` guarantees 2 overlapping fault injections at 100% probability when `force_fault_class="compound"`.
-- **03.3-ML Engineer** is UNBLOCKED (was blocked by 04.3 and 05.4, both now complete). XGBoost must be wrapped in `MultiOutputClassifier` for compound faults. Isolation Forest must be retrained purely on healthy data with `0.001` contamination. LSTM must be retrained on the physically terminating datasets.
+- **03.3-ML Engineer** is IN PROGRESS (was blocked by 04.3 and 05.4, both now complete). XGBoost `MultiOutputClassifier` migration is DONE (issue 01). Isolation Forest tightened to healthy-only training with `0.001` contamination is DONE (issue 02). Remaining: LSTM must be retrained on the physically terminating datasets (issue 03).
 - **Integration** is blocked by **Frontend**; it requires the UI interfaces and ML endpoints to build the final API/MQTT orchestration layer. (Simulation and ML Engineer interfaces are now ready for consumption).
 
 ## 3. Wayfinder Team Tracks Index
