@@ -110,7 +110,7 @@ def train_model(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train the RUL LSTM model.")
-    parser.add_argument("--data_dir", type=str, default="data", help="Directory containing parquet telemetry data")
+    parser.add_argument("--data_dir", type=str, default="data_features", help="Directory containing parquet telemetry data")
     parser.add_argument("--epochs", type=int, default=50, help="Maximum number of epochs")
     parser.add_argument("--batch_size", type=int, default=32, help="Batch size")
     parser.add_argument("--lr", type=float, default=1e-3, help="Learning rate")
