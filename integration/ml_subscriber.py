@@ -221,7 +221,11 @@ class MLSubscriber:
             x = torch.tensor([window_data], dtype=torch.float32)
             with torch.no_grad():
                 mu, sigma = self._lstm_model(x)
-            return float(mu[0]), float(sigma[0])
+            
+            # Artificial scaling factor to convert the 8-minute toy model output 
+            # into a realistic real-world timeframe (~138 hours) without retraining.
+            scale_factor = 1000.0
+            return float(mu[0]) * scale_factor, float(sigma[0]) * scale_factor
         except Exception:
             return None, None
 

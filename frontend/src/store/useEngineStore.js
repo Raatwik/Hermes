@@ -34,12 +34,12 @@ function _applyTelemetry(state, data) {
     engineLoad: typeof data.engine_load === 'number' ? Math.round(data.engine_load * 100) : state.missionContext.engineLoad,
     oat: data.ambient_temperature != null ? Math.round(data.ambient_temperature) : state.missionContext.oat,
     fuelFlow: data.fuel_flow != null ? Math.round(data.fuel_flow * 10) / 10 : state.missionContext.fuelFlow,
-    rul: data.lstm_rul_mean != null ? Math.max(0, Math.min(Math.round(data.lstm_rul_mean), 9999)) : state.missionContext.rul,
+    rul: data.lstm_rul_mean != null ? Math.max(0, Math.min(Number(data.lstm_rul_mean.toFixed(2)), 9999)) : state.missionContext.rul,
     rulLowerBound: data.lstm_rul_mean != null && data.lstm_rul_std != null
-      ? Math.max(0, Math.round(data.lstm_rul_mean - 2 * data.lstm_rul_std))
+      ? Math.max(0, Number((data.lstm_rul_mean - 2 * data.lstm_rul_std).toFixed(2)))
       : state.missionContext.rulLowerBound,
     rulUpperBound: data.lstm_rul_mean != null && data.lstm_rul_std != null
-      ? Math.min(9999, Math.round(data.lstm_rul_mean + 2 * data.lstm_rul_std))
+      ? Math.min(9999, Number((data.lstm_rul_mean + 2 * data.lstm_rul_std).toFixed(2)))
       : state.missionContext.rulUpperBound,
   };
 

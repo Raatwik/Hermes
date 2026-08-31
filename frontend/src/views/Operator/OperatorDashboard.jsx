@@ -97,7 +97,7 @@ export default function OperatorDashboard() {
             riskColorClass={rpmStatus === 'CRITICAL' || oilPStatus === 'CRITICAL' ? 'critical' : rpmStatus === 'WARNING' || oilPStatus === 'WARNING' ? 'warning' : 'good'}
           />
           <RulWidget
-            hours={missionContext.rul != null ? Math.round(missionContext.rul) : null}
+            hours={missionContext.rul != null ? missionContext.rul : null}
             text={missionContext.rul != null ? "Live RUL estimate" : "Awaiting ML model"}
             isGood={missionContext.rul == null || missionContext.rul > 50}
           />

@@ -110,8 +110,9 @@ def _run_what_if_simulation(
             x = torch.tensor([window_data], dtype=torch.float32)
             with torch.no_grad():
                 mu, sigma = lstm_model(x)
-            rul_mean = float(mu[0])
-            rul_std = float(sigma[0])
+            scale_factor = 1000.0
+            rul_mean = float(mu[0]) * scale_factor
+            rul_std = float(sigma[0]) * scale_factor
         except Exception:
             pass
 
