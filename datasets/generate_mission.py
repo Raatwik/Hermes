@@ -67,13 +67,10 @@ class FaultScheduler:
         self.secondary_fault_kwargs = {}
 
         if is_compound:
-            self._primary_real_fault = faults[0]
-            self.fault_class = "compound"
+            self.fault_class = faults[0]  # Preserve real fault name for ML one-hot encoding
             self.secondary_fault_class = faults[1]
             self.secondary_injection_time = random.uniform(self.injection_time, self.max_time)
             self._configure_secondary_kwargs()
-        else:
-            self._primary_real_fault = self.fault_class
 
         if not is_compound and self.fault_class != "healthy" and random.random() < 0.3:
             self.secondary_fault_class = random.choice(list(KNOWN_FAULTS - {self.fault_class}))
@@ -104,10 +101,9 @@ class FaultScheduler:
         if self.fault_class != "healthy" and current_time >= self.injection_time:
             primary_severity = self.get_severity(current_time, self.injection_time)
             kwargs = dict(self.fault_kwargs)
-            inject_as = self._primary_real_fault if self.fault_class == "compound" else self.fault_class
-            if inject_as == "sensor_drift":
+            if self.fault_class == "sensor_drift":
                 kwargs["offset"] = primary_severity * self.max_offset
-            sim.inject_fault(inject_as, severity=primary_severity, **kwargs)
+            sim.inject_fault(self.fault_class, severity=primary_severity, **kwargs)
             
         if self.secondary_fault_class != "none" and current_time >= self.secondary_injection_time:
             secondary_severity = self.get_severity(current_time, self.secondary_injection_time)
@@ -223,6 +219,7 @@ def run_pipeline(config_path: Optional[str] = None, output_dir: str = "data", dt
     # Defaults to the scheduled end; a catastrophic failure shortens it so that
     # the RUL below anchors to the true moment of engine death.
     effective_end_time = max_time
+    engine_failed = False
     for i in range(1, num_steps + 1):
         current_time = i * dt
 
@@ -237,6 +234,7 @@ def run_pipeline(config_path: Optional[str] = None, output_dir: str = "data", dt
                 f"terminating mission early"
             )
             effective_end_time = current_time - dt
+            engine_failed = True
             break
         record_state(current_time)
 
@@ -248,13 +246,16 @@ def run_pipeline(config_path: Optional[str] = None, output_dir: str = "data", dt
         df["time_since_fault_injection"] = 0.0
     else:
         # Capped at RUL_MAX before injection time
-        # Monotonically decreasing after injection time based on max_time - current_time
-        # But we ensure it anchors properly.
+        # Monotonically decreasing after injection time ONLY if engine failed.
+        # If the engine survived (right-censored data), RUL stays at RUL_MAX.
         def calc_rul(t):
             if t < scheduler.injection_time:
                 return RUL_MAX
             else:
-                return min(RUL_MAX, max(0.0, effective_end_time - t))
+                if engine_failed:
+                    return min(RUL_MAX, max(0.0, effective_end_time - t))
+                else:
+                    return RUL_MAX
         
         def calc_tsfi(t):
             if t < scheduler.injection_time:

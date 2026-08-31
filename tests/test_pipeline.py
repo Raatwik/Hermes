@@ -152,12 +152,12 @@ def test_run_pipeline_faulty(tmp_path, dummy_mission_yaml):
     assert df["fault_class"].iloc[0] == "misfire"
     assert_expected_columns(df)
     
-    # The initial RUL should be capped or correctly calculated
-    # For a 10s mission, if max RUL is 500, it'll start at 10.0 and count down.
-    # Because injection time is 5.0, at t=0, it should be capped at RUL_MAX (or rather just RUL_MAX since t < 5.0)
+    # Before injection time (t < 5.0), RUL should be capped at RUL_MAX
     assert df["Remaining_Useful_Life"].iloc[0] == RUL_MAX
     
-    # And at the last row (t=10.0), it should be 0.0
-    assert df["Remaining_Useful_Life"].iloc[-1] == pytest.approx(0.0, abs=1e-5)
+    # At the last row: the engine survived (no EngineFailureException),
+    # so RUL must remain at RUL_MAX (right-censored data).
+    # This prevents the LSTM from learning that surviving engines die at max_time.
+    assert df["Remaining_Useful_Life"].iloc[-1] == RUL_MAX
     
     assert len(df) > 50

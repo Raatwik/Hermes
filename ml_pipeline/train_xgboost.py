@@ -62,9 +62,9 @@ def load_data(data_dir: str, downsample_rate: int = 1) -> pd.DataFrame:
 
 
 def _build_onehot(df: pd.DataFrame, label_names: list[str]) -> np.ndarray:
-    # "compound" rows: fault_class="compound" won't match any label, so only
-    # secondary_fault_class is captured. The primary fault name is not stored
-    # in the dataset — a data-generation limitation, not a model one.
+    # Multi-label one-hot: for each row, mark all active faults.
+    # fault_class carries the primary fault name; secondary_fault_class
+    # carries the secondary (if any). Both are matched against label_names.
     y = np.zeros((len(df), len(label_names)), dtype=np.int32)
     for i, label in enumerate(label_names):
         is_primary = df["fault_class"] == label

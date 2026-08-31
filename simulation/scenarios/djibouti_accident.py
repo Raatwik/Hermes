@@ -3,9 +3,11 @@
 Djibouti MQ-1B Accident Scenario Generator
 Based on the 14 Jan 2011 USAF Accident Investigation Board Report.
 
-This script simulates the 9-hour flight, injecting the progressive
-oil system and cylinder failures as described in the report, and
-exports the telemetry to a CSV file for ML model training.
+This script simulates the flight up to engine seizure at 8.83 hours
+(31800s), injecting the progressive oil system and cylinder failures
+as described in the report. The simulation terminates at the exact
+moment of engine death to provide an accurate RUL anchor for ML
+training. Exports telemetry to a CSV file.
 """
 
 import csv
@@ -135,6 +137,12 @@ def run_scenario():
                 "vibration_index": round(state["vibration_index"], 4),
                 "engine_load": round(state["engine_load"], 4)
             })
+
+            # Terminate simulation immediately after recording the catastrophic seizure.
+            # This ensures the dataset's final row perfectly aligns with the time of death,
+            # providing a mathematically accurate RUL anchor of 0.
+            if t >= 31800:
+                break
 
     print(f"Scenario complete! Telemetry saved to {csv_filename}")
 

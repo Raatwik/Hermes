@@ -33,10 +33,11 @@ Deliver a fully functional MVP of the MALE-UAV Digital Twin, complete with the s
 - [04.3-simulation-remediation.md](04.3-simulation-remediation.md) — Simulation Remediation completed: added `EngineFailureException` with physical failure thresholds (RPM < 1000, CHT > 250°C, Oil Pressure < 20 psi, EGT > 900°C, Vibration > 0.9) that terminate simulations early, and `run_pipeline` catches the exception to anchor RUL to the true moment of engine death.
 - [05.4-datasets-remediation.md](05.4-datasets-remediation.md) — Datasets Remediation completed: added `dynamic_maneuvers.yaml` with 9 short aggressive alternating phases for transient training data, added `"compound"` to `all_classes` in the bulk orchestrator, and updated `FaultScheduler` to guarantee 2 overlapping fault injections (100% probability) when `force_fault_class="compound"`.
 - [03.3-ml-remediation.md](03.3-ml-remediation.md) — ML Remediation completed: XGBoost migrated to `MultiOutputClassifier`, Isolation Forest tightened to healthy-only training, LSTM retrained on physically-terminating datasets with `TelemetryDataset` using pre-computed `Remaining_Useful_Life` column.
+- [07-ml-data-final-fixes.md](07-ml-data-final-fixes.md) — Final Logic Fixes completed: fixed right-censored RUL contamination for LSTM, prevented primary fault masking in compound scenarios for XGBoost, and aligned Djibouti scenario RUL anchor with exact engine seizure time.
+- [02-frontend.md](02-frontend.md) — Frontend: Operator Dashboard MVP completed: Vite-based React application created and fully configured by user.
 
 ## Open Tickets (The Frontier)
 
-- [02-frontend.md](02-frontend.md) — Frontend: Operator Dashboard MVP
 - [06-integration.md](06-integration.md) — Integration: Real-Time Backend & MQTT (Blocked by 02)
   - [.scratch/integration/issues/01-mqtt-broker-sim-playback.md](../../../.scratch/integration/issues/01-mqtt-broker-sim-playback.md) — DONE: Embedded MQTT broker (`integration/broker.py`) and simulation publisher (`integration/sim_publisher.py`) with adjustable speed playback of `djibouti_aligned.parquet`.
 
