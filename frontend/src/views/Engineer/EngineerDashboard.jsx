@@ -53,12 +53,12 @@ const EngineerDashboard = () => {
         <div className="context-divider"></div>
         <div className="context-item">
           <div className="label">Altitude</div>
-          <div className="value">{isLive ? `${missionContext.altitude.toLocaleString()} ft` : '—'}</div>
+          <div className="value">{isLive ? `${Math.round(missionContext.altitude).toLocaleString()} ft` : '—'}</div>
         </div>
         <div className="context-divider"></div>
         <div className="context-item">
           <div className="label">RPM</div>
-          <div className="value">{isLive ? missionContext.rpm.toLocaleString() : '—'}</div>
+          <div className="value">{isLive ? Math.round(missionContext.rpm).toLocaleString() : '—'}</div>
         </div>
         <div className="context-divider"></div>
         <div className="context-item">
@@ -78,7 +78,7 @@ const EngineerDashboard = () => {
         <div className="context-divider"></div>
         <div className="context-item">
           <div className="label">Fuel Flow</div>
-          <div className="value">{isLive ? `${missionContext.fuelFlow} L/hr` : '—'}</div>
+          <div className="value">{isLive ? `${Math.round(missionContext.fuelFlow * 10) / 10} L/hr` : '—'}</div>
         </div>
       </section>
 

@@ -38,8 +38,11 @@ Deliver a fully functional MVP of the MALE-UAV Digital Twin, complete with the s
 
 ## Open Tickets (The Frontier)
 
-- [06-integration.md](06-integration.md) — Integration: Real-Time Backend & MQTT (Blocked by 02)
+- [06-integration.md](06-integration.md) — Integration: Real-Time Backend & MQTT (Issues 01–06 COMPLETE)
   - [.scratch/integration/issues/01-mqtt-broker-sim-playback.md](../../../.scratch/integration/issues/01-mqtt-broker-sim-playback.md) — DONE: Embedded MQTT broker (`integration/broker.py`) and simulation publisher (`integration/sim_publisher.py`) with adjustable speed playback of `djibouti_aligned.parquet`.
+  - [.scratch/integration/issues/05-dynamic-ehi.md](../../../.scratch/integration/issues/05-dynamic-ehi.md) — DONE: Dynamic EHI computed from `twin_drift_score` in `useEngineStore.js`.
+  - [.scratch/integration/issues/06-dynamic-physics-baselines.md](../../../.scratch/integration/issues/06-dynamic-physics-baselines.md) — DONE: ML subscriber broadcasts dynamic `expected_*` baselines; frontend consumes them, eliminating false CRITICAL alarms.
+- [06.1-integration-ehi-fix.md](06.1-integration-ehi-fix.md) — Integration: EHI & Dashboard Critical Status Fix (COMPLETE)
 
 ## Not yet specified
 

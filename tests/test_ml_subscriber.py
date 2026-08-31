@@ -113,6 +113,14 @@ def test_subscriber_produces_predictions(broker_port):
         assert isinstance(pred["xgboost_faults"], list)
         assert isinstance(pred["isolation_forest_anomaly"], bool)
 
+        for key in [
+            "expected_rpm", "expected_oil_pressure", "expected_oil_temp",
+            "expected_cht", "expected_egt_1", "expected_egt_2",
+            "expected_egt_3", "expected_egt_4",
+        ]:
+            assert key in pred, f"Missing {key} in prediction payload"
+            assert isinstance(pred[key], (int, float)), f"{key} should be numeric"
+
 
 def test_anomaly_override_logic(broker_port):
     """When Isolation Forest detects anomaly, XGBoost should be UNKNOWN_ANOMALY and LSTM RUL None."""

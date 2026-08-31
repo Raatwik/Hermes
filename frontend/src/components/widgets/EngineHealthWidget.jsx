@@ -50,16 +50,16 @@ const EngineHealthWidget = () => {
           <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '0.5rem', fontWeight: 600 }}>
             Remaining Useful Life (RUL)
           </div>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
-            <span style={{ fontSize: '2.5rem', fontWeight: 700, color: getRulColor(rul), lineHeight: 1 }}>
-              {rul}
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', maxWidth: '100%', overflow: 'hidden' }}>
+            <span style={{ fontSize: '2.5rem', fontWeight: 700, color: getRulColor(rul != null ? Math.round(rul) : 0), lineHeight: 1 }}>
+              {rul != null ? Math.round(Math.max(0, Math.min(rul, 9999))) : '—'}
             </span>
             <span style={{ fontSize: '1.2rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
               hours
             </span>
           </div>
           <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
-            95% CI: [{rulLowerBound} - {rulUpperBound} h]
+            95% CI: [{rulLowerBound != null ? Math.max(0, Math.round(rulLowerBound)) : '—'} - {rulUpperBound != null ? Math.round(Math.min(rulUpperBound, 9999)) : '—'} h]
           </div>
         </div>
 

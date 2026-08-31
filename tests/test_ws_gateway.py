@@ -43,6 +43,14 @@ SAMPLE_PREDICTIONS = {
     "lstm_rul_mean": 145.0,
     "lstm_rul_std": 8.2,
     "isolation_forest_anomaly": False,
+    "expected_rpm": 2420.0,
+    "expected_oil_pressure": 64.5,
+    "expected_oil_temp": 94.0,
+    "expected_cht": 160.0,
+    "expected_egt_1": 615.0,
+    "expected_egt_2": 615.0,
+    "expected_egt_3": 615.0,
+    "expected_egt_4": 615.0,
 }
 
 
@@ -72,6 +80,9 @@ def test_ws_receives_merged_payload(broker_port):
             assert data["isolation_forest_anomaly"] is False
             # Telemetry's time wins over prediction's stale time
             assert data["time"] == 1.0
+            assert data["expected_rpm"] == 2420.0
+            assert data["expected_oil_pressure"] == 64.5
+            assert data["expected_egt_1"] == 615.0
 
             pub.loop_stop()
             pub.disconnect()
