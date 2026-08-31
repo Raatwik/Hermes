@@ -11,7 +11,9 @@ import TwinComparisonWidget from '../../components/widgets/TwinComparisonWidget'
 import './EngineerDashboard.css';
 
 const EngineerDashboard = () => {
-  const { missionContext, connectLiveTelemetry } = useEngineStore();
+  const missionContext = useEngineStore(state => state.missionContext);
+  const connectLiveTelemetry = useEngineStore(state => state.connectLiveTelemetry);
+  const isLive = useEngineStore(state => state.isLive);
 
   useEffect(() => {
     // Start listening to WebSocket/mock data on mount
@@ -51,32 +53,32 @@ const EngineerDashboard = () => {
         <div className="context-divider"></div>
         <div className="context-item">
           <div className="label">Altitude</div>
-          <div className="value">{missionContext.altitude.toLocaleString()} ft</div>
+          <div className="value">{isLive ? `${missionContext.altitude.toLocaleString()} ft` : '—'}</div>
         </div>
         <div className="context-divider"></div>
         <div className="context-item">
           <div className="label">RPM</div>
-          <div className="value">{missionContext.rpm.toLocaleString()}</div>
+          <div className="value">{isLive ? missionContext.rpm.toLocaleString() : '—'}</div>
         </div>
         <div className="context-divider"></div>
         <div className="context-item">
           <div className="label">Engine Load</div>
-          <div className="value">{missionContext.engineLoad} %</div>
+          <div className="value">{isLive ? `${missionContext.engineLoad} %` : '—'}</div>
         </div>
         <div className="context-divider"></div>
         <div className="context-item">
           <div className="label">OAT</div>
-          <div className="value">{missionContext.oat} °C</div>
+          <div className="value">{isLive ? `${missionContext.oat} °C` : '—'}</div>
         </div>
         <div className="context-divider"></div>
         <div className="context-item">
           <div className="label">MAP</div>
-          <div className="value">{missionContext.map} inHg</div>
+          <div className="value">{isLive ? `${missionContext.map} inHg` : '—'}</div>
         </div>
         <div className="context-divider"></div>
         <div className="context-item">
           <div className="label">Fuel Flow</div>
-          <div className="value">{missionContext.fuelFlow} L/hr</div>
+          <div className="value">{isLive ? `${missionContext.fuelFlow} L/hr` : '—'}</div>
         </div>
       </section>
 

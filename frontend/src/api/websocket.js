@@ -4,11 +4,12 @@ let socket = null;
 let reconnectTimer = null;
 
 export function connectWebSocket(onMessage) {
-  if (socket && socket.readyState === WebSocket.OPEN) return;
+  if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) return;
 
-  socket = new WebSocket(WS_URL);
+  const ws = new WebSocket(WS_URL);
+  socket = ws;
 
-  socket.onopen = () => {
+  ws.onopen = () => {
     console.log("[ws] connected to", WS_URL);
     if (reconnectTimer) {
       clearTimeout(reconnectTimer);
@@ -16,7 +17,7 @@ export function connectWebSocket(onMessage) {
     }
   };
 
-  socket.onmessage = (event) => {
+  ws.onmessage = (event) => {
     try {
       const data = JSON.parse(event.data);
       onMessage(data);
@@ -25,14 +26,15 @@ export function connectWebSocket(onMessage) {
     }
   };
 
-  socket.onclose = () => {
-    console.log("[ws] disconnected, reconnecting in 3s...");
+  ws.onclose = () => {
+    if (socket === ws) {
+      socket = null;
+    }
     reconnectTimer = setTimeout(() => connectWebSocket(onMessage), 3000);
   };
 
-  socket.onerror = (err) => {
-    console.error("[ws] error:", err);
-    socket.close();
+  ws.onerror = () => {
+    ws.close();
   };
 }
 

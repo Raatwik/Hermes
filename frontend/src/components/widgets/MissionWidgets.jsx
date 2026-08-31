@@ -10,7 +10,7 @@ export function RulWidget({ hours, text, statusText, isGood }) {
       </div>
       <div className="rul-body">
         <div className="rul-main">
-          <span className="rul-value text-good">{hours}</span>
+          <span className="rul-value text-good">{hours != null ? hours : '—'}</span>
           <span className="rul-unit text-good">HOURS<br/>REMAINING</span>
         </div>
         <div className="rul-divider"></div>

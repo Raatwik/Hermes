@@ -2,75 +2,48 @@ import { create } from 'zustand';
 import { connectWebSocket, disconnectWebSocket } from '../api/websocket';
 import { postWhatIf } from '../api/restClient';
 
-// Generate mock time-series data for the last 60 minutes
-const generateMockTimeSeries = () => {
-  const data = [];
-  const now = Date.now();
-  for (let i = 60; i >= 0; i--) {
-    const time = new Date(now - i * 60000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const drift = 0.2 + Math.random() * 0.2; // roughly between 0.2 and 0.4
-    const expectedEGT = 600 + Math.sin(i / 10) * 50;
-    const actualEGT = expectedEGT + (Math.random() * 20 - 5);
-    const residual = actualEGT - expectedEGT;
-
-    data.push({
-      time,
-      drift,
-      expectedEGT,
-      actualEGT,
-      residual,
-      upperBound: 15,
-      lowerBound: -15,
-    });
-  }
-  return data;
-};
+let _liveSnapshot = null;
 
 const useEngineStore = create((set, get) => ({
   // --- State ---
   activeRecommendation: null,
-  missionContext: {
-    altitude: 15200,
-    rpm: 2420,
-    engineLoad: 68,
-    oat: -2.1,
-    map: 23.7,
-    fuelFlow: 24.1,
-    phase: 'CRUISE',
-    ehi: 82, // Engine Health Index (0-100)
-    rul: 145, // Remaining Useful Life (hours)
-    rulLowerBound: 130, // Confidence interval lower
-    rulUpperBound: 160 // Confidence interval upper
+  isLive: false,
+
+  missionContext: _liveSnapshot?.missionContext ?? {
+    altitude: 0,
+    rpm: 0,
+    engineLoad: 0,
+    oat: 0,
+    map: 0,
+    fuelFlow: 0,
+    phase: 'STARTUP',
+    ehi: 0,
+    rul: null,
+    rulLowerBound: null,
+    rulUpperBound: null,
   },
 
-  twinComparisonData: {
+  twinComparisonData: _liveSnapshot?.twinComparisonData ?? {
     globals: {
-      rpm: { expected: 2450, actual: 2450, deviation: 0, status: 'NORMAL' },
-      oilPressure: { expected: 65, actual: 64, deviation: -1.5, status: 'NORMAL' },
-      oilTemp: { expected: 95, actual: 98, deviation: 3.1, status: 'NORMAL' }
+      rpm: { expected: 2450, actual: 0, deviation: 0, status: 'NOMINAL' },
+      oilPressure: { expected: 65, actual: 0, deviation: 0, status: 'NOMINAL' },
+      oilTemp: { expected: 95, actual: 0, deviation: 0, status: 'NOMINAL' },
     },
     cylinders: [
-      { id: 1, egt: { expected: 650, actual: 645 }, cht: { expected: 155, actual: 154 } },
-      { id: 2, egt: { expected: 650, actual: 652 }, cht: { expected: 155, actual: 155 } },
-      { id: 3, egt: { expected: 650, actual: 672 }, cht: { expected: 155, actual: 156 } },
-      { id: 4, egt: { expected: 650, actual: 648 }, cht: { expected: 155, actual: 153 } },
-    ]
+      { id: 1, egt: { expected: 650, actual: 0 }, cht: { expected: 155, actual: 0 } },
+      { id: 2, egt: { expected: 650, actual: 0 }, cht: { expected: 155, actual: 0 } },
+      { id: 3, egt: { expected: 650, actual: 0 }, cht: { expected: 155, actual: 0 } },
+      { id: 4, egt: { expected: 650, actual: 0 }, cht: { expected: 155, actual: 0 } },
+    ],
   },
-  
-  timeSeriesData: generateMockTimeSeries(),
-  
-  faultProbabilities: [
-    { name: 'Valve Sticking (Exhaust)', probability: 0.42, ci: [0.31, 0.54] },
-    { name: 'Spark Plug Degradation', probability: 0.21, ci: [0.14, 0.31] },
-    { name: 'Fuel Injector Degradation', probability: 0.12, ci: [0.07, 0.20] },
-    { name: 'Oil System Degradation', probability: 0.06, ci: [0.03, 0.12] },
-    { name: 'Sensor Fault (Any)', probability: 0.04, ci: [0.02, 0.09] },
-    { name: 'Unknown / Open-Set', probability: 0.15, ci: [0.10, 0.23] }
-  ],
-  
+
+  timeSeriesData: _liveSnapshot?.timeSeriesData ?? [],
+
+  faultProbabilities: _liveSnapshot?.faultProbabilities ?? [],
+
   // --- Actions ---
   pushRecommendationToOperator: (recommendation) => set({ activeRecommendation: recommendation }),
-  
+
   connectLiveTelemetry: () => {
     connectWebSocket((data) => {
       set((state) => {
@@ -119,19 +92,24 @@ const useEngineStore = create((set, get) => ({
         });
 
         const faultProbabilities = (data.xgboost_faults && data.xgboost_faults.length > 0)
-          ? data.xgboost_faults.map((name, idx) => ({
+          ? data.xgboost_faults.map((name) => ({
               name,
               probability: 1 / data.xgboost_faults.length,
               ci: [0, 1],
             }))
           : state.faultProbabilities;
 
-        return {
+        const update = {
+          isLive: true,
           timeSeriesData: newData,
           missionContext: newContext,
           twinComparisonData: newTwinData,
           faultProbabilities,
         };
+
+        _liveSnapshot = update;
+
+        return update;
       });
     });
 
@@ -139,10 +117,7 @@ const useEngineStore = create((set, get) => ({
   },
 
   fetchMissionContext: async () => {
-    // Placeholder for fetching historical REST data
-    console.log("Fetching mission context via REST...");
-    // Just a mock promise resolving to current state
-    return new Promise(resolve => setTimeout(() => resolve(get().missionContext), 500));
+    return get().missionContext;
   },
 
   simulateMission: async (params) => {
@@ -210,7 +185,7 @@ const useEngineStore = create((set, get) => ({
         rulImpact: Math.round((65 - riskScore) / 5 * 10) / 10,
       };
     }
-  }
+  },
 }));
 
 export default useEngineStore;

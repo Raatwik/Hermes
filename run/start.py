@@ -150,6 +150,8 @@ def main():
                         help="FastAPI backend port (default: 8000)")
     parser.add_argument("--frontend-port", type=int, default=5173,
                         help="Vite dev server port (default: 5173)")
+    parser.add_argument("--start-row", type=int, default=0,
+                        help="Row to start playback from (skip earlier rows)")
     args = parser.parse_args()
 
     py = sys.executable
@@ -182,7 +184,8 @@ def main():
          ROOT_DIR, 2.0),
         ("Sim Publisher",
          [py, "integration/sim_publisher.py", "--speed", str(args.speed)]
-         + (["--data", str(Path(args.data).resolve())] if args.data else []),
+         + (["--data", str(Path(args.data).resolve())] if args.data else [])
+         + (["--start-row", str(args.start_row)] if args.start_row > 0 else []),
          ROOT_DIR, 1.0),
         ("ML Subscriber",
          [py, "-m", "integration.ml_subscriber"],

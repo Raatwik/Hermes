@@ -23,12 +23,15 @@ def load_data(path: Path) -> pd.DataFrame:
     return df
 
 
-def publish_telemetry(host: str, port: int, data_path: Path, speed: float):
+def publish_telemetry(host: str, port: int, data_path: Path, speed: float, start_row: int = 0):
     client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
     client.connect(host, port)
     client.loop_start()
 
     df = load_data(data_path)
+    if start_row > 0:
+        df = df.iloc[start_row:].reset_index(drop=True)
+        print(f"Skipped to row {start_row}")
     print(f"Loaded {len(df)} rows from {data_path.name}")
     print(f"Publishing to {TOPIC} at {speed}x speed")
 
@@ -55,13 +58,14 @@ def main():
     parser.add_argument("--port", type=int, default=1883, help="MQTT broker port")
     parser.add_argument("--data", type=Path, default=DEFAULT_DATA_PATH, help="Path to parquet or CSV data file")
     parser.add_argument("--speed", type=float, default=10.0, help="Playback speed factor (default: 10x)")
+    parser.add_argument("--start-row", type=int, default=0, help="Row to start playback from (skip earlier rows)")
     args = parser.parse_args()
 
     if not args.data.exists():
         print(f"Error: data file not found: {args.data}", file=sys.stderr)
         sys.exit(1)
 
-    publish_telemetry(args.host, args.port, args.data, args.speed)
+    publish_telemetry(args.host, args.port, args.data, args.speed, args.start_row)
 
 
 if __name__ == "__main__":

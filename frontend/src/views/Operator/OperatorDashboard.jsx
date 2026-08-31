@@ -15,6 +15,7 @@ export default function OperatorDashboard() {
   const connectLiveTelemetry = useEngineStore(state => state.connectLiveTelemetry);
   const twinData = useEngineStore(state => state.twinComparisonData);
   const missionContext = useEngineStore(state => state.missionContext);
+  const isLive = useEngineStore(state => state.isLive);
 
   useEffect(() => {
     const disconnect = connectLiveTelemetry();
@@ -22,10 +23,28 @@ export default function OperatorDashboard() {
   }, [connectLiveTelemetry]);
 
   const g = twinData.globals;
+
+  const deviationStatus = (dev) => {
+    const abs = Math.abs(parseFloat(dev));
+    if (abs > 20) return 'CRITICAL';
+    if (abs > 10) return 'WARNING';
+    return 'NORMAL';
+  };
+
+  const deviationColor = (status) => {
+    if (status === 'CRITICAL') return 'critical';
+    if (status === 'WARNING') return 'warning';
+    return 'good';
+  };
+
+  const rpmStatus = deviationStatus(g.rpm.deviation);
+  const oilPStatus = deviationStatus(g.oilPressure.deviation);
+  const oilTStatus = deviationStatus(g.oilTemp.deviation);
+
   const telemetryData = [
-    { title: 'RPM', expected: String(g.rpm.expected), current: String(g.rpm.actual), deviation: `${g.rpm.deviation}%`, unit: 'RPM', status: 'NORMAL', icon: Gauge, colorClass: 'good' },
-    { title: 'OIL PRESSURE', expected: String(g.oilPressure.expected), current: String(Math.round(g.oilPressure.actual)), deviation: `${g.oilPressure.deviation}%`, unit: 'psi', status: 'NORMAL', icon: Droplet, colorClass: 'good' },
-    { title: 'OIL TEMPERATURE', expected: String(g.oilTemp.expected), current: String(Math.round(g.oilTemp.actual)), deviation: `${g.oilTemp.deviation}%`, unit: '°C', status: 'NORMAL', icon: Thermometer, colorClass: 'good' }
+    { title: 'RPM', expected: String(g.rpm.expected), current: isLive ? String(g.rpm.actual) : '—', deviation: isLive ? `${g.rpm.deviation}%` : '—', unit: 'RPM', status: rpmStatus, icon: Gauge, colorClass: deviationColor(rpmStatus) },
+    { title: 'OIL PRESSURE', expected: String(g.oilPressure.expected), current: isLive ? String(Math.round(g.oilPressure.actual)) : '—', deviation: isLive ? `${g.oilPressure.deviation}%` : '—', unit: 'psi', status: oilPStatus, icon: Droplet, colorClass: deviationColor(oilPStatus) },
+    { title: 'OIL TEMPERATURE', expected: String(g.oilTemp.expected), current: isLive ? String(Math.round(g.oilTemp.actual)) : '—', deviation: isLive ? `${g.oilTemp.deviation}%` : '—', unit: '°C', status: oilTStatus, icon: Thermometer, colorClass: deviationColor(oilTStatus) }
   ];
 
   const cylinderMetrics = twinData.cylinders.flatMap((cyl) => [
@@ -71,15 +90,15 @@ export default function OperatorDashboard() {
       <div className="dashboard-columns">
         {/* Left Sidebar */}
         <aside className="dashboard-sidebar">
-          <SidebarSummaryPanel 
-            engineHealth="92/100"
-            systemStatus="NOMINAL"
-            riskValue="18%"
-            riskColorClass="warning"
+          <SidebarSummaryPanel
+            engineHealth={isLive ? `${missionContext.ehi}/100` : '—/100'}
+            systemStatus={isLive ? (rpmStatus === 'CRITICAL' || oilPStatus === 'CRITICAL' ? 'CRITICAL' : rpmStatus === 'WARNING' || oilPStatus === 'WARNING' ? 'WARNING' : 'NOMINAL') : 'AWAITING DATA'}
+            riskValue={isLive ? `${Math.max(0, Math.min(100, Math.round(Math.max(Math.abs(parseFloat(g.rpm.deviation)), Math.abs(parseFloat(g.oilPressure.deviation))))))}%` : '—'}
+            riskColorClass={rpmStatus === 'CRITICAL' || oilPStatus === 'CRITICAL' ? 'critical' : rpmStatus === 'WARNING' || oilPStatus === 'WARNING' ? 'warning' : 'good'}
           />
           <RulWidget
-            hours={missionContext.rul != null ? Math.round(missionContext.rul) : 143}
-            text={missionContext.rul != null ? "Live RUL estimate" : "Awaiting live data"}
+            hours={missionContext.rul != null ? Math.round(missionContext.rul) : null}
+            text={missionContext.rul != null ? "Live RUL estimate" : "Awaiting ML model"}
             isGood={missionContext.rul == null || missionContext.rul > 50}
           />
           <MissionProgress 
