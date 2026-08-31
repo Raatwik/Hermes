@@ -9,6 +9,8 @@ labels: ["in-progress"]
 - **Issue 02 (ML Subscriber):** COMPLETE — `integration/ml_subscriber.py`
 - **Issue 03 (FastAPI WebSocket Gateway):** COMPLETE — `backend/main.py`, `frontend/src/api/websocket.js`, store + dashboard wired to live data
 - **Issue 04 (What-If Sandbox REST API):** COMPLETE — `POST /api/what-if` endpoint in `backend/main.py` with 5-min simulation fast-forward, LSTM projection (graceful degradation when model absent), `current_state` initialization, and frontend `MissionSandboxWidget` wired via `restClient.js`. 10 tests in `tests/test_what_if.py`.
+- **Issue 05 (Dynamic EHI):** COMPLETE — `useEngineStore.js` `_applyTelemetry` now computes `ehi` dynamically as `Math.max(0, Math.round(100 - twin_drift_score * 100))`. The EHI widget reflects the live 0-100 score in real time.
+- **Issue 06 (Dynamic Physics Baselines):** COMPLETE — ML subscriber extracts `expected_rpm`, `expected_oil_pressure`, `expected_oil_temp`, `expected_cht`, and `expected_egt_1..4` from its local simulation and includes them in the predictions payload. Frontend store routes these into `twinComparisonData`, replacing hardcoded fallbacks. System Status no longer triggers false CRITICAL during healthy maneuvers. Tests updated in `test_ml_subscriber.py` and `test_ws_gateway.py`.
 
 ## Problem Statement
 

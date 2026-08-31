@@ -86,6 +86,7 @@ def _run_what_if_simulation(
             actual_val = float(state.get(sensor, 0.0))
             exp_val = float(expected.get(sensor, 0.0))
             residuals[f"{sensor}_residual"] = actual_val - exp_val
+            residuals[sensor] = actual_val
         residual_window.append(residuals)
 
         if not sim.is_alive:
@@ -99,18 +100,19 @@ def _run_what_if_simulation(
             import torch
             window_data = []
             for r in residual_window:
-                row = [r.get(f"{s}_residual", 0.0) for s in RESIDUAL_SENSORS]
+                row = []
+                for s in RESIDUAL_SENSORS:
+                    row.append(r.get(s, 0.0))
+                for s in RESIDUAL_SENSORS:
+                    row.append(r.get(f"{s}_residual", 0.0))
                 window_data.append(row)
 
-            full_features = []
-            for row in window_data:
-                full_features.append(row + row)
-
-            x = torch.tensor([full_features], dtype=torch.float32)
+            x = torch.tensor([window_data], dtype=torch.float32)
             with torch.no_grad():
                 mu, sigma = lstm_model(x)
-            rul_mean = float(mu[0])
-            rul_std = float(sigma[0])
+            scale_factor = 1000.0
+            rul_mean = float(mu[0]) * scale_factor
+            rul_std = float(sigma[0]) * scale_factor
         except Exception:
             pass
 

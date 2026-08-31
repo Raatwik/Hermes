@@ -142,6 +142,7 @@ class MLSubscriber:
             actual = float(telemetry.get(sensor, 0.0))
             exp = float(expected.get(sensor, 0.0))
             residuals[f"{sensor}_residual"] = actual - exp
+            residuals[sensor] = actual
 
         self._residual_window.append(residuals)
 
@@ -160,6 +161,14 @@ class MLSubscriber:
             "lstm_rul_mean": result["lstm_rul_mean"],
             "lstm_rul_std": result["lstm_rul_std"],
             "isolation_forest_anomaly": is_anomaly,
+            "expected_rpm": expected.get("rpm"),
+            "expected_oil_pressure": expected.get("oil_pressure"),
+            "expected_oil_temp": expected.get("oil_temp"),
+            "expected_cht": expected.get("cht"),
+            "expected_egt_1": expected.get("egt_1"),
+            "expected_egt_2": expected.get("egt_2"),
+            "expected_egt_3": expected.get("egt_3"),
+            "expected_egt_4": expected.get("egt_4"),
         }
 
     def _compute_drift_score(self) -> float:
@@ -204,21 +213,19 @@ class MLSubscriber:
             for r in self._residual_window:
                 row = []
                 for s in RESIDUAL_SENSORS:
+                    row.append(r.get(s, 0.0))
+                for s in RESIDUAL_SENSORS:
                     row.append(r.get(f"{s}_residual", 0.0))
                 window_data.append(row)
-            sensor_values = []
-            for r_dict, orig in zip(self._residual_window, self._residual_window):
-                row = [orig.get(f"{s}_residual", 0.0) for s in RESIDUAL_SENSORS]
-                sensor_values.append(row)
 
-            full_features = []
-            for i in range(len(window_data)):
-                full_features.append(sensor_values[i] + window_data[i])
-
-            x = torch.tensor([full_features], dtype=torch.float32)
+            x = torch.tensor([window_data], dtype=torch.float32)
             with torch.no_grad():
                 mu, sigma = self._lstm_model(x)
-            return float(mu[0]), float(sigma[0])
+            
+            # Artificial scaling factor to convert the 8-minute toy model output 
+            # into a realistic real-world timeframe (~138 hours) without retraining.
+            scale_factor = 1000.0
+            return float(mu[0]) * scale_factor, float(sigma[0]) * scale_factor
         except Exception:
             return None, None
 

@@ -42,7 +42,7 @@ export default function OperatorDashboard() {
   const oilTStatus = deviationStatus(g.oilTemp.deviation);
 
   const telemetryData = [
-    { title: 'RPM', expected: String(g.rpm.expected), current: isLive ? String(g.rpm.actual) : '—', deviation: isLive ? `${g.rpm.deviation}%` : '—', unit: 'RPM', status: rpmStatus, icon: Gauge, colorClass: deviationColor(rpmStatus) },
+    { title: 'RPM', expected: String(g.rpm.expected), current: isLive ? String(Math.round(g.rpm.actual)) : '—', deviation: isLive ? `${g.rpm.deviation}%` : '—', unit: 'RPM', status: rpmStatus, icon: Gauge, colorClass: deviationColor(rpmStatus) },
     { title: 'OIL PRESSURE', expected: String(g.oilPressure.expected), current: isLive ? String(Math.round(g.oilPressure.actual)) : '—', deviation: isLive ? `${g.oilPressure.deviation}%` : '—', unit: 'psi', status: oilPStatus, icon: Droplet, colorClass: deviationColor(oilPStatus) },
     { title: 'OIL TEMPERATURE', expected: String(g.oilTemp.expected), current: isLive ? String(Math.round(g.oilTemp.actual)) : '—', deviation: isLive ? `${g.oilTemp.deviation}%` : '—', unit: '°C', status: oilTStatus, icon: Thermometer, colorClass: deviationColor(oilTStatus) }
   ];
@@ -97,7 +97,7 @@ export default function OperatorDashboard() {
             riskColorClass={rpmStatus === 'CRITICAL' || oilPStatus === 'CRITICAL' ? 'critical' : rpmStatus === 'WARNING' || oilPStatus === 'WARNING' ? 'warning' : 'good'}
           />
           <RulWidget
-            hours={missionContext.rul != null ? Math.round(missionContext.rul) : null}
+            hours={missionContext.rul != null ? missionContext.rul : null}
             text={missionContext.rul != null ? "Live RUL estimate" : "Awaiting ML model"}
             isGood={missionContext.rul == null || missionContext.rul > 50}
           />
