@@ -85,31 +85,31 @@
   flex-grow: 1;
 }
 
-/* Row 1: Diagnostics */
+/* Row 1: Live Core & Health */
+.grid-area-comparison {
+  grid-column: span 8;
+  min-height: 400px;
+}
+
+.grid-area-health {
+  grid-column: span 4;
+  min-height: 400px;
+}
+
+/* Row 2: Diagnostics & Sandbox */
 .grid-area-faults {
   grid-column: span 3;
   min-height: 350px;
 }
 
-.grid-area-health {
-  grid-column: span 3;
-  min-height: 350px;
-}
-
 .grid-area-causes {
-  grid-column: span 6;
+  grid-column: span 5;
   min-height: 350px;
 }
 
-/* Row 2: Sandbox & Comparison */
 .grid-area-sandbox {
-  grid-column: span 5;
-  min-height: 400px;
-}
-
-.grid-area-comparison {
-  grid-column: span 7;
-  min-height: 400px;
+  grid-column: span 4;
+  min-height: 350px;
 }
 
 /* Row 3: Drift */

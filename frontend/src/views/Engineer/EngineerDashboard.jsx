@@ -28,9 +28,7 @@ const EngineerDashboard = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
           <h1 className="text-xl font-bold">PROPULSION ENGINEER VIEW</h1>
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', fontSize: '0.9rem' }}>
-            <Link to="/operator" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>OPERATOR</Link>
-            <Link to="/engineer" style={{ color: 'var(--color-good)', fontWeight: 'bold', textDecoration: 'none', borderBottom: '2px solid var(--color-good)' }}>ENGINEER</Link>
-            <Link to="/maintenance" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>MAINTENANCE</Link>
+            <Link to="/" style={{ color: 'var(--color-critical)', fontWeight: 'bold', textDecoration: 'none', padding: '4px 10px', border: '1px solid var(--color-critical)', borderRadius: '4px' }}>LOGOUT</Link>
           </div>
         </div>
         <div className="header-status">
@@ -85,25 +83,23 @@ const EngineerDashboard = () => {
       {/* Main Grid Layout */}
       <main className="dashboard-grid">
         
-        {/* Row 1: Diagnostics */}
-        <div className="grid-area-faults card">
-          <FaultProbabilityMatrix />
+        {/* Row 1: Live Core & Health */}
+        <div className="grid-area-comparison card">
+          <TwinComparisonWidget />
         </div>
-        
         <div className="grid-area-health card">
           <EngineHealthWidget />
         </div>
 
+        {/* Row 2: Diagnostics & Sandbox */}
+        <div className="grid-area-faults card">
+          <FaultProbabilityMatrix />
+        </div>
         <div className="grid-area-causes card">
           <DegradationCauseGraph />
         </div>
-
-        {/* Row 2: Sandbox & Comparison */}
         <div className="grid-area-sandbox card">
           <MissionSandboxWidget />
-        </div>
-        <div className="grid-area-comparison card">
-          <TwinComparisonWidget />
         </div>
 
         {/* Row 3: Drift */}

@@ -12,15 +12,16 @@
 .post-flight-table th {
   padding: 0.75rem 1rem;
   font-size: 0.8rem;
-  color: var(--text-secondary);
-  border-bottom: 1px solid var(--border-color);
-  font-weight: 600;
+  color: #666666;
+  border-bottom: 1px solid #cccccc;
+  font-weight: bold;
   letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
 .post-flight-table td {
   padding: 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
   font-size: 0.9rem;
   vertical-align: middle;
 }
@@ -30,21 +31,23 @@
 }
 
 .post-flight-table tr:hover td {
-  background-color: rgba(255, 255, 255, 0.02);
+  background-color: rgba(0, 0, 0, 0.02);
 }
 
 .anomaly-badge {
   display: inline-block;
   padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  background-color: var(--border-color);
-  color: var(--text-secondary);
+  border-radius: 0;
+  background-color: #f8f9fa;
+  border: 1px solid #cccccc;
+  color: #666666;
   font-weight: bold;
 }
 
 .anomaly-badge.has-anomalies {
-  background-color: rgba(239, 68, 68, 0.2);
-  color: var(--color-critical);
+  background-color: rgba(204, 0, 0, 0.1);
+  border-color: #cc0000;
+  color: #cc0000;
 }
 
 .risk-indicator {
@@ -52,31 +55,33 @@
 }
 
 .risk-indicator.high {
-  color: var(--color-critical);
+  color: #cc0000;
 }
 
 .risk-indicator.low {
-  color: var(--color-warning);
+  color: #ff9900;
 }
 
 .risk-indicator.nominal {
-  color: var(--color-good);
+  color: #000080;
 }
 
 .btn-view-details {
   background: transparent;
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
+  border: 1px solid #cccccc;
+  color: #333333;
   padding: 0.4rem 0.75rem;
-  border-radius: 4px;
+  border-radius: 0;
   font-size: 0.75rem;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
   transition: all 0.2s ease;
+  font-weight: bold;
 }
 
 .btn-view-details:hover {
-  background: var(--border-color);
+  background: #eeeeee;
+  border-color: #000080;
 }
