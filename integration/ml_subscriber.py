@@ -250,8 +250,8 @@ class MLSubscriber:
         if is_anomaly:
             return {
                 "xgboost_faults": ["UNKNOWN_ANOMALY"],
-                "lstm_rul_mean": None,
-                "lstm_rul_std": None,
+                "lstm_rul_mean": rul_mean,
+                "lstm_rul_std": rul_std,
             }
         return {
             "xgboost_faults": xgb_faults,

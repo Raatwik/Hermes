@@ -138,8 +138,8 @@ def test_anomaly_override_logic(broker_port):
         rul_std=5.0,
     )
     assert result["xgboost_faults"] == ["UNKNOWN_ANOMALY"]
-    assert result["lstm_rul_mean"] is None
-    assert result["lstm_rul_std"] is None
+    assert result["lstm_rul_mean"] == 42.0
+    assert result["lstm_rul_std"] == 5.0
 
     result_normal = sub._apply_anomaly_override(
         is_anomaly=False,

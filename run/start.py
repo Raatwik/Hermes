@@ -69,11 +69,11 @@ def banner(backend_port: int, frontend_port: int) -> None:
     print(colored("   DIH — Digital Twin Full Stack", BOLD + CYAN))
     print(colored("=" * 56, CYAN))
     print()
-    print(f"   {colored('Frontend', GREEN)}     →  {colored(f'http://localhost:{frontend_port}', BOLD)}")
-    print(f"   {colored('Backend API', GREEN)}  →  {colored(f'http://localhost:{backend_port}', BOLD)}")
-    print(f"   {colored('WebSocket', GREEN)}    →  {colored(f'ws://localhost:{backend_port}/ws', BOLD)}")
-    print(f"   {colored('What-If API', GREEN)}  →  {colored(f'POST http://localhost:{backend_port}/api/what-if', BOLD)}")
-    print(f"   {colored('MQTT Broker', GREEN)}  →  {colored('localhost:1883', BOLD)}")
+    print(f"   {colored('Frontend', GREEN)}     ->  {colored(f'http://localhost:{frontend_port}', BOLD)}")
+    print(f"   {colored('Backend API', GREEN)}  ->  {colored(f'http://localhost:{backend_port}', BOLD)}")
+    print(f"   {colored('WebSocket', GREEN)}    ->  {colored(f'ws://localhost:{backend_port}/ws', BOLD)}")
+    print(f"   {colored('What-If API', GREEN)}  ->  {colored(f'POST http://localhost:{backend_port}/api/what-if', BOLD)}")
+    print(f"   {colored('MQTT Broker', GREEN)}  ->  {colored('localhost:1883', BOLD)}")
     print()
     print(colored("=" * 56, CYAN))
     print(f"   Press {colored('Ctrl+C', YELLOW)} to stop all services")
@@ -108,7 +108,7 @@ def start_service(
     else:
         kwargs["preexec_fn"] = os.setsid
 
-    print(f"  {colored('●', GREEN)} Starting {name}...")
+    print(f"  {colored('*', GREEN)} Starting {name}...")
     proc = subprocess.Popen(cmd, **kwargs)
     time.sleep(delay)
 
@@ -119,7 +119,7 @@ def start_service(
         if log_file:
             log_file.close()
             err = log_path.read_text(errors="replace").strip()[-500:]
-        print(f"  {colored('✗', RED)} {name} exited (code {proc.returncode})")
+        print(f"  {colored('X', RED)} {name} exited (code {proc.returncode})")
         if err:
             for line in err.splitlines()[-5:]:
                 print(f"      {colored(line, DIM)}")
@@ -216,7 +216,7 @@ def main():
             dead = []
             for name, proc in services:
                 if proc.poll() is not None:
-                    print(f"  {colored('✗', RED)} {name} exited (code {proc.returncode})")
+                    print(f"  {colored('X', RED)} {name} exited (code {proc.returncode})")
                     dead.append(proc)
             if dead:
                 services = [(n, p) for n, p in services if p not in dead]
