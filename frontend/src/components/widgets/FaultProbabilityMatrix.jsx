@@ -1,6 +1,21 @@
 import React from 'react';
 import useEngineStore from '../../store/useEngineStore';
 
+const FAULT_DISPLAY_NAMES = {
+  cooling_degradation: 'Cooling Degradation',
+  cylinder_failure: 'Cylinder Failure',
+  injector_abnormalities: 'Injector Abnormalities',
+  lubrication_issues: 'Lubrication Issues',
+  misfire: 'Misfire',
+  sensor_drift: 'Sensor Drift',
+  UNKNOWN_ANOMALY: 'Unknown Anomaly',
+};
+
+function formatFaultName(name) {
+  if (FAULT_DISPLAY_NAMES[name]) return FAULT_DISPLAY_NAMES[name];
+  return name.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
 const FaultProbabilityMatrix = () => {
   const faults = useEngineStore((state) => state.faultProbabilities);
 
@@ -27,7 +42,7 @@ const FaultProbabilityMatrix = () => {
           return (
             <div key={index} style={{ display: 'grid', gridTemplateColumns: '2fr 1.5fr 1fr', gap: '0.5rem', alignItems: 'center', marginBottom: '0.75rem', fontSize: '0.85rem' }}>
               <div style={{ color: 'var(--text-primary)', wordBreak: 'break-word' }}>
-                {fault.name}
+                {formatFaultName(fault.name)}
               </div>
               
               {/* Probability Bar */}

@@ -39,7 +39,7 @@ SAMPLE_PREDICTIONS = {
     "tick": 1,
     "time": 0.9,
     "twin_drift_score": 0.05,
-    "xgboost_faults": [],
+    "xgboost_faults": {},
     "lstm_rul_mean": 145.0,
     "lstm_rul_std": 8.2,
     "isolation_forest_anomaly": False,
@@ -76,7 +76,7 @@ def test_ws_receives_merged_payload(broker_port):
             assert data["oil_pressure"] == 65
             assert data["twin_drift_score"] == 0.05
             assert data["lstm_rul_mean"] == 145.0
-            assert data["xgboost_faults"] == []
+            assert data["xgboost_faults"] == {}
             assert data["isolation_forest_anomaly"] is False
             # Telemetry's time wins over prediction's stale time
             assert data["time"] == 1.0

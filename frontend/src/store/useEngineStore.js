@@ -65,11 +65,11 @@ function _applyTelemetry(state, data) {
     if (data.cht != null) cyl.cht.actual = Math.round(data.cht);
   });
 
-  const faultProbabilities = (data.xgboost_faults && data.xgboost_faults.length > 0)
-    ? data.xgboost_faults.map((name) => ({
+  const faultProbabilities = (data.xgboost_faults && Object.keys(data.xgboost_faults).length > 0)
+    ? Object.entries(data.xgboost_faults).map(([name, details]) => ({
         name,
-        probability: 1 / data.xgboost_faults.length,
-        ci: [0, 1],
+        probability: details.probability || 0,
+        ci: details.ci || [0, 1],
       }))
     : state.faultProbabilities;
 

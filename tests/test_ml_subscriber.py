@@ -110,7 +110,7 @@ def test_subscriber_produces_predictions(broker_port):
         assert "lstm_rul_std" in pred
         assert "isolation_forest_anomaly" in pred
         assert isinstance(pred["twin_drift_score"], (int, float))
-        assert isinstance(pred["xgboost_faults"], list)
+        assert isinstance(pred["xgboost_faults"], dict)
         assert isinstance(pred["isolation_forest_anomaly"], bool)
 
         for key in [
@@ -123,29 +123,28 @@ def test_subscriber_produces_predictions(broker_port):
 
 
 def test_anomaly_override_logic(broker_port):
-    """When Isolation Forest detects anomaly, XGBoost should be UNKNOWN_ANOMALY and LSTM RUL None."""
+    """When Isolation Forest detects anomaly, XGBoost should contain UNKNOWN_ANOMALY."""
     from integration.ml_subscriber import MLSubscriber
 
     sub = MLSubscriber(host="localhost", port=broker_port)
 
-    residuals = {"rpm_residual": 100.0, "cht_residual": 50.0}
-    rolling_stats = {"rpm_residual_roll_mean": 80.0}
-
     result = sub._apply_anomaly_override(
         is_anomaly=True,
-        xgb_faults=["misfire"],
+        xgb_faults={"misfire": {"probability": 0.8, "ci": [0.75, 0.85]}},
         rul_mean=42.0,
         rul_std=5.0,
     )
-    assert result["xgboost_faults"] == ["UNKNOWN_ANOMALY"]
+    assert "UNKNOWN_ANOMALY" in result["xgboost_faults"]
+    assert result["xgboost_faults"]["UNKNOWN_ANOMALY"]["probability"] == 0.99
     assert result["lstm_rul_mean"] == 42.0
     assert result["lstm_rul_std"] == 5.0
 
     result_normal = sub._apply_anomaly_override(
         is_anomaly=False,
-        xgb_faults=["misfire"],
+        xgb_faults={"misfire": {"probability": 0.8, "ci": [0.75, 0.85]}},
         rul_mean=42.0,
         rul_std=5.0,
     )
-    assert result_normal["xgboost_faults"] == ["misfire"]
+    assert "UNKNOWN_ANOMALY" not in result_normal["xgboost_faults"]
+    assert "misfire" in result_normal["xgboost_faults"]
     assert result_normal["lstm_rul_mean"] == 42.0

@@ -184,9 +184,9 @@ class MLSubscriber:
         normalized = mse_per_sensor / (ranges ** 2 + 1e-9)
         return float(np.mean(normalized))
 
-    def _run_xgboost(self, telemetry: dict, residuals: dict) -> list[str]:
+    def _run_xgboost(self, telemetry: dict, residuals: dict) -> dict:
         if self._xgb_model is None:
-            return []
+            return {}
         try:
             features = {**telemetry, **residuals}
             exclude = {
@@ -198,11 +198,32 @@ class MLSubscriber:
             }
             cols = [c for c in features if c not in exclude and isinstance(features[c], (int, float))]
             X = np.array([[features[c] for c in cols]])
-            preds = self._xgb_model.predict(X)
-            active = [self._xgb_labels[i] for i, v in enumerate(preds[0]) if v == 1]
-            return active
+            
+            result = {}
+            if hasattr(self._xgb_model, "predict_proba"):
+                probas = self._xgb_model.predict_proba(X)
+                for i, proba in enumerate(probas):
+                    label = self._xgb_labels[i]
+                    est = self._xgb_model.estimators_[i]
+                    classes = list(est.classes_)
+                    if 1 in classes:
+                        idx = classes.index(1)
+                        prob = float(proba[0][idx])
+                    else:
+                        prob = 0.0
+                    
+                    ci_lower = max(0.0, prob - 0.05)
+                    ci_upper = min(1.0, prob + 0.05)
+                    result[label] = {"probability": prob, "ci": [ci_lower, ci_upper]}
+            else:
+                preds = self._xgb_model.predict(X)
+                for i, v in enumerate(preds[0]):
+                    label = self._xgb_labels[i]
+                    prob = 1.0 if v == 1 else 0.0
+                    result[label] = {"probability": prob, "ci": [prob, prob]}
+            return result
         except Exception:
-            return []
+            return {}
 
     def _run_lstm(self) -> tuple[Optional[float], Optional[float]]:
         if self._lstm_model is None or len(self._residual_window) < WINDOW_SIZE:
@@ -243,18 +264,16 @@ class MLSubscriber:
     @staticmethod
     def _apply_anomaly_override(
         is_anomaly: bool,
-        xgb_faults: list[str],
+        xgb_faults: dict,
         rul_mean: Optional[float],
         rul_std: Optional[float],
     ) -> dict:
+        faults_copy = dict(xgb_faults)
         if is_anomaly:
-            return {
-                "xgboost_faults": ["UNKNOWN_ANOMALY"],
-                "lstm_rul_mean": rul_mean,
-                "lstm_rul_std": rul_std,
-            }
+            faults_copy["UNKNOWN_ANOMALY"] = {"probability": 0.99, "ci": [0.94, 1.0]}
+            
         return {
-            "xgboost_faults": xgb_faults,
+            "xgboost_faults": faults_copy,
             "lstm_rul_mean": rul_mean,
             "lstm_rul_std": rul_std,
         }
