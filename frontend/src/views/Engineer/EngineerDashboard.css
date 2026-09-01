@@ -85,30 +85,31 @@
   flex-grow: 1;
 }
 
-/* Row 1: Live Core & Health */
+/* Row 1: Live Core & Diagnostics */
 .grid-area-comparison {
   grid-column: span 8;
   min-height: 400px;
 }
 
-.grid-area-health {
+.grid-area-faults {
   grid-column: span 4;
   min-height: 400px;
 }
 
-/* Row 2: Diagnostics & Sandbox */
-.grid-area-faults {
-  grid-column: span 3;
-  min-height: 350px;
-}
-
-.grid-area-causes {
-  grid-column: span 5;
-  min-height: 350px;
-}
-
+/* Row 2: Sandbox & Health */
 .grid-area-sandbox {
-  grid-column: span 4;
+  grid-column: span 9;
+  min-height: 450px;
+}
+
+.grid-area-health {
+  grid-column: span 3;
+  min-height: 450px;
+}
+
+/* Row 3: Causes */
+.grid-area-causes {
+  grid-column: span 12;
   min-height: 350px;
 }
 

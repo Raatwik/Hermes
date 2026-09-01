@@ -83,23 +83,25 @@ const EngineerDashboard = () => {
       {/* Main Grid Layout */}
       <main className="dashboard-grid">
         
-        {/* Row 1: Live Core & Health */}
+        {/* Row 1: Live Core & Diagnostics */}
         <div className="grid-area-comparison card">
           <TwinComparisonWidget />
+        </div>
+        <div className="grid-area-faults card">
+          <FaultProbabilityMatrix />
+        </div>
+
+        {/* Row 2: Sandbox & Health */}
+        <div className="grid-area-sandbox card">
+          <MissionSandboxWidget />
         </div>
         <div className="grid-area-health card">
           <EngineHealthWidget />
         </div>
 
-        {/* Row 2: Diagnostics & Sandbox */}
-        <div className="grid-area-faults card">
-          <FaultProbabilityMatrix />
-        </div>
+        {/* Row 3: Causes */}
         <div className="grid-area-causes card">
           <DegradationCauseGraph />
-        </div>
-        <div className="grid-area-sandbox card">
-          <MissionSandboxWidget />
         </div>
 
         {/* Row 3: Drift */}

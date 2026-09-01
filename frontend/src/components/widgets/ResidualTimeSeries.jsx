@@ -40,7 +40,7 @@ const ResidualTimeSeries = () => {
                 contentStyle={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '4px', fontSize: '12px' }} 
               />
               <Legend wrapperStyle={{ fontSize: '12px', color: 'var(--text-secondary)' }} />
-              <Line type="monotone" dataKey="actualEGT" name="Actual EGT" stroke="var(--color-good)" strokeWidth={2} dot={false} />
+              <Line type="monotone" dataKey="actualEGT" name="Actual EGT" stroke="#3b82f6" strokeWidth={2} dot={false} />
               <Line type="monotone" dataKey="expectedEGT" name="Twin Expected" stroke="var(--text-muted)" strokeWidth={2} strokeDasharray="5 5" dot={false} />
             </LineChart>
           </ResponsiveContainer>
