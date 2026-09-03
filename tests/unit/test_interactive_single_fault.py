@@ -4,7 +4,8 @@ Verifies that each supported fault type alters the expected physics sensors
 and that the fault signature is captured in CSV export.
 """
 import csv
-import io
+import inspect
+import tempfile
 import pytest
 from simulation.engine import Simulation
 from simulation.fault_manager import KNOWN_FAULTS
@@ -77,9 +78,9 @@ class TestInteractiveMenuCoversAllFaults:
 
     def test_menu_lists_all_known_faults(self):
         import simulation.scenarios.interactive_attack_scenario as scenario
-        menu_faults = set(scenario._configure_fault_injection.__code__.co_consts)
+        source = inspect.getsource(scenario._configure_fault_injection)
         for fault in KNOWN_FAULTS:
-            assert fault in str(scenario._configure_fault_injection.__code__.co_consts), \
+            assert fault in source, \
                 f"Fault type '{fault}' missing from interactive menu"
 
 
@@ -155,3 +156,23 @@ class TestFaultSignatureInCSV:
                      "oil_temp", "fuel_flow", "battery_voltage",
                      "vibration_index", "engine_load", "injection_timing"}
         assert required == set(rows[0].keys())
+
+    def test_csv_round_trip_preserves_fault_signature(self):
+        """Write faulted telemetry to a real CSV and read it back."""
+        rows = self._run_sim_to_csv("misfire", {"severity": 0.5}, steps=50)
+        fieldnames = list(rows[0].keys())
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False, newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(rows)
+            path = f.name
+
+        with open(path, newline="") as f:
+            reader = csv.DictReader(f)
+            read_rows = list(reader)
+
+        assert len(read_rows) == 50
+        assert set(reader.fieldnames) == set(fieldnames)
+        last_rpm = float(read_rows[-1]["rpm"])
+        assert last_rpm < 3400
