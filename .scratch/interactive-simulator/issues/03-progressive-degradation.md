@@ -4,9 +4,9 @@
 
 **Blocked by:** 02 — Interactive Single-Fault Selection
 
-**Status:** ready-for-agent
+**Status:** complete
 
-- [ ] Prompt the user to input a "Target Time to Failure" in seconds.
-- [ ] Implement or integrate the exponential degradation calculation to ramp severity dynamically over time.
-- [ ] Apply the dynamically scaling severity to the injected fault during the simulation loop.
-- [ ] Verify the simulation successfully degrades and ultimately triggers the `EngineFailureException` near the target time.
+- [x] Prompt the user to input a "Target Time to Failure" in seconds.
+- [x] Implement or integrate the exponential degradation calculation to ramp severity dynamically over time.
+- [x] Apply the dynamically scaling severity to the injected fault during the simulation loop.
+- [x] Verify the simulation successfully degrades and ultimately triggers the `EngineFailureException` near the target time.

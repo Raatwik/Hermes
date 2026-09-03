@@ -35,7 +35,7 @@ Deliver a fully functional MVP of the MALE-UAV Digital Twin, complete with the s
 - [03.3-ml-remediation.md](03.3-ml-remediation.md) — ML Remediation completed: XGBoost migrated to `MultiOutputClassifier`, Isolation Forest tightened to healthy-only training, LSTM retrained on physically-terminating datasets with `TelemetryDataset` using pre-computed `Remaining_Useful_Life` column.
 - [07-ml-data-final-fixes.md](07-ml-data-final-fixes.md) — Final Logic Fixes completed: fixed right-censored RUL contamination for LSTM, prevented primary fault masking in compound scenarios for XGBoost, and aligned Djibouti scenario RUL anchor with exact engine seizure time.
 - [02-frontend.md](02-frontend.md) — Frontend: Operator Dashboard MVP completed: Vite-based React application created and fully configured by user.
-- [04.4-simulation-interactive-attack.md](04.4-simulation-interactive-attack.md) — Simulation Phase 4 drafted: replace djibouti_accident with an interactive multi-fault scenario simulator.
+- [04.4-simulation-interactive-attack.md](04.4-simulation-interactive-attack.md) — Simulation Phase 4 completed: interactive attack simulator with CLI menu looping, all 6 fault types, 4 timing modes (interactive/random/fixed/progressive), compound fault stacking with concurrent independent degradation, and `FaultManager.update_params()` API. 115 unit tests passing.
 
 
 ## Open Tickets (The Frontier)

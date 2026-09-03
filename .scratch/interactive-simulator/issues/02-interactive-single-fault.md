@@ -4,9 +4,9 @@
 
 **Blocked by:** 01 — Core Simulation Loop & Telemetry Export
 
-**Status:** ready-for-agent
+**Status:** complete
 
-- [ ] Present an interactive CLI menu listing all supported engine faults.
-- [ ] Capture the user's selection and inject the chosen fault into the simulation.
-- [ ] Verify the fault correctly alters the physics simulation (e.g., RPM drop, EGT spike).
-- [ ] Verify the fault signature is recorded in the exported CSV.
+- [x] Present an interactive CLI menu listing all supported engine faults.
+- [x] Capture the user's selection and inject the chosen fault into the simulation.
+- [x] Verify the fault correctly alters the physics simulation (e.g., RPM drop, EGT spike).
+- [x] Verify the fault signature is recorded in the exported CSV.

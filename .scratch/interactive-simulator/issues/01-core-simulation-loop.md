@@ -4,10 +4,10 @@
 
 **Blocked by:** None — can start immediately.
 
-**Status:** ready-for-agent
+**Status:** complete
 
-- [ ] Create the new CLI script replacing `djibouti_accident.py`.
-- [ ] Define the 1-hour mission setpoints (takeoff, climb, cruise, loiter, return, land).
-- [ ] Implement the core simulation loop capturing telemetry step-by-step.
-- [ ] Save output to `attack_scenario_telemetry.csv` using the raw telemetry schema.
-- [ ] Handle `EngineFailureException` to ensure a clean exit.
+- [x] Create the new CLI script replacing `djibouti_accident.py`.
+- [x] Define the 1-hour mission setpoints (takeoff, climb, cruise, loiter, return, land).
+- [x] Implement the core simulation loop capturing telemetry step-by-step.
+- [x] Save output to `attack_scenario_telemetry.csv` using the raw telemetry schema.
+- [x] Handle `EngineFailureException` to ensure a clean exit.

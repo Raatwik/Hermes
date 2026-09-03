@@ -4,10 +4,10 @@
 
 **Blocked by:** 03 — Progressive Degradation & Target Time to Failure
 
-**Status:** ready-for-agent
+**Status:** complete
 
-- [ ] Update the CLI menu to loop, allowing multiple fault selections.
-- [ ] Add a "Done" option to finish selection and begin the simulation.
-- [ ] Store multiple selected faults and inject them concurrently.
-- [ ] Ensure the exponential degradation scales appropriately for all concurrent faults.
-- [ ] Verify the CSV output contains signatures of all selected faults overlapping.
+- [x] Update the CLI menu to loop, allowing multiple fault selections.
+- [x] Add a "Done" option to finish selection and begin the simulation.
+- [x] Store multiple selected faults and inject them concurrently.
+- [x] Ensure the exponential degradation scales appropriately for all concurrent faults.
+- [x] Verify the CSV output contains signatures of all selected faults overlapping.
