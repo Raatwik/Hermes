@@ -66,18 +66,7 @@ def get_int_input(prompt, min_val, max_val):
             print("\nAborted.")
             sys.exit(0)
 
-def _configure_fault_injection(total_mission_time):
-    fault_types = [
-        "misfire",
-        "sensor_drift",
-        "cooling_degradation",
-        "injector_abnormalities",
-        "lubrication_issues",
-        "cylinder_failure"
-    ]
-    fault_idx = get_user_choice("Select the type of attack (fault) to inject:", fault_types)
-    chosen_fault = fault_types[fault_idx]
-
+def _configure_single_fault(total_mission_time, chosen_fault):
     timing_options = [
         "Interactive (prompt for injection time and severity)",
         "Fixed phase, random severity (e.g., inject randomly during Cruise)",
@@ -142,15 +131,55 @@ def _configure_fault_injection(total_mission_time):
     }
 
 
+def _configure_fault_injection(total_mission_time):
+    all_fault_types = [
+        "misfire",
+        "sensor_drift",
+        "cooling_degradation",
+        "injector_abnormalities",
+        "lubrication_issues",
+        "cylinder_failure"
+    ]
+    configs = []
+    selected_types = set()
+
+    while True:
+        available = [f for f in all_fault_types if f not in selected_types]
+        if not available:
+            print("\n[Info] All fault types selected.")
+            break
+
+        menu_options = available + ["Done — start simulation"]
+        if selected_types:
+            print(f"\n--- Fault Selection ({len(configs)} selected: {', '.join(sorted(selected_types))}) ---")
+        else:
+            print("\n--- Fault Selection ---")
+        choice_idx = get_user_choice("Select a fault to add (or Done):", menu_options)
+
+        if choice_idx == len(available):
+            if not configs:
+                print("[Warning] No faults selected. Please select at least one fault.")
+                continue
+            break
+
+        chosen_fault = available[choice_idx]
+        config = _configure_single_fault(total_mission_time, chosen_fault)
+        configs.append(config)
+        selected_types.add(chosen_fault)
+        print(f"\n[Info] Added {chosen_fault}. {len(configs)} fault(s) queued.")
+
+    return configs
+
+
 def run_scenario(healthy=False):
     total_mission_time = 3600
 
-    fault_config = None
+    fault_configs = []
     if healthy:
         print("=== Healthy Baseline Simulation ===\n")
     else:
         print("=== Interactive Attack Simulator ===\n")
-        fault_config = _configure_fault_injection(total_mission_time)
+        fault_configs = _configure_fault_injection(total_mission_time)
 
     print("Initializing standard mission profile...")
     profile = {
@@ -182,13 +211,15 @@ def run_scenario(healthy=False):
         writer.writeheader()
         
         print(f"Running simulation for {total_mission_time} seconds (dt={dt}s)...")
-        
-        fault_injected = False
+
+        injected = set()
         try:
             for t in range(total_mission_time + 1):
-                if fault_config and t >= fault_config["inject_time"]:
-                    fc = fault_config
-                    if not fault_injected:
+                for fc in fault_configs:
+                    if t < fc["inject_time"]:
+                        continue
+                    fault_key = fc["fault"]
+                    if fault_key not in injected:
                         print(f"\n>>> [{t}s] INJECTING ATTACK: {fc['fault'].upper()}"
                               + (" (progressive)" if fc["progressive"] else "") + " <<<")
                         if fc["fault"] == "sensor_drift":
@@ -197,18 +228,17 @@ def run_scenario(healthy=False):
                             sim.inject_fault("cylinder_failure", cylinder=fc["cylinder_target"], severity=fc["severity"])
                         else:
                             sim.inject_fault(fc["fault"], severity=fc["severity"])
-                        fault_injected = True
+                        injected.add(fault_key)
 
                     if fc["progressive"]:
                         elapsed = t - fc["inject_time"]
                         severity = compute_degradation_severity(elapsed, fc["ttf"])
                         if fc["fault"] == "sensor_drift":
-                            sim.clear_faults()
-                            sim.inject_fault("sensor_drift", sensor=fc["sensor_drift_target"], offset=severity * 100)
+                            sim.update_fault_params("sensor_drift", offset=severity * 100)
                         else:
                             sim.update_fault_severity(fc["fault"], severity)
                         if t > 0 and t % 60 == 0:
-                            print(f"  [{t}s] severity: {severity:.3f}")
+                            print(f"  [{t}s] {fc['fault']} severity: {severity:.3f}")
 
                 sim.step(dt)
                 state = sim.get_state()
