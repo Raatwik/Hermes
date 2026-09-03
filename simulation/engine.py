@@ -169,6 +169,9 @@ class Simulation:
     def inject_fault(self, fault_type: str, **kwargs: object) -> None:
         self._fault_manager.inject(fault_type, **kwargs)
 
+    def update_fault_severity(self, fault_type: str, severity: float) -> None:
+        self._fault_manager.update_severity(fault_type, severity)
+
     def clear_faults(self) -> None:
         self._fault_manager.clear()
 

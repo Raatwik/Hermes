@@ -10,12 +10,19 @@ completes or an EngineFailureException is caught.
 
 import argparse
 import csv
+import math
 import sys
 import os
 import random
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 from simulation.engine import Simulation, EngineFailureException
+
+DEGRADATION_THRESHOLD = 0.95
+
+def compute_degradation_severity(elapsed, ttf):
+    k = -math.log(1.0 - DEGRADATION_THRESHOLD) / ttf
+    return min(1.0 - math.exp(-k * elapsed), 1.0)
 
 def get_user_choice(prompt, options):
     print(prompt)
@@ -74,7 +81,8 @@ def _configure_fault_injection(total_mission_time):
     timing_options = [
         "Interactive (prompt for injection time and severity)",
         "Fixed phase, random severity (e.g., inject randomly during Cruise)",
-        "Fixed time, fixed severity"
+        "Fixed time, fixed severity",
+        "Progressive degradation (ramp severity over time to failure)"
     ]
     print("")
     timing_idx = get_user_choice("How should the timing and severity be determined?", timing_options)
@@ -84,6 +92,8 @@ def _configure_fault_injection(total_mission_time):
     sensor_drift_target = None
     cylinder_target = None
     offset = None
+    progressive = False
+    ttf = None
 
     if timing_idx == 0:
         print("")
@@ -97,14 +107,25 @@ def _configure_fault_injection(total_mission_time):
         inject_time = 1200
         severity = 0.8
         print(f"\n[Info] Fixed inject time: {inject_time}s, severity: {severity}")
+    elif timing_idx == 3:
+        progressive = True
+        print("")
+        inject_time = get_int_input("Enter injection start time in seconds", 0, total_mission_time)
+        ttf = get_int_input("Enter Target Time to Failure in seconds", 10, total_mission_time)
+        severity = 0.0
+        print(f"\n[Info] Progressive degradation: starts at {inject_time}s, target failure at {inject_time + ttf}s")
 
     if chosen_fault == "sensor_drift":
         sensor_drift_options = ["egt", "cht", "rpm", "oil_pressure", "oil_temp", "fuel_flow"]
         print("")
         sensor_idx = get_user_choice("Select sensor to drift:", sensor_drift_options)
         sensor_drift_target = sensor_drift_options[sensor_idx]
-        offset = severity * 100
-        print(f"[Info] Sensor drift will target {sensor_drift_target} with offset {offset}")
+        if progressive:
+            offset = 0.0
+            print(f"[Info] Sensor drift will target {sensor_drift_target} (progressive ramp)")
+        else:
+            offset = severity * 100
+            print(f"[Info] Sensor drift will target {sensor_drift_target} with offset {offset}")
     elif chosen_fault == "cylinder_failure":
         cylinder_target = random.randint(1, 4)
         print(f"[Info] Cylinder failure will target cylinder {cylinder_target}")
@@ -116,6 +137,8 @@ def _configure_fault_injection(total_mission_time):
         "sensor_drift_target": sensor_drift_target,
         "cylinder_target": cylinder_target,
         "offset": offset,
+        "progressive": progressive,
+        "ttf": ttf,
     }
 
 
@@ -163,16 +186,29 @@ def run_scenario(healthy=False):
         fault_injected = False
         try:
             for t in range(total_mission_time + 1):
-                if fault_config and not fault_injected and t >= fault_config["inject_time"]:
+                if fault_config and t >= fault_config["inject_time"]:
                     fc = fault_config
-                    print(f"\n>>> [{t}s] INJECTING ATTACK: {fc['fault'].upper()} <<<")
-                    if fc["fault"] == "sensor_drift":
-                        sim.inject_fault("sensor_drift", sensor=fc["sensor_drift_target"], offset=fc["offset"])
-                    elif fc["fault"] == "cylinder_failure":
-                        sim.inject_fault("cylinder_failure", cylinder=fc["cylinder_target"])
-                    else:
-                        sim.inject_fault(fc["fault"], severity=fc["severity"])
-                    fault_injected = True
+                    if not fault_injected:
+                        print(f"\n>>> [{t}s] INJECTING ATTACK: {fc['fault'].upper()}"
+                              + (" (progressive)" if fc["progressive"] else "") + " <<<")
+                        if fc["fault"] == "sensor_drift":
+                            sim.inject_fault("sensor_drift", sensor=fc["sensor_drift_target"], offset=fc["offset"])
+                        elif fc["fault"] == "cylinder_failure":
+                            sim.inject_fault("cylinder_failure", cylinder=fc["cylinder_target"], severity=fc["severity"])
+                        else:
+                            sim.inject_fault(fc["fault"], severity=fc["severity"])
+                        fault_injected = True
+
+                    if fc["progressive"]:
+                        elapsed = t - fc["inject_time"]
+                        severity = compute_degradation_severity(elapsed, fc["ttf"])
+                        if fc["fault"] == "sensor_drift":
+                            sim.clear_faults()
+                            sim.inject_fault("sensor_drift", sensor=fc["sensor_drift_target"], offset=severity * 100)
+                        else:
+                            sim.update_fault_severity(fc["fault"], severity)
+                        if t > 0 and t % 60 == 0:
+                            print(f"  [{t}s] severity: {severity:.3f}")
 
                 sim.step(dt)
                 state = sim.get_state()

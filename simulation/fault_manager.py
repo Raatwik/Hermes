@@ -23,6 +23,13 @@ class FaultManager:
             raise ValueError(f"Unknown fault type: {fault_type}")
         self._faults.append(_ActiveFault(fault_type=fault_type, params=dict(kwargs)))
 
+    def update_severity(self, fault_type: str, severity: float) -> None:
+        for fault in self._faults:
+            if fault.fault_type == fault_type:
+                fault.params["severity"] = severity
+                return
+        raise ValueError(f"No active fault of type: {fault_type}")
+
     def clear(self) -> None:
         self._faults.clear()
 
