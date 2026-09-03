@@ -53,51 +53,75 @@ const MissionSandboxWidget = () => {
     return 'var(--color-critical)';
   };
 
-  const handleAutoOptimize = () => {
+  const handleAutoOptimize = async () => {
     setIsOptimizing(true);
     setRecommendations(null);
     setPushedIndex(null);
     
-    setTimeout(() => {
-      const recs = [
-        { 
-          action: "Drop altitude to 12,000 ft", 
-          consequence: "Risk 48%, lose 8 min endurance",
-          description: "Decreasing altitude increases air density. This improves engine cooling and reduces thermal stress on cylinders, significantly lowering the risk of a physical fault while only slightly decreasing mission range.",
-          simParams: { ...params, altitude: 12000 }
-        },
-        { 
-          action: "Reduce engine load to 55%", 
-          consequence: "Risk 42%, lose 15 min endurance",
-          description: "Lowering the engine load reduces combustion pressures and temperatures. This is the safest mechanical option but results in a slower cruise speed, reducing total mission endurance.",
-          simParams: { ...params, engineLoad: 55 }
-        },
-        { 
-          action: "Maintain profile", 
-          consequence: "Risk 65%, no endurance loss",
-          description: "Continue with the current mission profile. No parameters are changed. Risk of failure remains elevated but mission objectives are not compromised yet.",
-          simParams: { ...params }
-        }
-      ];
-      setRecommendations(recs);
+    const baseRecs = [
+      { 
+        action: "Drop altitude to 12,000 ft", 
+        description: "Decreasing altitude increases air density. This improves engine cooling and reduces thermal stress on cylinders, significantly lowering the risk of a physical fault while only slightly decreasing mission range.",
+        simParams: { ...params, altitude: 12000 }
+      },
+      { 
+        action: "Reduce engine load to 55%", 
+        description: "Lowering the engine load reduces combustion pressures and temperatures. This is the safest mechanical option but results in a slower cruise speed, reducing total mission endurance.",
+        simParams: { ...params, engineLoad: 55 }
+      },
+      { 
+        action: "Maintain profile", 
+        description: "Continue with the current mission profile. No parameters are changed. Risk of failure remains elevated but mission objectives are not compromised yet.",
+        simParams: { ...params }
+      }
+    ];
+
+    try {
+      const results = await Promise.all(baseRecs.map(r => simulateMission(r.simParams)));
+      const populatedRecs = baseRecs.map((r, i) => ({
+        ...r,
+        simResult: results[i]
+      }));
+      setRecommendations(populatedRecs);
+    } catch (e) {
+      console.error(e);
+    } finally {
       setIsOptimizing(false);
-    }, 1200);
+    }
   };
 
   const handlePushToOperator = (rec, index) => {
     pushRecommendationToOperator({
       title: "RECOMMENDATION: MISSION MITIGATION",
-      options: recommendations.map(r => ({ action: r.action, consequence: r.consequence })),
+      options: recommendations.map(r => ({ 
+        action: r.action, 
+        consequence: `Risk: ${r.simResult.simulatedRisk}%, RUL Impact: ${r.simResult.rulImpact > 0 ? '+' : ''}${r.simResult.rulImpact}h`
+      })),
       isGood: false
     });
     setPushedIndex(index);
   };
 
+  const handleReset = () => {
+    setResult(null);
+    setRecommendations(null);
+    setPushedIndex(null);
+    if (missionContext) {
+      setParams({
+        altitude: missionContext.altitude || 15200,
+        rpm: missionContext.rpm || 2420,
+        engineLoad: missionContext.engineLoad || 68,
+        duration: 120,
+        oat: missionContext.oat || -2.1,
+        fuelFlow: missionContext.fuelFlow || 24.1
+      });
+    }
+  };
+
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <div style={{ padding: '0.5rem', borderBottom: '1px solid var(--border-color)' }}>
-        <h3 className="text-sm font-semibold text-primary">MISSION WHAT-IF SANDBOX</h3>
-        <p style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Counterfactual Simulator</p>
+        <h3 className="text-base font-bold text-primary" style={{ fontSize: '1rem' }}>MISSION WHAT-IF SANDBOX</h3>
       </div>
       
       <div style={{ flexGrow: 1, padding: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem', overflowY: 'auto' }}>
@@ -175,9 +199,9 @@ const MissionSandboxWidget = () => {
           disabled={isOptimizing}
           style={{
             padding: '0.75rem',
-            backgroundColor: 'transparent',
-            color: 'var(--color-primary, #3b82f6)',
-            border: '1px solid var(--color-primary, #3b82f6)',
+            backgroundColor: 'var(--color-primary, #3b82f6)',
+            color: 'white',
+            border: 'none',
             borderRadius: '4px',
             fontWeight: 'bold',
             cursor: isOptimizing ? 'not-allowed' : 'pointer',
@@ -186,6 +210,24 @@ const MissionSandboxWidget = () => {
         >
           {isOptimizing ? 'GENERATING RECOMMENDATIONS...' : 'AUTO-OPTIMIZE MISSION'}
         </button>
+
+        {(result || recommendations) && (
+          <button 
+            onClick={handleReset} 
+            style={{
+              padding: '0.5rem',
+              backgroundColor: 'transparent',
+              color: 'var(--text-secondary)',
+              border: '1px solid var(--border-color)',
+              borderRadius: '4px',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              fontSize: '0.75rem'
+            }}
+          >
+            RESET SANDBOX
+          </button>
+        )}
 
         {/* Results Section */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', marginTop: '1rem' }}>
@@ -230,41 +272,20 @@ const MissionSandboxWidget = () => {
             <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '1rem', borderTop: '1px solid var(--border-color)', paddingTop: '1rem' }}>
               <div style={{ fontSize: '0.75rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>AUTO-OPTIMIZED ALTERNATIVES</div>
               {recommendations.map((rec, index) => (
-                <div key={index} title={rec.description} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--bg-secondary)', padding: '0.75rem', borderRadius: '4px' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <div key={index} title={rec.description} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', backgroundColor: 'var(--bg-secondary)', padding: '0.75rem', borderRadius: '4px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                     <span style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>{rec.action}</span>
-                    <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{rec.consequence}</span>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
+                      Risk: <strong style={{ color: getRiskColor(rec.simResult.simulatedRisk) }}>{rec.simResult.simulatedRisk}%</strong> | 
+                      RUL Impact: <strong style={{ color: rec.simResult.rulImpact >= 0 ? 'var(--color-good)' : 'var(--color-critical)' }}>{rec.simResult.rulImpact > 0 ? '+' : ''}{rec.simResult.rulImpact} h</strong>
+                    </span>
                   </div>
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <button 
-                      onClick={async () => {
-                        setIsSimulating(true);
-                        setResult(null);
-                        try {
-                          const res = await simulateMission(rec.simParams);
-                          setResult(res);
-                        } finally {
-                          setIsSimulating(false);
-                        }
-                      }}
-                      disabled={isSimulating}
-                      style={{
-                        padding: '0.4rem 0.75rem',
-                        fontSize: '0.7rem',
-                        backgroundColor: 'var(--bg-card)',
-                        color: 'var(--text-primary)',
-                        border: '1px solid var(--border-color)',
-                        borderRadius: '4px',
-                        cursor: isSimulating ? 'not-allowed' : 'pointer',
-                        opacity: isSimulating ? 0.7 : 1
-                      }}
-                    >
-                      SIMULATE
-                    </button>
+                  <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
                     <button 
                       onClick={() => handlePushToOperator(rec, index)}
                       disabled={pushedIndex !== null}
                       style={{
+                        flex: 1,
                         padding: '0.4rem 0.75rem',
                         fontSize: '0.7rem',
                         backgroundColor: pushedIndex === index ? 'var(--color-good)' : 'var(--color-primary, #3b82f6)',

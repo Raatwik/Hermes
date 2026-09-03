@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Table, LineChart as LineChartIcon } from 'lucide-react';
+import FaultProbabilityMatrix from './FaultProbabilityMatrix';
 
 const trajectoryData = [
   { hours: 0, severity: 0.05 },
@@ -15,26 +16,7 @@ const trajectoryData = [
   { hours: 450, severity: 0.90 },
 ];
 
-const xaiNodes = [
-  {
-    id: '1',
-    label: 'Combustion Degradation (0.68)',
-    xaiSummary: 'XAI Analysis: Irregular combustion patterns detected via vibration and EGT spread. This physical degradation leads directly to higher exhaust temperatures as unburnt fuel ignites late.',
-    color: 'var(--color-critical)'
-  },
-  {
-    id: '2',
-    label: 'Elevated EGT (0.54)',
-    xaiSummary: 'XAI Analysis: Exhaust Gas Temperature is exceeding the expected digital twin baseline by a significant margin. This strongly correlates with upstream combustion inefficiencies.',
-    color: 'var(--color-warning)'
-  },
-  {
-    id: '3',
-    label: 'Risk Increase (High)',
-    xaiSummary: 'XAI Analysis: The compounded effect of combustion degradation and elevated temperatures increases the overall probability of mission failure or critical engine damage if unmitigated.',
-    color: 'var(--text-primary)'
-  }
-];
+
 
 const DegradationCauseGraph = () => {
   const [viewMode, setViewMode] = useState('chart'); // 'chart' or 'table'
@@ -42,7 +24,7 @@ const DegradationCauseGraph = () => {
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <div style={{ padding: '0.5rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h3 className="text-sm font-semibold text-primary">ENGINE DEGRADATION TRAJECTORY & EXPLAINABLE AI</h3>
+        <h3 className="text-base font-bold text-primary" style={{ fontSize: '1rem' }}>ENGINE DEGRADATION TRAJECTORY</h3>
       </div>
       
       <div style={{ flexGrow: 1, minHeight: '300px', display: 'flex' }}>
@@ -145,16 +127,8 @@ const DegradationCauseGraph = () => {
           </div>
         </div>
         
-        <div style={{ flex: 1, borderLeft: '1px solid var(--border-color)', padding: '1rem', overflowY: 'auto', backgroundColor: 'var(--bg-secondary)' }}>
-          <h4 style={{ color: 'var(--text-primary)', marginBottom: '1rem', fontSize: '0.9rem', fontWeight: 'bold' }}>EXPLAINABLE AI ANALYSIS</h4>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {xaiNodes.map(node => (
-              <div key={node.id} style={{ background: 'var(--bg-primary)', padding: '1rem', borderRadius: '0', border: '1px solid var(--border-color)' }}>
-                <h5 style={{ margin: '0 0 0.5rem 0', color: node.color, fontSize: '0.9rem' }}>{node.label}</h5>
-                <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{node.xaiSummary}</p>
-              </div>
-            ))}
-          </div>
+        <div style={{ flex: 1, borderLeft: '1px solid var(--border-color)', backgroundColor: 'var(--bg-secondary)' }}>
+          <FaultProbabilityMatrix />
         </div>
       </div>
     </div>
