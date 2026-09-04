@@ -71,17 +71,19 @@ export function MissionProgress({ phases, currentPhaseIndex, progressPercent, el
   );
 }
 
-export function RecommendationBanner({ title, options, isGood }) {
-  const [selectedOption, setSelectedOption] = useState(null);
+export function RecommendationBanner({ title, options, isGood, onExecute }) {
   const [isExecuting, setIsExecuting] = useState(false);
   const [isExecuted, setIsExecuted] = useState(false);
   const titleColor = isGood ? 'text-good' : 'text-warning';
+
+  const primaryOption = options && options.length > 0 ? options[0] : { action: 'No action provided', consequence: '' };
 
   const handleExecute = () => {
     setIsExecuting(true);
     setTimeout(() => {
       setIsExecuting(false);
       setIsExecuted(true);
+      if (onExecute) onExecute();
     }, 1500);
   };
 
@@ -91,29 +93,18 @@ export function RecommendationBanner({ title, options, isGood }) {
         <div className={`rec-title ${titleColor}`}>{title}</div>
       </div>
       <div className="rec-divider"></div>
-      <div className="rec-options">
-        {options.map((opt, idx) => (
-          <div 
-            key={idx} 
-            className={`rec-option ${selectedOption === idx ? 'selected' : ''} ${isExecuted || isExecuting ? 'disabled' : ''}`}
-            onClick={() => {
-              if (!isExecuted && !isExecuting) setSelectedOption(idx);
-            }}
-          >
-            <div className="rec-option-radio">
-              <div className={`radio-inner ${selectedOption === idx ? 'active' : ''}`}></div>
-            </div>
-            <div className="rec-option-content">
-              <span className="rec-action">{opt.action}</span>
-              <span className="rec-consequence">{opt.consequence}</span>
-            </div>
+      <div className="rec-options" style={{ padding: '1rem' }}>
+        <div className={`rec-option selected ${isExecuted || isExecuting ? 'disabled' : ''}`}>
+          <div className="rec-option-content" style={{ marginLeft: 0 }}>
+            <span className="rec-action">{primaryOption.action}</span>
+            <span className="rec-consequence">{primaryOption.consequence}</span>
           </div>
-        ))}
+        </div>
       </div>
       <div className="rec-actions-footer">
         <button 
           className={`btn-execute ${isExecuted ? 'btn-success' : ''}`} 
-          disabled={selectedOption === null || isExecuting || isExecuted}
+          disabled={isExecuting || isExecuted}
           onClick={handleExecute}
         >
           {isExecuting ? 'TRANSMITTING...' : isExecuted ? 'COMMAND SENT' : 'EXECUTE'}

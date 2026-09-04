@@ -5,15 +5,15 @@
 
 .dashboard-columns {
   display: grid;
-  grid-template-columns: 380px 1fr;
-  gap: 1.5rem;
+  grid-template-columns: 1fr 380px;
+  gap: 1rem;
   align-items: start;
 }
 
 .dashboard-sidebar {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
 }
 
 .vertical-status-panel {
@@ -35,7 +35,7 @@
 .dashboard-main-content {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
 }
 
 .section-title {
@@ -58,8 +58,8 @@
 
 .bottom-content-grid {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.5rem;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
 }
 
 .advisory-panel {
@@ -96,7 +96,7 @@
 
 @media (max-width: 1200px) {
   .dashboard-columns {
-    grid-template-columns: 320px 1fr;
+    grid-template-columns: 1fr 320px;
   }
   .telemetry-table-card {
     overflow-x: auto;

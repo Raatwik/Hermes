@@ -2,27 +2,25 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  padding: 20px 40px;
-  max-width: 100%;
+  padding: 10px 20px;
   max-width: 100%;
   margin: 0;
   background-color: #ffffff; /* Clean white */
   color: #333333;
   font-family: 'Arial', sans-serif;
   
-  /* Override the global generic green to DRDO Navy Blue for progress rings and icons */
-  --color-good: #000080; 
+  /* Default colors will be used (Green for good) */
 }
 
 .operator-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-bottom: 15px;
-  margin-bottom: 20px;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
   border-bottom: 3px solid #000080; /* Navy Blue */
   background-color: #ffffff;
-  padding: 15px 20px;
+  padding: 10px 20px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
 
@@ -112,7 +110,7 @@
   border-top: 4px solid #000080; /* Navy Blue Accent */
   border-radius: 0 !important; /* Sharp corners */
   box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-  padding: 1.5rem;
+  padding: 1rem;
 }
 
 .operator-layout .section-title {
@@ -121,9 +119,7 @@
   font-weight: bold;
   color: #000080;
   text-transform: uppercase;
-  border-bottom: 2px solid #cc0000;
-  padding-bottom: 8px;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
   letter-spacing: 1px;
 }
 
@@ -138,20 +134,7 @@
   border-radius: 0 !important;
 }
 
-/* Make warning banner match gov style */
-.operator-layout .badge-good {
-  background-color: #ffffff;
-  color: #cc0000 !important;
-  border: 1px solid #cc0000 !important;
-}
-
-/* User Request: Green headings to Red */
-.operator-layout .text-good {
-  color: #cc0000 !important;
-}
-.operator-layout .header-logo {
-  color: #cc0000 !important;
-}
+/* User Request: Removed green to red overrides */
 
 /* User Request: Green numbers to Black */
 .operator-layout .summary-table-row:first-child .summary-table-value, /* Engine Health (number) */
@@ -163,17 +146,22 @@
 }
 
 .operator-layout .badge-warning {
-  background-color: #fff3e0;
-  color: #e65100;
-  border: 1px solid #e65100;
+  background-color: transparent;
+  color: var(--color-warning);
+  border: 1px solid var(--color-warning);
 }
 
 .operator-layout .badge-critical {
-  background-color: #ffebee;
-  color: #c62828;
-  border: 1px solid #c62828;
+  background-color: transparent;
+  color: var(--color-critical);
+  border: 1px solid var(--color-critical);
 }
 
+.operator-layout .badge-good {
+  background-color: transparent;
+  color: var(--color-good);
+  border: 1px solid var(--color-good);
+}
 /* User Request: Remove all icons from operator view */
 .operator-layout svg.lucide,
 .operator-layout .param-icon,
