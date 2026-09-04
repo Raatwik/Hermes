@@ -281,12 +281,16 @@ class Simulation:
             "air_density": density,
         }
 
-    def get_state(self) -> dict[str, float]:
+    def get_state(self) -> dict:
         state = self._raw_state()
         if self._rng is not None:
             for key, std in SENSOR_NOISE_STD.items():
                 if key in state:
                     state[key] += self._rng.gauss(0.0, std)
+        fault_severities = {}
+        for info in self._fault_manager.get_active_faults():
+            fault_severities[info["fault_type"]] = info["severity"]
+        state["fault_severities"] = fault_severities
         return state
 
     def _raw_state(self) -> dict[str, float]:

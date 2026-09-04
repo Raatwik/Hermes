@@ -33,6 +33,15 @@ class FaultManager:
                 return
         raise ValueError(f"No active fault of type: {fault_type}")
 
+    def get_active_faults(self) -> list[dict]:
+        return [
+            {
+                "fault_type": f.fault_type,
+                "severity": float(f.params.get("severity", 0.3)),
+            }
+            for f in self._faults
+        ]
+
     def clear(self) -> None:
         self._faults.clear()
 

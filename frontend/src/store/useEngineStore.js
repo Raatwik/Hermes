@@ -160,12 +160,32 @@ function _applyTelemetry(state, data) {
       }))
     : state.faultProbabilities;
 
+  const MAX_TIMELINE_POINTS = 200;
+  const degradationTimeline = [...state.degradationTimeline];
+  const faultSeverities = data.fault_severities;
+  if (faultSeverities && typeof faultSeverities === 'object' && Object.keys(faultSeverities).length > 0) {
+    const simTime = data.time ?? data.time_sec ?? 0;
+    let worstCase = 0;
+    for (const sev of Object.values(faultSeverities)) {
+      if (sev > worstCase) worstCase = sev;
+    }
+    degradationTimeline.push({
+      time: Math.round(simTime * 10) / 10,
+      faults: { ...faultSeverities },
+      worstCase,
+    });
+    if (degradationTimeline.length > MAX_TIMELINE_POINTS) {
+      degradationTimeline.splice(0, degradationTimeline.length - MAX_TIMELINE_POINTS);
+    }
+  }
+
   const update = {
     isLive: true,
     timeSeriesData: newData,
     missionContext: newContext,
     twinComparisonData: newTwinData,
     faultProbabilities,
+    degradationTimeline,
   };
 
   _liveSnapshot = update;
@@ -212,6 +232,8 @@ const useEngineStore = create((set, get) => ({
   timeSeriesData: _liveSnapshot?.timeSeriesData ?? [],
 
   faultProbabilities: _liveSnapshot?.faultProbabilities ?? [],
+
+  degradationTimeline: _liveSnapshot?.degradationTimeline ?? [],
 
   // --- Actions ---
   pushRecommendationToOperator: (recommendation) => set({ activeRecommendation: recommendation }),
