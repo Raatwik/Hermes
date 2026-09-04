@@ -62,6 +62,15 @@ INITIAL_VALUES: dict[str, float] = {
 
 HEALTHY_RUL: float = 5000.0
 
+ATTACK_INITIAL_RUL: dict[str, float] = {
+    "misfire": 1500.0,
+    "cylinder_failure": 600.0,
+    "cooling_degradation": 1200.0,
+    "injector_abnormalities": 1000.0,
+    "lubrication_issues": 800.0,
+    "sensor_drift": 2000.0,
+}
+
 
 class EngineFailureException(RuntimeError):
     """Raised when a stepped simulation has entered a catastrophic failure state.
@@ -157,6 +166,8 @@ class Simulation:
         self._is_alive: bool = True
         self._failure_reason: str | None = None
         self._has_run: bool = False
+        self._rul_injection_time: float | None = None
+        self._rul_initial: float = HEALTHY_RUL
 
     @property
     def is_alive(self) -> bool:
@@ -169,6 +180,9 @@ class Simulation:
         return self._failure_reason
 
     def inject_fault(self, fault_type: str, **kwargs: object) -> None:
+        if self._rul_injection_time is None:
+            self._rul_injection_time = self._time
+            self._rul_initial = ATTACK_INITIAL_RUL.get(fault_type, HEALTHY_RUL)
         self._fault_manager.inject(fault_type, **kwargs)
 
     def update_fault_severity(self, fault_type: str, severity: float) -> None:
@@ -179,6 +193,8 @@ class Simulation:
 
     def clear_faults(self) -> None:
         self._fault_manager.clear()
+        self._rul_injection_time = None
+        self._rul_initial = HEALTHY_RUL
 
     def load_profile(self, profile_data: dict) -> None:
         setpoints = profile_data.get("setpoints")
@@ -287,6 +303,12 @@ class Simulation:
         state["vibration_index"] = min(baseline_vib + fault_vib, 1.0)
         state["engine_load"] = min(self._throttle * rpm_fraction, 1.0)
         state["injection_timing"] = 24.0 + 8.0 * rpm_fraction
-        state["rul"] = HEALTHY_RUL
+
+        if self._rul_injection_time is None:
+            state["rul"] = HEALTHY_RUL
+        else:
+            elapsed = self._time - self._rul_injection_time
+            steps = int(elapsed // 10)
+            state["rul"] = max(self._rul_initial - 10.0 * steps, 0.0)
 
         return state
