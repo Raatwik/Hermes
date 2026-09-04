@@ -20,6 +20,25 @@ from simulation.engine import Simulation, EngineFailureException
 
 DEGRADATION_THRESHOLD = 0.95
 
+MISSION_PHASES = [
+    (0, 120, "Takeoff"),
+    (120, 600, "Climb"),
+    (600, 1800, "Cruise"),
+    (1800, 2400, "Loiter"),
+    (2400, 3000, "Descent"),
+    (3000, 3600, "Landing"),
+]
+
+def get_mission_phase(t):
+    for start, end, name in MISSION_PHASES:
+        if start <= t < end:
+            phase_progress = (t - start) / (end - start) * 100
+            return name, round(phase_progress, 1)
+    return MISSION_PHASES[-1][2], 100.0
+
+def get_mission_progress(t, total):
+    return round(t / total * 100, 1)
+
 def compute_degradation_severity(elapsed, ttf):
     k = -math.log(1.0 - DEGRADATION_THRESHOLD) / ttf
     return min(1.0 - math.exp(-k * elapsed), 1.0)
@@ -213,7 +232,8 @@ def run_scenario(healthy=False):
             "rpm", "cht", "cht_1", "cht_2", "cht_3", "cht_4",
             "egt", "egt_1", "egt_2", "egt_3", "egt_4",
             "oil_pressure", "oil_temp", "fuel_flow", "battery_voltage",
-            "vibration_index", "engine_load", "injection_timing", "rul"
+            "vibration_index", "engine_load", "injection_timing", "rul",
+            "mission_phase", "phase_progress_pct", "mission_progress_pct"
         ]
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
@@ -252,6 +272,9 @@ def run_scenario(healthy=False):
                 state = sim.get_state()
                 env = sim.get_environment()
 
+                phase, phase_pct = get_mission_phase(t)
+                mission_pct = get_mission_progress(t, total_mission_time)
+
                 writer.writerow({
                     "time_sec": round(state["time"], 2),
                     "throttle": round(state["throttle"], 2),
@@ -276,7 +299,10 @@ def run_scenario(healthy=False):
                     "vibration_index": round(state.get("vibration_index", 0), 4),
                     "engine_load": round(state.get("engine_load", 0), 4),
                     "injection_timing": round(state.get("injection_timing", 0), 2),
-                    "rul": round(state.get("rul", 5000.0), 1)
+                    "rul": round(state.get("rul", 5000.0), 1),
+                    "mission_phase": phase,
+                    "phase_progress_pct": phase_pct,
+                    "mission_progress_pct": mission_pct,
                 })
                 
                 # Print progress every 600s
