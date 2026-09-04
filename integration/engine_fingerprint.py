@@ -78,14 +78,17 @@ class EngineFingerprint:
             delta2 = val - self._mean[sensor]
             self._m2[sensor] += delta * delta2
 
+    def _std(self, sensor: str) -> float:
+        if self._count < 2:
+            return 0.0
+        return math.sqrt(max(0.0, self._m2[sensor] / self._count))
+
     def get_baseline(self) -> dict[str, dict[str, float]]:
         result = {}
         for sensor in FINGERPRINT_SENSORS:
-            mean = self._mean[sensor]
-            variance = self._m2[sensor] / self._count if self._count > 1 else 0.0
             result[sensor] = {
-                "mean": round(mean, 4),
-                "std": round(math.sqrt(max(0.0, variance)), 4),
+                "mean": round(self._mean[sensor], 4),
+                "std": round(self._std(sensor), 4),
             }
         return result
 
@@ -98,10 +101,8 @@ class EngineFingerprint:
             if val is None:
                 continue
             val = float(val)
-            mean = self._mean[sensor]
-            variance = self._m2[sensor] / self._count if self._count > 1 else 0.0
-            std = math.sqrt(max(0.0, variance))
-            residuals[sensor] = round((val - mean) / std, 4) if std > 1e-9 else 0.0
+            std = self._std(sensor)
+            residuals[sensor] = round((val - self._mean[sensor]) / std, 4) if std > 1e-9 else 0.0
         return residuals
 
     def compute_deviation_score(self, telemetry: dict) -> float:
@@ -146,5 +147,4 @@ class EngineFingerprint:
         if self.is_ready and telemetry is not None:
             result["deviation_score"] = self.compute_deviation_score(telemetry)
             result["residuals"] = self.compute_residuals(telemetry)
-            result["baseline"] = self.get_baseline()
         return result

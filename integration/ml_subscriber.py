@@ -181,16 +181,16 @@ class MLSubscriber:
             result["lstm_rul_mean"] = None
             result["lstm_rul_std"] = None
 
-        is_healthy = (
-            divergence["classification"] in ("nominal",)
-            and not is_anomaly
-            and not xgb_faults
-        )
+        is_healthy = divergence["classification"] not in ("engine_fault",)
         self._fingerprint.update(telemetry, is_healthy=is_healthy)
         if self._tick % FINGERPRINT_SAVE_INTERVAL == 0:
             self._fingerprint.save()
 
         fingerprint = self._fingerprint.to_status_dict(telemetry)
+
+        fp_deviation = fingerprint.get("deviation_score", 0.0)
+        if self._fingerprint.is_ready and fp_deviation < 1.5 and drift_score > 0:
+            drift_score = drift_score * 0.7
 
         return {
             "tick": self._tick,

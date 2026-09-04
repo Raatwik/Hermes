@@ -18,25 +18,30 @@ const SENSOR_LABELS = {
   egt_4: 'EGT C4',
 };
 
-const getDeviationColor = (absZ) => {
-  if (absZ <= 1.0) return 'var(--color-good, #22c55e)';
-  if (absZ <= 2.0) return 'var(--color-warning, #eab308)';
-  if (absZ <= 3.0) return '#f97316';
-  return 'var(--color-danger, #ef4444)';
-};
+const SIGMA_TIERS = [
+  { max: 1.0, color: 'var(--color-good, #22c55e)', label: 'Normal' },
+  { max: 2.0, color: 'var(--color-warning, #eab308)', label: 'Mild' },
+  { max: 3.0, color: '#f97316', label: 'Notable' },
+  { max: Infinity, color: 'var(--color-danger, #ef4444)', label: 'Anomalous' },
+];
 
-const getDeviationLabel = (absZ) => {
-  if (absZ <= 1.0) return 'Normal';
-  if (absZ <= 2.0) return 'Mild';
-  if (absZ <= 3.0) return 'Notable';
-  return 'Anomalous';
-};
+const OVERALL_TIERS = [
+  { max: 1.5, color: 'var(--color-good, #22c55e)' },
+  { max: 2.5, color: 'var(--color-warning, #eab308)' },
+  { max: 3.5, color: '#f97316' },
+  { max: Infinity, color: 'var(--color-danger, #ef4444)' },
+];
 
-const getOverallColor = (score) => {
-  if (score <= 1.5) return 'var(--color-good, #22c55e)';
-  if (score <= 2.5) return 'var(--color-warning, #eab308)';
-  if (score <= 3.5) return '#f97316';
-  return 'var(--color-danger, #ef4444)';
+const _tierLookup = (tiers, value) => tiers.find(t => value <= t.max) || tiers[tiers.length - 1];
+
+const getDeviationColor = (absZ) => _tierLookup(SIGMA_TIERS, absZ).color;
+const getDeviationLabel = (absZ) => _tierLookup(SIGMA_TIERS, absZ).label;
+const getOverallColor = (score) => _tierLookup(OVERALL_TIERS, score).color;
+
+const STATUS_CONFIG = {
+  ready: { color: 'var(--color-good, #22c55e)', label: 'BASELINED' },
+  learning: { color: 'var(--color-warning, #eab308)', label: 'LEARNING' },
+  new: { color: 'var(--text-secondary)', label: 'NEW' },
 };
 
 const EngineFingerprintWidget = () => {
@@ -70,14 +75,7 @@ const EngineFingerprintWidget = () => {
 
   const { status, sample_count, min_samples, progress, deviation_score, engine_id } = fingerprint;
   const isLearning = status !== 'ready';
-
-  const statusColor = status === 'ready'
-    ? 'var(--color-good, #22c55e)'
-    : status === 'learning'
-      ? 'var(--color-warning, #eab308)'
-      : 'var(--text-secondary)';
-
-  const statusLabel = status === 'ready' ? 'BASELINED' : status === 'learning' ? 'LEARNING' : 'NEW';
+  const { color: statusColor, label: statusLabel } = STATUS_CONFIG[status] || STATUS_CONFIG.new;
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>

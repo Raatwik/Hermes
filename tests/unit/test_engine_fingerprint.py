@@ -126,5 +126,5 @@ class TestStatusDict:
         d = fp.to_status_dict(_make_telemetry())
         assert d["status"] == "ready"
         assert "residuals" in d
-        assert "baseline" in d
         assert "deviation_score" in d
+        assert "baseline" not in d
