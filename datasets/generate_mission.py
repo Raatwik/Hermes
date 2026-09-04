@@ -197,6 +197,7 @@ def run_pipeline(config_path: Optional[str] = None, output_dir: str = "data", dt
     
     def record_state(current_time: float):
         state = sim.get_state()
+        state.pop("fault_severities", None)
         environment = sim.get_environment()
         row = {**state, **environment}
         row["fault_class"] = scheduler.fault_class
