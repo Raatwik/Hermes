@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { connectWebSocket, disconnectWebSocket } from '../api/websocket';
-import { postWhatIf } from '../api/restClient';
+import { postWhatIf, postOptimize } from '../api/restClient';
 
 let _liveSnapshot = null;
 let _throttleTimer = null;
@@ -179,8 +179,11 @@ function _applyTelemetry(state, data) {
     }
   }
 
+  const simulationTime = timeSec != null ? timeSec : state.simulationTime;
+
   const update = {
     isLive: true,
+    simulationTime,
     timeSeriesData: newData,
     missionContext: newContext,
     twinComparisonData: newTwinData,
@@ -196,6 +199,7 @@ const useEngineStore = create((set, get) => ({
   // --- State ---
   activeRecommendation: null,
   isLive: false,
+  simulationTime: 0,
 
   missionContext: _liveSnapshot?.missionContext ?? {
     altitude: 0,
@@ -326,6 +330,37 @@ const useEngineStore = create((set, get) => ({
         rulImpact: Math.round((65 - riskScore) / 5 * 10) / 10,
       };
     }
+  },
+
+  fetchOptimizedStrategies: async () => {
+    const state = get();
+    const ctx = state.missionContext;
+    const twin = state.twinComparisonData;
+    const currentTime = state.simulationTime || 0;
+    const currentRul = ctx.rul ?? 145;
+
+    const currentState = {
+      rpm: ctx.rpm ?? 2420,
+      cht: twin?.cylinders?.[0]?.cht?.actual || 165,
+      egt: twin?.cylinders?.[0]?.egt?.actual || 620,
+      oil_pressure: twin?.globals?.oilPressure?.actual || 65,
+      oil_temp: twin?.globals?.oilTemp?.actual || 95,
+      fuel_flow: ctx.fuelFlow ?? 24.1,
+      battery_voltage: 13.6,
+    };
+
+    const options = await postOptimize({ currentTime, currentState });
+
+    return options.map(opt => ({
+      ...opt,
+      simResult: {
+        ...opt.simResult,
+        simulatedRisk: opt.simResult.simulatedRisk,
+        rulImpact: opt.simResult.rul != null
+          ? Math.round((opt.simResult.rul - currentRul) * 10) / 10
+          : 0,
+      },
+    }));
   },
 }));
 

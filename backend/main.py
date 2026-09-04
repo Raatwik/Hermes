@@ -9,6 +9,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any, Optional
 
+import pandas as pd
 import paho.mqtt.client as mqtt
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
@@ -27,11 +28,18 @@ WHAT_IF_DT = 1.0  # 1-second steps
 WINDOW_SIZE = 60
 
 MODELS_DIR = Path(__file__).resolve().parent.parent / "models"
+SCENARIO_DATA_PATH = Path(__file__).resolve().parent.parent / "djibouti_data" / "djibouti_flight_path" / "djibouti_aligned.parquet"
+OPTIMIZE_HORIZON_S = 300
 
 
 class WhatIfRequest(BaseModel):
     throttle: float = Field(..., ge=0.0, le=1.0)
     altitude: float = Field(..., ge=0.0, le=50000.0)
+    current_state: Optional[dict[str, float]] = None
+
+
+class OptimizeRequest(BaseModel):
+    current_time: float = Field(..., ge=0.0)
     current_state: Optional[dict[str, float]] = None
 
 
@@ -124,6 +132,111 @@ def _run_what_if_simulation(
         "failure_reason": sim.failure_reason,
         "steps_completed": len(trajectory),
     }
+
+def _load_scenario_data(path: Path = SCENARIO_DATA_PATH) -> pd.DataFrame:
+    if path.suffix == ".parquet":
+        return pd.read_parquet(path)
+    return pd.read_csv(path)
+
+
+_scenario_cache: pd.DataFrame | None = None
+
+
+def _get_scenario_data() -> pd.DataFrame:
+    global _scenario_cache
+    if _scenario_cache is None:
+        _scenario_cache = _load_scenario_data()
+    return _scenario_cache
+
+
+def _extract_future_trajectory(
+    df: pd.DataFrame, current_time: float, horizon_s: float = OPTIMIZE_HORIZON_S,
+) -> list[dict[str, float]]:
+    time_col = "time" if "time" in df.columns else "time_sec"
+    mask = (df[time_col] >= current_time) & (df[time_col] <= current_time + horizon_s)
+    future = df.loc[mask, [time_col, "throttle", "altitude"]]
+    return [
+        {"time": float(r[time_col]), "throttle": float(r["throttle"]), "altitude": float(r["altitude"])}
+        for _, r in future.iterrows()
+    ]
+
+
+def _run_optimization_simulation(
+    trajectory: list[dict[str, float]],
+    current_state: dict[str, float] | None,
+) -> dict:
+    if not trajectory:
+        return {"risk": 50.0, "rul": 0.0, "engine_alive": True, "steps_completed": 0}
+
+    sim = Simulation(
+        throttle=trajectory[0]["throttle"],
+        altitude=trajectory[0]["altitude"],
+        noise_seed=42,
+    )
+    baseline_sim = Simulation(
+        throttle=trajectory[0]["throttle"],
+        altitude=trajectory[0]["altitude"],
+        noise_seed=None,
+    )
+
+    if current_state:
+        _init_sim_from_state(sim, current_state)
+
+    for i in range(len(trajectory) - 1):
+        dt = trajectory[i + 1]["time"] - trajectory[i]["time"]
+        if dt <= 0:
+            continue
+
+        sim.set_throttle(trajectory[i + 1]["throttle"])
+        sim.set_altitude(trajectory[i + 1]["altitude"])
+
+        sim.step(dt)
+
+        if not sim.is_alive:
+            break
+
+    final_state = sim.get_state()
+    cht = final_state.get("cht", 165)
+    egt = final_state.get("egt", 620)
+    risk = round(min(95, max(5, (cht / 250) * 50 + (egt / 900) * 50)), 1)
+
+    rul = round(final_state.get("rul", 5000.0), 1)
+
+    return {
+        "risk": risk,
+        "rul": rul,
+        "engine_alive": sim.is_alive,
+        "failure_reason": sim.failure_reason,
+        "steps_completed": len(trajectory),
+    }
+
+
+def _evaluate_maintain_profile(
+    current_time: float,
+    current_state: dict[str, float] | None,
+) -> dict:
+    df = _get_scenario_data()
+    trajectory = _extract_future_trajectory(df, current_time)
+
+    sim_result = _run_optimization_simulation(trajectory, current_state)
+
+    return {
+        "action": "Maintain Profile",
+        "description": (
+            "Continue with the current planned flight path. "
+            "No parameters are changed. Risk and RUL reflect the upcoming "
+            "trajectory as defined by the active mission scenario."
+        ),
+        "simParams": {},
+        "simResult": {
+            "simulatedRisk": sim_result["risk"],
+            "rul": sim_result["rul"],
+            "engineAlive": sim_result["engine_alive"],
+            "failureReason": sim_result.get("failure_reason"),
+            "stepsCompleted": sim_result["steps_completed"],
+        },
+    }
+
 
 MQTT_HOST = "localhost"
 MQTT_PORT = 1883
@@ -252,6 +365,16 @@ def _register_routes(
             get_lstm(),
         )
         return result
+
+    @target_app.post("/api/optimize")
+    async def optimize_endpoint(req: OptimizeRequest):
+        result = await asyncio.get_running_loop().run_in_executor(
+            None,
+            _evaluate_maintain_profile,
+            req.current_time,
+            req.current_state,
+        )
+        return [result]
 
 
 _register_routes(app, lambda: bridge, lambda: _lstm_model)

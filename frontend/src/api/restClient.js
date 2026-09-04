@@ -15,3 +15,18 @@ export async function postWhatIf({ throttle, altitude, currentState }) {
   }
   return res.json();
 }
+
+export async function postOptimize({ currentTime, currentState }) {
+  const res = await fetch(`${API_BASE}/api/optimize`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      current_time: currentTime,
+      current_state: currentState ?? null,
+    }),
+  });
+  if (!res.ok) {
+    throw new Error(`Optimize request failed: ${res.status}`);
+  }
+  return res.json();
+}

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import useEngineStore from '../../store/useEngineStore';
 
 const MissionSandboxWidget = () => {
-  const { missionContext, simulateMission, pushRecommendationToOperator } = useEngineStore();
+  const { missionContext, simulateMission, pushRecommendationToOperator, fetchOptimizedStrategies } = useEngineStore();
   const [params, setParams] = useState({
     altitude: 15200,
     rpm: 2420,
@@ -57,32 +57,10 @@ const MissionSandboxWidget = () => {
     setIsOptimizing(true);
     setRecommendations(null);
     setPushedIndex(null);
-    
-    const baseRecs = [
-      { 
-        action: "Drop altitude to 12,000 ft", 
-        description: "Decreasing altitude increases air density. This improves engine cooling and reduces thermal stress on cylinders, significantly lowering the risk of a physical fault while only slightly decreasing mission range.",
-        simParams: { ...params, altitude: 12000 }
-      },
-      { 
-        action: "Reduce engine load to 55%", 
-        description: "Lowering the engine load reduces combustion pressures and temperatures. This is the safest mechanical option but results in a slower cruise speed, reducing total mission endurance.",
-        simParams: { ...params, engineLoad: 55 }
-      },
-      { 
-        action: "Maintain profile", 
-        description: "Continue with the current mission profile. No parameters are changed. Risk of failure remains elevated but mission objectives are not compromised yet.",
-        simParams: { ...params }
-      }
-    ];
 
     try {
-      const results = await Promise.all(baseRecs.map(r => simulateMission(r.simParams)));
-      const populatedRecs = baseRecs.map((r, i) => ({
-        ...r,
-        simResult: results[i]
-      }));
-      setRecommendations(populatedRecs);
+      const options = await fetchOptimizedStrategies();
+      setRecommendations(options);
     } catch (e) {
       console.error(e);
     } finally {
@@ -93,9 +71,9 @@ const MissionSandboxWidget = () => {
   const handlePushToOperator = (rec, index) => {
     pushRecommendationToOperator({
       title: "RECOMMENDATION: MISSION MITIGATION",
-      options: recommendations.map(r => ({ 
-        action: r.action, 
-        consequence: `Risk: ${r.simResult.simulatedRisk}%, RUL Impact: ${r.simResult.rulImpact > 0 ? '+' : ''}${r.simResult.rulImpact}h`
+      options: recommendations.map(r => ({
+        action: r.action,
+        consequence: `Risk: ${r.simResult?.simulatedRisk ?? 0}%, RUL Impact: ${r.simResult?.rulImpact > 0 ? '+' : ''}${r.simResult?.rulImpact ?? 0}h`
       })),
       isGood: false
     });
@@ -271,14 +249,20 @@ const MissionSandboxWidget = () => {
           {recommendations && (
             <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '1rem', borderTop: '1px solid var(--border-color)', paddingTop: '1rem' }}>
               <div style={{ fontSize: '0.75rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>AUTO-OPTIMIZED ALTERNATIVES</div>
-              {recommendations.map((rec, index) => (
+              {recommendations.map((rec, index) => {
+                const risk = rec.simResult?.simulatedRisk ?? 0;
+                const rulImpact = rec.simResult?.rulImpact ?? 0;
+                return (
                 <div key={index} title={rec.description} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', backgroundColor: 'var(--bg-secondary)', padding: '0.75rem', borderRadius: '4px' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                     <span style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>{rec.action}</span>
                     <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
-                      Risk: <strong style={{ color: getRiskColor(rec.simResult.simulatedRisk) }}>{rec.simResult.simulatedRisk}%</strong> | 
-                      RUL Impact: <strong style={{ color: rec.simResult.rulImpact >= 0 ? 'var(--color-good)' : 'var(--color-critical)' }}>{rec.simResult.rulImpact > 0 ? '+' : ''}{rec.simResult.rulImpact} h</strong>
+                      Risk: <strong style={{ color: getRiskColor(risk) }}>{risk}%</strong> |
+                      RUL Impact: <strong style={{ color: rulImpact >= 0 ? 'var(--color-good)' : 'var(--color-critical)' }}>{rulImpact > 0 ? '+' : ''}{rulImpact} h</strong>
                     </span>
+                    {rec.description && (
+                      <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>{rec.description}</span>
+                    )}
                   </div>
                   <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
                     <button 
@@ -300,7 +284,7 @@ const MissionSandboxWidget = () => {
                     </button>
                   </div>
                 </div>
-              ))}
+              );})}
             </div>
           )}
         </div>
