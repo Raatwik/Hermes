@@ -109,6 +109,13 @@ def _configure_single_fault(total_mission_time, chosen_fault):
         print("")
         sensor_idx = get_user_choice("Select sensor to drift:", sensor_drift_options)
         sensor_drift_target = sensor_drift_options[sensor_idx]
+        
+        if sensor_drift_target in ["egt", "cht"]:
+            print("")
+            cyl_choice = get_user_choice(f"Target specific cylinder for {sensor_drift_target.upper()}?", ["No (Global Average)", "Yes (Specific Cylinder)"])
+            if cyl_choice == 1:
+                cyl_target = get_int_input("Enter cylinder number", 1, 4)
+                sensor_drift_target = f"{sensor_drift_target}_{cyl_target}"
         if progressive:
             offset = 0.0
             print(f"[Info] Sensor drift will target {sensor_drift_target} (progressive ramp)")
@@ -202,7 +209,8 @@ def run_scenario(healthy=False):
     
     with open(csv_filename, 'w', newline='') as csvfile:
         fieldnames = [
-            "time_sec", "throttle", "altitude", "rpm", "cht", 
+            "time_sec", "throttle", "altitude", "ambient_temperature", "ambient_pressure",
+            "rpm", "cht", "cht_1", "cht_2", "cht_3", "cht_4",
             "egt", "egt_1", "egt_2", "egt_3", "egt_4",
             "oil_pressure", "oil_temp", "fuel_flow", "battery_voltage",
             "vibration_index", "engine_load", "injection_timing", "rul"
@@ -248,8 +256,14 @@ def run_scenario(healthy=False):
                     "time_sec": round(state["time"], 2),
                     "throttle": round(state["throttle"], 2),
                     "altitude": round(env["altitude"], 2),
+                    "ambient_temperature": round(env["ambient_temperature"], 2),
+                    "ambient_pressure": round(env["ambient_pressure"], 2),
                     "rpm": round(state.get("rpm", 0), 2),
                     "cht": round(state.get("cht", 0), 2),
+                    "cht_1": round(state.get("cht_1", 0), 2),
+                    "cht_2": round(state.get("cht_2", 0), 2),
+                    "cht_3": round(state.get("cht_3", 0), 2),
+                    "cht_4": round(state.get("cht_4", 0), 2),
                     "egt": round(state.get("egt", 0), 2),
                     "egt_1": round(state.get("egt_1", 0), 2),
                     "egt_2": round(state.get("egt_2", 0), 2),

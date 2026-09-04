@@ -12,6 +12,10 @@ SENSOR_NOISE_STD: dict[str, float] = {
     "egt_2": 5.0,
     "egt_3": 5.0,
     "egt_4": 5.0,
+    "cht_1": 2.0,
+    "cht_2": 2.0,
+    "cht_3": 2.0,
+    "cht_4": 2.0,
     "oil_pressure": 0.5,
     "oil_temp": 1.0,
     "fuel_flow": 0.2,
@@ -246,9 +250,10 @@ class Simulation:
             self._kill(f"RPM {state['rpm']:.0f} below stall threshold {RPM_STALL_THRESHOLD:.0f}")
             return
 
-        if state["cht"] > CHT_LIMIT:
-            self._kill(f"CHT {state['cht']:.1f} exceeded limit {CHT_LIMIT:.0f}")
-            return
+        for key in ["cht", "cht_1", "cht_2", "cht_3", "cht_4"]:
+            if state[key] > CHT_LIMIT:
+                self._kill(f"CHT ({key}) {state[key]:.1f} exceeded limit {CHT_LIMIT:.0f}")
+                return
 
         if state["oil_pressure"] < OIL_PRESSURE_LIMIT:
             self._kill(f"Oil pressure {state['oil_pressure']:.1f} below limit {OIL_PRESSURE_LIMIT:.0f}")
@@ -297,6 +302,11 @@ class Simulation:
         for i in range(1, 5):
             cyl_key = f"egt_{i}"
             state[cyl_key] = base_egt + mods["output_offsets"].get(cyl_key, 0.0)
+            
+        base_cht = state["cht"]
+        for i in range(1, 5):
+            cyl_key = f"cht_{i}"
+            state[cyl_key] = base_cht + mods["output_offsets"].get(cyl_key, 0.0)
             
         rpm_fraction = state["rpm"] / 5500.0
         baseline_vib = 0.02 + 0.03 * rpm_fraction
