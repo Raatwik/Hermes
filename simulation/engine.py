@@ -166,8 +166,7 @@ class Simulation:
         self._is_alive: bool = True
         self._failure_reason: str | None = None
         self._has_run: bool = False
-        self._rul_injection_time: float | None = None
-        self._rul_initial: float = HEALTHY_RUL
+        self._rul_countdowns: list[tuple[float, float]] = []
 
     @property
     def is_alive(self) -> bool:
@@ -180,9 +179,12 @@ class Simulation:
         return self._failure_reason
 
     def inject_fault(self, fault_type: str, **kwargs: object) -> None:
-        if self._rul_injection_time is None:
-            self._rul_injection_time = self._time
-            self._rul_initial = ATTACK_INITIAL_RUL.get(fault_type, HEALTHY_RUL)
+        ttf = kwargs.pop("ttf", None)
+        if ttf is not None:
+            initial_rul = float(ttf)
+        else:
+            initial_rul = ATTACK_INITIAL_RUL.get(fault_type, HEALTHY_RUL)
+        self._rul_countdowns.append((self._time, initial_rul))
         self._fault_manager.inject(fault_type, **kwargs)
 
     def update_fault_severity(self, fault_type: str, severity: float) -> None:
@@ -193,8 +195,7 @@ class Simulation:
 
     def clear_faults(self) -> None:
         self._fault_manager.clear()
-        self._rul_injection_time = None
-        self._rul_initial = HEALTHY_RUL
+        self._rul_countdowns.clear()
 
     def load_profile(self, profile_data: dict) -> None:
         setpoints = profile_data.get("setpoints")
@@ -304,11 +305,14 @@ class Simulation:
         state["engine_load"] = min(self._throttle * rpm_fraction, 1.0)
         state["injection_timing"] = 24.0 + 8.0 * rpm_fraction
 
-        if self._rul_injection_time is None:
+        if not self._rul_countdowns:
             state["rul"] = HEALTHY_RUL
         else:
-            elapsed = self._time - self._rul_injection_time
-            steps = int(elapsed // 10)
-            state["rul"] = max(self._rul_initial - 10.0 * steps, 0.0)
+            rul_values = []
+            for inject_time, initial_rul in self._rul_countdowns:
+                elapsed = self._time - inject_time
+                steps = int(elapsed // 10)
+                rul_values.append(max(initial_rul - 10.0 * steps, 0.0))
+            state["rul"] = min(rul_values)
 
         return state
