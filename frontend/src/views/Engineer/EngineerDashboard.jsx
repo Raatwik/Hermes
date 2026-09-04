@@ -6,6 +6,7 @@ import ResidualTimeSeries from '../../components/widgets/ResidualTimeSeries';
 import EngineBlueprintWidget from '../../components/widgets/EngineBlueprintWidget';
 import DegradationCauseGraph from '../../components/widgets/DegradationCauseGraph';
 import MissionSandboxWidget from '../../components/widgets/MissionSandboxWidget';
+import EngineFingerprintWidget from '../../components/widgets/EngineFingerprintWidget';
 import './EngineerDashboard.css';
 
 const EHI_FACTOR_LABELS = {
@@ -324,7 +325,12 @@ const EngineerDashboard = () => {
           <DivergenceClassificationWidget classification={missionContext.divergenceClassification} isLive={isLive} />
         </div>
 
-        {/* Row 1: Engine Blueprint & Sandbox */}
+        {/* Row 1: Engine Fingerprint */}
+        <div className="grid-area-fingerprint card">
+          <EngineFingerprintWidget />
+        </div>
+
+        {/* Row 2: Engine Blueprint & Sandbox */}
         <div className="grid-area-comparison card">
           <EngineBlueprintWidget />
         </div>

@@ -13,6 +13,7 @@ from typing import Optional
 import numpy as np
 import paho.mqtt.client as mqtt
 
+from integration.engine_fingerprint import EngineFingerprint
 from simulation.engine import Simulation, TIME_CONSTANTS
 
 TELEMETRY_TOPIC = "telemetry/engine"
@@ -44,6 +45,8 @@ PHYSICAL_COUPLINGS = [
 ]
 
 DIVERGENCE_THRESHOLD = 0.02
+
+FINGERPRINT_SAVE_INTERVAL = 60
 
 
 def _load_xgboost(path: Path):
@@ -84,6 +87,7 @@ class MLSubscriber:
         host: str = "localhost",
         port: int = 1883,
         models_dir: Optional[Path] = None,
+        engine_id: str = "default",
     ):
         self._host = host
         self._port = port
@@ -93,6 +97,8 @@ class MLSubscriber:
         self._prev_time = 0.0
         self._tick = 0
         self._residual_window: deque[dict[str, float]] = deque(maxlen=WINDOW_SIZE)
+
+        self._fingerprint = EngineFingerprint(engine_id=engine_id)
 
         self._xgb_model = None
         self._xgb_labels: list[str] = []
@@ -175,6 +181,17 @@ class MLSubscriber:
             result["lstm_rul_mean"] = None
             result["lstm_rul_std"] = None
 
+        is_healthy = (
+            divergence["classification"] in ("nominal",)
+            and not is_anomaly
+            and not xgb_faults
+        )
+        self._fingerprint.update(telemetry, is_healthy=is_healthy)
+        if self._tick % FINGERPRINT_SAVE_INTERVAL == 0:
+            self._fingerprint.save()
+
+        fingerprint = self._fingerprint.to_status_dict(telemetry)
+
         return {
             "tick": self._tick,
             "time": current_time,
@@ -185,6 +202,7 @@ class MLSubscriber:
             "lstm_rul_mean": result["lstm_rul_mean"],
             "lstm_rul_std": result["lstm_rul_std"],
             "isolation_forest_anomaly": is_anomaly,
+            "fingerprint": fingerprint,
             "expected_rpm": expected.get("rpm"),
             "expected_oil_pressure": expected.get("oil_pressure"),
             "expected_oil_temp": expected.get("oil_temp"),
@@ -452,13 +470,20 @@ def main():
         default=MODELS_DIR,
         help="Directory containing trained model files",
     )
+    parser.add_argument(
+        "--engine-id",
+        default="default",
+        help="Engine identifier for fingerprint baseline (default: 'default')",
+    )
     args = parser.parse_args()
 
     print(f"Connecting to MQTT broker at {args.host}:{args.port}")
     print(f"Models directory: {args.models_dir}")
+    print(f"Engine ID: {args.engine_id}")
 
     subscriber = MLSubscriber(
-        host=args.host, port=args.port, models_dir=args.models_dir
+        host=args.host, port=args.port, models_dir=args.models_dir,
+        engine_id=args.engine_id,
     )
     subscriber.run()
 

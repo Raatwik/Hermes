@@ -135,7 +135,13 @@
   min-height: 120px;
 }
 
-/* Row 1: Engine Blueprint & Sandbox */
+/* Row 1: Engine Fingerprint */
+.grid-area-fingerprint {
+  grid-column: span 12;
+  min-height: 120px;
+}
+
+/* Row 2: Engine Blueprint & Sandbox */
 .grid-area-comparison {
   grid-column: span 8;
   height: 600px;

@@ -181,6 +181,8 @@ function _applyTelemetry(state, data) {
 
   const simulationTime = timeSec != null ? timeSec : state.simulationTime;
 
+  const fingerprint = data.fingerprint ?? state.fingerprint;
+
   const update = {
     isLive: true,
     simulationTime,
@@ -189,6 +191,7 @@ function _applyTelemetry(state, data) {
     twinComparisonData: newTwinData,
     faultProbabilities,
     degradationTimeline,
+    fingerprint,
   };
 
   _liveSnapshot = update;
@@ -238,6 +241,8 @@ const useEngineStore = create((set, get) => ({
   faultProbabilities: _liveSnapshot?.faultProbabilities ?? [],
 
   degradationTimeline: _liveSnapshot?.degradationTimeline ?? [],
+
+  fingerprint: _liveSnapshot?.fingerprint ?? null,
 
   // --- Actions ---
   pushRecommendationToOperator: (recommendation) => set({ activeRecommendation: recommendation }),
