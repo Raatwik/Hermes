@@ -23,6 +23,16 @@ class FaultManager:
             raise ValueError(f"Unknown fault type: {fault_type}")
         self._faults.append(_ActiveFault(fault_type=fault_type, params=dict(kwargs)))
 
+    def update_severity(self, fault_type: str, severity: float) -> None:
+        self.update_params(fault_type, severity=severity)
+
+    def update_params(self, fault_type: str, **kwargs: object) -> None:
+        for fault in self._faults:
+            if fault.fault_type == fault_type:
+                fault.params.update(kwargs)
+                return
+        raise ValueError(f"No active fault of type: {fault_type}")
+
     def clear(self) -> None:
         self._faults.clear()
 
@@ -63,6 +73,7 @@ class FaultManager:
             elif fault.fault_type == "cylinder_failure":
                 cyl = int(fault.params.get("cylinder", 1))
                 output_offsets[f"egt_{cyl}"] = output_offsets.get(f"egt_{cyl}", 0.0) - sev * 300.0
+                output_offsets[f"cht_{cyl}"] = output_offsets.get(f"cht_{cyl}", 0.0) - sev * 100.0
                 target_offsets["rpm"] = target_offsets.get("rpm", 0.0) - sev * 1500.0
                 vibration_severity += sev * 0.8
 

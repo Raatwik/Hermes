@@ -33,8 +33,9 @@ function _applyTelemetry(state, data) {
     rpm: data.rpm != null ? Math.round(data.rpm) : state.missionContext.rpm,
     engineLoad: typeof data.engine_load === 'number' ? Math.round(data.engine_load * 100) : state.missionContext.engineLoad,
     oat: data.ambient_temperature != null ? Math.round(data.ambient_temperature) : state.missionContext.oat,
+    map: data.ambient_pressure != null ? Math.round(data.ambient_pressure * 0.2953 * 10) / 10 : state.missionContext.map,
     fuelFlow: data.fuel_flow != null ? Math.round(data.fuel_flow * 10) / 10 : state.missionContext.fuelFlow,
-    rul: data.lstm_rul_mean != null ? Math.max(0, Math.min(Number(data.lstm_rul_mean.toFixed(2)), 9999)) : state.missionContext.rul,
+    rul: data.Remaining_Useful_Life != null ? Math.max(0, Math.min(Number(Number(data.Remaining_Useful_Life).toFixed(2)), 9999)) : (data.lstm_rul_mean != null ? Math.max(0, Math.min(Number(data.lstm_rul_mean.toFixed(2)), 9999)) : state.missionContext.rul),
     rulLowerBound: data.lstm_rul_mean != null && data.lstm_rul_std != null
       ? Math.max(0, Number((data.lstm_rul_mean - 2 * data.lstm_rul_std).toFixed(2)))
       : state.missionContext.rulLowerBound,
@@ -42,6 +43,7 @@ function _applyTelemetry(state, data) {
       ? Math.min(9999, Number((data.lstm_rul_mean + 2 * data.lstm_rul_std).toFixed(2)))
       : state.missionContext.rulUpperBound,
   };
+
 
   const newTwinData = JSON.parse(JSON.stringify(state.twinComparisonData));
 
