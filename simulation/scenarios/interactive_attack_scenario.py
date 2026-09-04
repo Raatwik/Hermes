@@ -205,7 +205,7 @@ def run_scenario(healthy=False):
             "time_sec", "throttle", "altitude", "rpm", "cht", 
             "egt", "egt_1", "egt_2", "egt_3", "egt_4",
             "oil_pressure", "oil_temp", "fuel_flow", "battery_voltage",
-            "vibration_index", "engine_load", "injection_timing"
+            "vibration_index", "engine_load", "injection_timing", "rul"
         ]
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
@@ -261,7 +261,8 @@ def run_scenario(healthy=False):
                     "battery_voltage": round(state.get("battery_voltage", 0), 2),
                     "vibration_index": round(state.get("vibration_index", 0), 4),
                     "engine_load": round(state.get("engine_load", 0), 4),
-                    "injection_timing": round(state.get("injection_timing", 0), 2)
+                    "injection_timing": round(state.get("injection_timing", 0), 2),
+                    "rul": round(state.get("rul", 5000.0), 1)
                 })
                 
                 # Print progress every 600s

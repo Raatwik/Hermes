@@ -60,6 +60,8 @@ INITIAL_VALUES: dict[str, float] = {
     "battery_voltage": 12.2,
 }
 
+HEALTHY_RUL: float = 5000.0
+
 
 class EngineFailureException(RuntimeError):
     """Raised when a stepped simulation has entered a catastrophic failure state.
@@ -285,5 +287,6 @@ class Simulation:
         state["vibration_index"] = min(baseline_vib + fault_vib, 1.0)
         state["engine_load"] = min(self._throttle * rpm_fraction, 1.0)
         state["injection_timing"] = 24.0 + 8.0 * rpm_fraction
+        state["rul"] = HEALTHY_RUL
 
         return state
