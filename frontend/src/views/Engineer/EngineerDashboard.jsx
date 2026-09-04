@@ -3,11 +3,9 @@ import { Link } from 'react-router-dom';
 import useEngineStore from '../../store/useEngineStore';
 import TwinDriftChart from '../../components/widgets/TwinDriftChart';
 import ResidualTimeSeries from '../../components/widgets/ResidualTimeSeries';
-import FaultProbabilityMatrix from '../../components/widgets/FaultProbabilityMatrix';
+import EngineBlueprintWidget from '../../components/widgets/EngineBlueprintWidget';
 import DegradationCauseGraph from '../../components/widgets/DegradationCauseGraph';
-import EngineHealthWidget from '../../components/widgets/EngineHealthWidget';
 import MissionSandboxWidget from '../../components/widgets/MissionSandboxWidget';
-import TwinComparisonWidget from '../../components/widgets/TwinComparisonWidget';
 import './EngineerDashboard.css';
 
 const EngineerDashboard = () => {
@@ -28,27 +26,32 @@ const EngineerDashboard = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
           <h1 className="text-xl font-bold">PROPULSION ENGINEER VIEW</h1>
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', fontSize: '0.9rem' }}>
-            <Link to="/operator" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>OPERATOR</Link>
-            <Link to="/engineer" style={{ color: 'var(--color-good)', fontWeight: 'bold', textDecoration: 'none', borderBottom: '2px solid var(--color-good)' }}>ENGINEER</Link>
-            <Link to="/maintenance" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>MAINTENANCE</Link>
+            <Link to="/" style={{ color: 'var(--color-critical)', fontWeight: 'bold', textDecoration: 'none', padding: '4px 10px', border: '1px solid var(--color-critical)', borderRadius: '4px' }}>LOGOUT</Link>
           </div>
         </div>
-        <div className="header-status">
-          <span>UAV-01</span>
-          <span className="separator">|</span>
-          <span>ENGINE: ROTAX 914 (NA)</span>
-          <span className="separator">|</span>
-          <span style={{ color: '#8b5cf6', fontWeight: 'bold' }}>FINGERPRINT: UAV-01 CUSTOM MODEL</span>
-          <span className="separator">|</span>
-          <span className="status-live">● LIVE</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', padding: '0.5rem 1rem', backgroundColor: 'var(--bg-secondary)', borderRadius: '4px', border: '1px solid var(--border-color)' }}>
+          <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>MISSION PHASE:</span>
+          <span style={{ color: 'var(--color-critical)', fontWeight: 'bold' }}>{missionContext.phase}</span>
         </div>
       </header>
 
       {/* Mission Context Bar */}
       <section className="mission-context-bar card">
         <div className="context-item">
-          <div className="label">Mission Phase</div>
-          <div className="value" style={{ color: 'var(--text-primary)', fontWeight: 'bold' }}>{missionContext.phase}</div>
+          <div className="label">Engine Health Index</div>
+          <div className="value" style={{ color: 'var(--color-warning)', fontWeight: 'bold' }}>{isLive && missionContext.ehi != null ? `${missionContext.ehi}%` : '—'}</div>
+        </div>
+        <div className="context-divider"></div>
+        <div className="context-item" style={{ minWidth: '130px' }}>
+          <div className="label">RUL</div>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <div className="value" style={{ color: 'var(--color-good)', fontWeight: 'bold', lineHeight: 1.2 }}>
+              {isLive && missionContext.rul != null ? `${missionContext.rul} hrs` : '—'}
+            </div>
+            <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>
+              95% CI: [{isLive && missionContext.rulLowerBound != null ? missionContext.rulLowerBound : '—'} - {isLive && missionContext.rulUpperBound != null ? missionContext.rulUpperBound : '—'} h]
+            </div>
+          </div>
         </div>
         <div className="context-divider"></div>
         <div className="context-item">
@@ -85,25 +88,17 @@ const EngineerDashboard = () => {
       {/* Main Grid Layout */}
       <main className="dashboard-grid">
         
-        {/* Row 1: Diagnostics */}
-        <div className="grid-area-faults card">
-          <FaultProbabilityMatrix />
+        {/* Row 1: Engine Blueprint & Sandbox */}
+        <div className="grid-area-comparison card">
+          <EngineBlueprintWidget />
         </div>
-        
-        <div className="grid-area-health card">
-          <EngineHealthWidget />
-        </div>
-
-        <div className="grid-area-causes card">
-          <DegradationCauseGraph />
-        </div>
-
-        {/* Row 2: Sandbox & Comparison */}
         <div className="grid-area-sandbox card">
           <MissionSandboxWidget />
         </div>
-        <div className="grid-area-comparison card">
-          <TwinComparisonWidget />
+
+        {/* Row 3: Causes */}
+        <div className="grid-area-causes card">
+          <DegradationCauseGraph />
         </div>
 
         {/* Row 3: Drift */}

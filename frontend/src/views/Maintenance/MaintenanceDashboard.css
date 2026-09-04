@@ -3,18 +3,27 @@
   flex-direction: column;
   gap: 1rem;
   padding: 1.5rem;
+  padding: 1.5rem;
   height: 100%;
   min-height: 100vh;
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
+  background-color: #ffffff; /* Clean white */
+  color: #333333;
+  font-family: 'Arial', sans-serif;
 }
 
 .dashboard-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  border-bottom: 2px solid var(--border-color);
+  border-bottom: 3px solid #000080; /* Navy Blue */
   padding-bottom: 0.5rem;
+  margin-bottom: 10px;
+}
+
+.dashboard-header h1 {
+  font-family: 'Times New Roman', Times, serif;
+  color: #000080;
+  letter-spacing: 1px;
 }
 
 .header-status {
@@ -23,15 +32,15 @@
   gap: 0.75rem;
   font-size: 0.85rem;
   font-weight: 600;
-  color: var(--text-secondary);
+  color: #000080;
 }
 
 .separator {
-  color: var(--border-color);
+  color: #cc0000;
 }
 
 .status-idle {
-  color: var(--color-warning);
+  color: #cc0000;
   font-weight: bold;
 }
 
@@ -65,23 +74,27 @@
 }
 
 .card {
-  background-color: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
+  background-color: #ffffff;
+  border: 1px solid #cccccc;
+  border-top: 4px solid #000080; /* Navy Blue Accent */
+  border-radius: 0;
   padding: 1.25rem;
   display: flex;
   flex-direction: column;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
 }
 
 .card-title {
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: var(--text-secondary);
-  letter-spacing: 0.05em;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #000080;
+  letter-spacing: 1px;
   margin-bottom: 1rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  text-transform: uppercase;
 }
 
 /* Specific panels */
@@ -94,12 +107,13 @@
 .diagnosis-fault {
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--color-critical);
+  color: #cc0000;
 }
 
 .diagnosis-evidence {
-  background-color: rgba(255, 255, 255, 0.05);
-  border-radius: 4px;
+  background-color: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 0;
   padding: 0.75rem;
 }
 
@@ -115,11 +129,12 @@
 }
 
 .advisory-panel {
-  border: 1px solid var(--color-warning);
+  border: 1px solid #cc0000;
+  border-top: 4px solid #cc0000;
 }
 
 .advisory-title {
-  color: var(--color-warning);
+  color: #cc0000;
 }
 
 .advisory-steps {
@@ -128,5 +143,14 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  color: var(--text-primary);
+  color: #333333;
+}
+
+/* Widget Overrides for Government Theme */
+.maintenance-dashboard .text-good {
+  color: #cc0000 !important;
+}
+
+.maintenance-dashboard .rul-value {
+  color: #333333 !important;
 }

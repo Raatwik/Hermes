@@ -2,18 +2,28 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  padding: 1rem;
-  max-width: 1400px;
-  margin: 0 auto;
+  padding: 20px 40px;
+  max-width: 100%;
+  max-width: 100%;
+  margin: 0;
+  background-color: #ffffff; /* Clean white */
+  color: #333333;
+  font-family: 'Arial', sans-serif;
+  
+  /* Override the global generic green to DRDO Navy Blue for progress rings and icons */
+  --color-good: #000080; 
 }
 
 .operator-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-bottom: 0.75rem;
-  margin-bottom: 0.75rem;
-  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 15px;
+  margin-bottom: 20px;
+  border-bottom: 3px solid #000080; /* Navy Blue */
+  background-color: #ffffff;
+  padding: 15px 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
 
 .header-left {
@@ -24,6 +34,7 @@
 
 .header-logo {
   flex-shrink: 0;
+  color: #000080 !important; /* Navy Blue */
 }
 
 .header-title-block {
@@ -32,17 +43,20 @@
 }
 
 .header-title {
-  font-size: 1.25rem;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1.5rem;
   margin: 0;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  letter-spacing: 0.05em;
+  letter-spacing: 1px;
+  color: #000080;
+  text-transform: uppercase;
 }
 
 .title-divider {
-  color: var(--text-muted);
-  font-weight: 300;
+  color: #cc0000; /* Red */
+  font-weight: 700;
 }
 
 .title-view {
@@ -51,7 +65,7 @@
 
 .header-subtitle {
   font-size: 0.875rem;
-  color: var(--text-secondary);
+  color: #666666;
   margin: 0;
 }
 
@@ -59,8 +73,9 @@
   display: flex;
   align-items: center;
   gap: 1.5rem;
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #000080;
 }
 
 .utc-time {
@@ -87,5 +102,82 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1.5rem;
+}
+
+/* DRDO Government Theme Overrides for Operator View */
+.operator-layout .card {
+  background-color: #ffffff;
+  border: 1px solid #cccccc;
+  border-top: 4px solid #000080; /* Navy Blue Accent */
+  border-radius: 0 !important; /* Sharp corners */
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  padding: 1.5rem;
+}
+
+.operator-layout .section-title {
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: #000080;
+  text-transform: uppercase;
+  border-bottom: 2px solid #cc0000;
+  padding-bottom: 8px;
+  margin-bottom: 15px;
+  letter-spacing: 1px;
+}
+
+/* Force sharp corners on all interactive elements and badges */
+.operator-layout .badge,
+.operator-layout button,
+.operator-layout input,
+.operator-layout .status-dot,
+.operator-layout .cylinder-card,
+.operator-layout .status-card,
+.operator-layout .alert-banner {
+  border-radius: 0 !important;
+}
+
+/* Make warning banner match gov style */
+.operator-layout .badge-good {
+  background-color: #ffffff;
+  color: #cc0000 !important;
+  border: 1px solid #cc0000 !important;
+}
+
+/* User Request: Green headings to Red */
+.operator-layout .text-good {
+  color: #cc0000 !important;
+}
+.operator-layout .header-logo {
+  color: #cc0000 !important;
+}
+
+/* User Request: Green numbers to Black */
+.operator-layout .summary-table-row:first-child .summary-table-value, /* Engine Health (number) */
+.operator-layout .rul-value, /* RUL Hours (number) */
+.operator-layout .progress-percent, /* Mission Progress (number) */
+.operator-layout .deviation-cell, /* Telemetry deviation (number) */
+.operator-layout .enlarged-risk-value /* Risk number */ {
+  color: #333333 !important;
+}
+
+.operator-layout .badge-warning {
+  background-color: #fff3e0;
+  color: #e65100;
+  border: 1px solid #e65100;
+}
+
+.operator-layout .badge-critical {
+  background-color: #ffebee;
+  color: #c62828;
+  border: 1px solid #c62828;
+}
+
+/* User Request: Remove all icons from operator view */
+.operator-layout svg.lucide,
+.operator-layout .param-icon,
+.operator-layout .alert-icon-wrapper,
+.operator-layout .phase-icon {
+  display: none !important;
 }

@@ -15,16 +15,13 @@ export default function OperatorLayout({ children }) {
             <h1 className="header-title">UAV-01 <span className="title-divider">|</span> <span className="title-view">OPERATOR VIEW</span></h1>
           </div>
           <div style={{ display: 'flex', gap: '1rem', marginLeft: '2rem', alignItems: 'center', fontSize: '0.9rem' }}>
-            <Link to="/operator" style={{ color: 'var(--color-good)', fontWeight: 'bold', textDecoration: 'none', borderBottom: '2px solid var(--color-good)' }}>OPERATOR</Link>
-            <Link to="/engineer" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>ENGINEER</Link>
-            <Link to="/maintenance" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>MAINTENANCE</Link>
+            <Link to="/" style={{ color: 'var(--color-critical)', fontWeight: 'bold', textDecoration: 'none', padding: '4px 10px', border: '1px solid var(--color-critical)', borderRadius: '4px' }}>LOGOUT</Link>
           </div>
         </div>
         <div className="header-right">
           <div className="utc-time">UTC {currentTime}</div>
-          <div className="link-status">
-            <span className="status-dot"></span>
-            LINK: GOOD
+          <div className="operator-name-display" style={{ color: '#000080', fontWeight: 'bold' }}>
+            OPERATOR: R. SHARMA
           </div>
         </div>
       </header>

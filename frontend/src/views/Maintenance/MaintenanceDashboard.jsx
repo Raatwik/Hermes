@@ -24,9 +24,7 @@ const MaintenanceDashboard = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
           <h1 className="text-xl font-bold">MAINTENANCE VIEW</h1>
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', fontSize: '0.9rem' }}>
-            <Link to="/operator" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>OPERATOR</Link>
-            <Link to="/engineer" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>ENGINEER</Link>
-            <Link to="/maintenance" style={{ color: 'var(--color-good)', fontWeight: 'bold', textDecoration: 'none', borderBottom: '2px solid var(--color-good)' }}>MAINTENANCE</Link>
+            <Link to="/" style={{ color: '#cc0000', fontWeight: 'bold', textDecoration: 'none', padding: '4px 10px', border: '1px solid #cc0000', borderRadius: '0' }}>LOGOUT</Link>
           </div>
         </div>
         <div className="header-status">
@@ -34,7 +32,7 @@ const MaintenanceDashboard = () => {
           <span className="separator">|</span>
           <span>ENGINE: ROTAX 914 (NA)</span>
           <span className="separator">|</span>
-          <span className="status-idle">● POST-FLIGHT / IDLE</span>
+          <span className="status-idle">CREW: MAINTENANCE ALPHA</span>
         </div>
       </header>
 
@@ -56,22 +54,22 @@ const MaintenanceDashboard = () => {
             <div style={{ padding: '1rem 0' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                 <span>Overall Engine Health</span>
-                <span style={{ color: 'var(--color-warning)', fontWeight: 'bold' }}>82%</span>
+                <span style={{ color: '#ff9900', fontWeight: 'bold' }}>82%</span>
               </div>
-              <div style={{ width: '100%', backgroundColor: 'var(--border-color)', height: '6px', borderRadius: '3px' }}>
-                <div style={{ width: '82%', backgroundColor: 'var(--color-warning)', height: '100%', borderRadius: '3px' }}></div>
+              <div style={{ width: '100%', backgroundColor: '#cccccc', height: '6px', borderRadius: '0' }}>
+                <div style={{ width: '82%', backgroundColor: '#ff9900', height: '100%', borderRadius: '0' }}></div>
               </div>
             </div>
           </div>
 
           <div className="card">
-            <div className="card-title" style={{ color: 'var(--color-critical)' }}>
+            <div className="card-title" style={{ color: '#cc0000' }}>
               <AlertTriangle size={18} /> MAINTENANCE PRIORITY
             </div>
-            <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'var(--color-critical)', textAlign: 'center', margin: '1rem 0' }}>
+            <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#cc0000', textAlign: 'center', margin: '1rem 0' }}>
               HIGH URGENCY
             </div>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', textAlign: 'center' }}>
+            <p style={{ fontSize: '0.85rem', color: '#666666', textAlign: 'center' }}>
               Inspection required before next deployment.
             </p>
           </div>
@@ -87,7 +85,7 @@ const MaintenanceDashboard = () => {
             <div className="diagnosis-fault">
               INJECTOR DEGRADATION
             </div>
-            <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
+            <p style={{ fontSize: '0.9rem', color: '#666666', marginBottom: '1rem' }}>
               Continuous deviation in expected combustion temperatures and fuel flow rates detected during the last cruise phase.
             </p>
             
@@ -97,15 +95,15 @@ const MaintenanceDashboard = () => {
             <div className="diagnosis-evidence">
               <div className="evidence-item">
                 <span>Temperature Residual</span>
-                <span style={{ color: 'var(--color-critical)', fontWeight: 'bold' }}>+31%</span>
+                <span style={{ color: '#cc0000', fontWeight: 'bold' }}>+31%</span>
               </div>
               <div className="evidence-item">
                 <span>Vibration Trend</span>
-                <span style={{ color: 'var(--color-warning)', fontWeight: 'bold' }}>+27%</span>
+                <span style={{ color: '#ff9900', fontWeight: 'bold' }}>+27%</span>
               </div>
               <div className="evidence-item">
                 <span>Fuel Efficiency</span>
-                <span style={{ color: 'var(--color-critical)', fontWeight: 'bold' }}>-12%</span>
+                <span style={{ color: '#cc0000', fontWeight: 'bold' }}>-12%</span>
               </div>
             </div>
           </div>
@@ -128,10 +126,10 @@ const MaintenanceDashboard = () => {
                 style={{
                 width: '100%',
                 padding: '0.75rem',
-                backgroundColor: isGenerated ? 'var(--color-good)' : (isGenerating ? 'var(--text-secondary)' : 'var(--color-warning)'),
-                color: isGenerated ? '#fff' : '#000',
+                backgroundColor: isGenerated ? '#000080' : (isGenerating ? '#666666' : '#cc0000'),
+                color: '#ffffff',
                 border: 'none',
-                borderRadius: '4px',
+                borderRadius: '0',
                 fontWeight: 'bold',
                 cursor: (isGenerating || isGenerated) ? 'default' : 'pointer',
                 transition: 'all 0.2s ease'
