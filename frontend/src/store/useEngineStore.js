@@ -7,6 +7,73 @@ let _throttleTimer = null;
 let _pendingData = null;
 const THROTTLE_MS = 200; // max ~5 updates/sec
 
+const EHI_WEIGHTS = {
+  temperature: 0.25,
+  pressure: 0.15,
+  vibration: 0.20,
+  rpm_deviation: 0.15,
+  fuel_efficiency: 0.10,
+  dt_drift: 0.15,
+};
+
+function _computeMultiInputEhi(driftScore, components) {
+  if (!components || Object.keys(components).length === 0) {
+    if (driftScore == null) return { ehi: 0, contributions: {} };
+    return {
+      ehi: Math.max(0, Math.min(100, Math.round(100 - driftScore * 100))),
+      contributions: {},
+    };
+  }
+
+  const scores = {
+    temperature: components.temperature ?? 0,
+    pressure: components.pressure ?? 0,
+    vibration: components.vibration ?? 0,
+    rpm_deviation: components.rpm_deviation ?? 0,
+    fuel_efficiency: components.fuel_efficiency ?? 0,
+    dt_drift: driftScore ?? 0,
+  };
+
+  let weightedSum = 0;
+  let totalWeight = 0;
+  const contributions = {};
+
+  for (const [factor, weight] of Object.entries(EHI_WEIGHTS)) {
+    const rawScore = scores[factor] ?? 0;
+    const penalty = Math.min(1, rawScore);
+    weightedSum += penalty * weight;
+    totalWeight += weight;
+    contributions[factor] = Math.round(penalty * 100);
+  }
+
+  const normalizedPenalty = totalWeight > 0 ? weightedSum / totalWeight : 0;
+  const ehi = Math.max(0, Math.min(100, Math.round(100 - normalizedPenalty * 100)));
+
+  return { ehi, contributions };
+}
+
+const MISSION_PHASES = [
+  { start: 0, end: 120, name: 'TAKEOFF' },
+  { start: 120, end: 600, name: 'CLIMB' },
+  { start: 600, end: 1800, name: 'CRUISE' },
+  { start: 1800, end: 2400, name: 'LOITER' },
+  { start: 2400, end: 3000, name: 'DESCENT' },
+  { start: 3000, end: 3600, name: 'LANDING' },
+];
+const TOTAL_MISSION_TIME = 3600;
+
+function _computeMissionPhase(timeSec) {
+  for (const p of MISSION_PHASES) {
+    if (timeSec >= p.start && timeSec < p.end) {
+      const phaseProgress = Math.round(((timeSec - p.start) / (p.end - p.start)) * 1000) / 10;
+      const missionProgress = Math.round((timeSec / TOTAL_MISSION_TIME) * 1000) / 10;
+      return { phase: p.name, phaseProgress, missionProgress };
+    }
+  }
+  const last = MISSION_PHASES[MISSION_PHASES.length - 1];
+  return { phase: last.name, phaseProgress: 100, missionProgress: 100 };
+}
+
 function _applyTelemetry(state, data) {
   const newTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
@@ -22,26 +89,39 @@ function _applyTelemetry(state, data) {
     lowerBound: -15,
   });
 
-  const ehi = data.twin_drift_score != null
-    ? Math.max(0, Math.round(100 - data.twin_drift_score * 100))
-    : state.missionContext.ehi;
+  const { ehi, contributions: ehiContributions } = data.twin_drift_score != null
+    ? _computeMultiInputEhi(data.twin_drift_score, data.ehi_components)
+    : { ehi: state.missionContext.ehi, contributions: state.missionContext.ehiContributions ?? {} };
+
+  const timeSec = data.time ?? data.time_sec;
+  const computed = timeSec != null ? _computeMissionPhase(timeSec) : null;
 
   const newContext = {
     ...state.missionContext,
     ehi,
+    ehiContributions,
     altitude: data.altitude != null ? Math.round(data.altitude) : state.missionContext.altitude,
     rpm: data.rpm != null ? Math.round(data.rpm) : state.missionContext.rpm,
     engineLoad: typeof data.engine_load === 'number' ? Math.round(data.engine_load * 100) : state.missionContext.engineLoad,
     oat: data.ambient_temperature != null ? Math.round(data.ambient_temperature) : state.missionContext.oat,
     map: data.ambient_pressure != null ? Math.round(data.ambient_pressure * 0.2953 * 10) / 10 : state.missionContext.map,
     fuelFlow: data.fuel_flow != null ? Math.round(data.fuel_flow * 10) / 10 : state.missionContext.fuelFlow,
-    rul: data.Remaining_Useful_Life != null ? Math.max(0, Math.min(Number(Number(data.Remaining_Useful_Life).toFixed(2)), 9999)) : (data.lstm_rul_mean != null ? Math.max(0, Math.min(Number(data.lstm_rul_mean.toFixed(2)), 9999)) : state.missionContext.rul),
+    rul: data.rul != null ? Math.max(0, Math.min(Number(Number(data.rul).toFixed(2)), 9999)) : (data.Remaining_Useful_Life != null ? Math.max(0, Math.min(Number(Number(data.Remaining_Useful_Life).toFixed(2)), 9999)) : (data.lstm_rul_mean != null ? Math.max(0, Math.min(Number(data.lstm_rul_mean.toFixed(2)), 9999)) : state.missionContext.rul)),
     rulLowerBound: data.lstm_rul_mean != null && data.lstm_rul_std != null
       ? Math.max(0, Number((data.lstm_rul_mean - 2 * data.lstm_rul_std).toFixed(2)))
       : state.missionContext.rulLowerBound,
     rulUpperBound: data.lstm_rul_mean != null && data.lstm_rul_std != null
       ? Math.min(9999, Number((data.lstm_rul_mean + 2 * data.lstm_rul_std).toFixed(2)))
       : state.missionContext.rulUpperBound,
+    phase: data.mission_phase != null
+      ? data.mission_phase.toUpperCase()
+      : (computed ? computed.phase : state.missionContext.phase),
+    phaseProgress: data.phase_progress_pct != null
+      ? data.phase_progress_pct
+      : (computed ? computed.phaseProgress : state.missionContext.phaseProgress),
+    missionProgress: data.mission_progress_pct != null
+      ? data.mission_progress_pct
+      : (computed ? computed.missionProgress : state.missionContext.missionProgress),
   };
 
 
@@ -100,7 +180,10 @@ const useEngineStore = create((set, get) => ({
     map: 0,
     fuelFlow: 0,
     phase: 'STARTUP',
+    phaseProgress: 0,
+    missionProgress: 0,
     ehi: 0,
+    ehiContributions: {},
     rul: null,
     rulLowerBound: null,
     rulUpperBound: null,

@@ -146,7 +146,7 @@ class MLSubscriber:
 
         self._residual_window.append(residuals)
 
-        drift_score = self._compute_drift_score()
+        drift_score, ehi_components = self._compute_drift_score()
         xgb_faults = self._run_xgboost(telemetry, residuals)
         rul_mean, rul_std = self._run_lstm()
         is_anomaly = self._run_isolation_forest(telemetry, residuals)
@@ -157,6 +157,7 @@ class MLSubscriber:
             "tick": self._tick,
             "time": current_time,
             "twin_drift_score": drift_score,
+            "ehi_components": ehi_components,
             "xgboost_faults": result["xgboost_faults"],
             "lstm_rul_mean": result["lstm_rul_mean"],
             "lstm_rul_std": result["lstm_rul_std"],
@@ -171,9 +172,9 @@ class MLSubscriber:
             "expected_egt_4": expected.get("egt_4"),
         }
 
-    def _compute_drift_score(self) -> float:
+    def _compute_drift_score(self) -> tuple[float, dict[str, float]]:
         if not self._residual_window:
-            return 0.0
+            return 0.0, {}
         arr = np.array(
             [[r.get(f"{s}_residual", 0.0) for s in RESIDUAL_SENSORS] for r in self._residual_window]
         )
@@ -182,7 +183,22 @@ class MLSubscriber:
             _sensor_range(s) for s in RESIDUAL_SENSORS
         ])
         normalized = mse_per_sensor / (ranges ** 2 + 1e-9)
-        return float(np.mean(normalized))
+
+        groups = {
+            "temperature": ["cht", "egt", "egt_1", "egt_2", "egt_3", "egt_4", "oil_temp"],
+            "pressure": ["oil_pressure"],
+            "vibration": ["vibration_index"],
+            "rpm_deviation": ["rpm"],
+            "fuel_efficiency": ["fuel_flow", "engine_load", "injection_timing"],
+        }
+        sensor_to_idx = {s: i for i, s in enumerate(RESIDUAL_SENSORS)}
+        group_scores: dict[str, float] = {}
+        for group_name, sensors in groups.items():
+            idxs = [sensor_to_idx[s] for s in sensors if s in sensor_to_idx]
+            if idxs:
+                group_scores[group_name] = float(np.mean(normalized[idxs]))
+
+        return float(np.mean(normalized)), group_scores
 
     def _run_xgboost(self, telemetry: dict, residuals: dict) -> list[str]:
         if self._xgb_model is None:

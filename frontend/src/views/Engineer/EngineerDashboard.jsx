@@ -8,6 +8,91 @@ import DegradationCauseGraph from '../../components/widgets/DegradationCauseGrap
 import MissionSandboxWidget from '../../components/widgets/MissionSandboxWidget';
 import './EngineerDashboard.css';
 
+const EHI_FACTOR_LABELS = {
+  temperature: 'Temperature',
+  pressure: 'Pressure',
+  vibration: 'Vibration',
+  rpm_deviation: 'RPM Deviation',
+  fuel_efficiency: 'Fuel Efficiency',
+  dt_drift: 'DT Drift',
+};
+
+const EHI_FACTOR_ORDER = ['temperature', 'pressure', 'vibration', 'rpm_deviation', 'fuel_efficiency', 'dt_drift'];
+
+const getEhiColor = (value) => {
+  if (value >= 80) return 'var(--color-good)';
+  if (value >= 60) return 'var(--color-warning)';
+  if (value >= 40) return '#e67e22';
+  return 'var(--color-critical)';
+};
+
+const getEhiBand = (value) => {
+  if (value >= 80) return 'HEALTHY';
+  if (value >= 60) return 'WATCH';
+  if (value >= 40) return 'DEGRADED';
+  return 'CRITICAL';
+};
+
+const getContributionColor = (penalty) => {
+  if (penalty <= 20) return 'var(--color-good)';
+  if (penalty <= 50) return 'var(--color-warning)';
+  return 'var(--color-critical)';
+};
+
+const EhiBreakdownWidget = ({ ehi, contributions, isLive }) => {
+  const hasContributions = contributions && Object.keys(contributions).length > 0;
+  return (
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h3 style={{ fontSize: '0.85rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>ENGINE HEALTH INDEX BREAKDOWN</h3>
+        {isLive && (
+          <span style={{ fontSize: '0.7rem', fontWeight: 600, padding: '2px 8px', borderRadius: '3px', backgroundColor: getEhiColor(ehi), color: '#000' }}>
+            {getEhiBand(ehi)}
+          </span>
+        )}
+      </div>
+      <div style={{ padding: '1rem', display: 'flex', gap: '1.5rem', flexGrow: 1, alignItems: 'center' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '100px' }}>
+          <div style={{ fontSize: '3rem', fontWeight: 700, color: isLive ? getEhiColor(ehi) : 'var(--text-secondary)', lineHeight: 1 }}>
+            {isLive ? ehi : '—'}
+          </div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>/ 100</div>
+          <div style={{ width: '80px', height: '6px', backgroundColor: 'var(--bg-secondary)', borderRadius: '3px', marginTop: '0.5rem', overflow: 'hidden' }}>
+            <div style={{ width: isLive ? `${ehi}%` : '0%', height: '100%', backgroundColor: getEhiColor(ehi), transition: 'width 0.5s ease' }} />
+          </div>
+        </div>
+
+        {hasContributions && isLive && (
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+            {EHI_FACTOR_ORDER.map(factor => {
+              const penalty = contributions[factor] ?? 0;
+              return (
+                <div key={factor} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', width: '90px', textAlign: 'right', flexShrink: 0 }}>
+                    {EHI_FACTOR_LABELS[factor]}
+                  </span>
+                  <div style={{ flex: 1, height: '10px', backgroundColor: 'var(--bg-secondary)', borderRadius: '5px', overflow: 'hidden', position: 'relative' }}>
+                    <div style={{
+                      width: `${Math.min(100, penalty)}%`,
+                      height: '100%',
+                      backgroundColor: getContributionColor(penalty),
+                      borderRadius: '5px',
+                      transition: 'width 0.4s ease',
+                    }} />
+                  </div>
+                  <span style={{ fontSize: '0.7rem', color: getContributionColor(penalty), width: '35px', textAlign: 'right', fontWeight: 600 }}>
+                    {penalty}%
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 const EngineerDashboard = () => {
   const missionContext = useEngineStore(state => state.missionContext);
   const connectLiveTelemetry = useEngineStore(state => state.connectLiveTelemetry);
@@ -29,9 +114,20 @@ const EngineerDashboard = () => {
             <Link to="/" style={{ color: 'var(--color-critical)', fontWeight: 'bold', textDecoration: 'none', padding: '4px 10px', border: '1px solid var(--color-critical)', borderRadius: '4px' }}>LOGOUT</Link>
           </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', padding: '0.5rem 1rem', backgroundColor: 'var(--bg-secondary)', borderRadius: '4px', border: '1px solid var(--border-color)' }}>
-          <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>MISSION PHASE:</span>
-          <span style={{ color: 'var(--color-critical)', fontWeight: 'bold' }}>{missionContext.phase}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', fontSize: '0.9rem', padding: '0.5rem 1rem', backgroundColor: 'var(--bg-secondary)', borderRadius: '4px', border: '1px solid var(--border-color)', minWidth: '320px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.75rem' }}>MISSION PHASE</span>
+              <span style={{ color: 'var(--color-critical)', fontWeight: 'bold' }}>{missionContext.phase}</span>
+            </div>
+            <div style={{ width: '100%', height: '4px', backgroundColor: 'var(--border-color)', borderRadius: '2px', overflow: 'hidden' }}>
+              <div style={{ width: `${isLive ? missionContext.phaseProgress : 0}%`, height: '100%', backgroundColor: 'var(--color-critical)', borderRadius: '2px', transition: 'width 0.3s ease' }} />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
+              <span>Phase: {isLive ? `${missionContext.phaseProgress}%` : '—'}</span>
+              <span>Mission: {isLive ? `${missionContext.missionProgress}%` : '—'}</span>
+            </div>
+          </div>
         </div>
       </header>
 
@@ -39,7 +135,14 @@ const EngineerDashboard = () => {
       <section className="mission-context-bar card">
         <div className="context-item">
           <div className="label">Engine Health Index</div>
-          <div className="value" style={{ color: 'var(--color-warning)', fontWeight: 'bold' }}>{isLive && missionContext.ehi != null ? `${missionContext.ehi}%` : '—'}</div>
+          <div className="value" style={{ color: isLive ? getEhiColor(missionContext.ehi) : 'var(--text-secondary)', fontWeight: 'bold' }}>
+            {isLive && missionContext.ehi != null ? `${missionContext.ehi}%` : '—'}
+          </div>
+          {isLive && (
+            <div style={{ fontSize: '0.6rem', fontWeight: 600, color: getEhiColor(missionContext.ehi) }}>
+              {getEhiBand(missionContext.ehi)}
+            </div>
+          )}
         </div>
         <div className="context-divider"></div>
         <div className="context-item" style={{ minWidth: '130px' }}>
@@ -87,7 +190,12 @@ const EngineerDashboard = () => {
 
       {/* Main Grid Layout */}
       <main className="dashboard-grid">
-        
+
+        {/* Row 0: EHI Breakdown */}
+        <div className="grid-area-ehi-breakdown card">
+          <EhiBreakdownWidget ehi={missionContext.ehi} contributions={missionContext.ehiContributions} isLive={isLive} />
+        </div>
+
         {/* Row 1: Engine Blueprint & Sandbox */}
         <div className="grid-area-comparison card">
           <EngineBlueprintWidget />

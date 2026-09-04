@@ -124,6 +124,12 @@
   flex-grow: 1;
 }
 
+/* Row 0: EHI Breakdown */
+.grid-area-ehi-breakdown {
+  grid-column: span 12;
+  min-height: 120px;
+}
+
 /* Row 1: Engine Blueprint & Sandbox */
 .grid-area-comparison {
   grid-column: span 8;

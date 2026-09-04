@@ -2,7 +2,7 @@ import React from 'react';
 import useEngineStore from '../../store/useEngineStore';
 
 const EngineHealthWidget = () => {
-  const { ehi, rul, rulLowerBound, rulUpperBound } = useEngineStore((state) => state.missionContext);
+  const { ehi, ehiContributions, rul, rulLowerBound, rulUpperBound } = useEngineStore((state) => state.missionContext);
 
   const getEhiColor = (value) => {
     if (value >= 80) return 'var(--color-good)';
