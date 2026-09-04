@@ -3,30 +3,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { Table, LineChart as LineChartIcon } from 'lucide-react';
 import FaultProbabilityMatrix from './FaultProbabilityMatrix';
 import useEngineStore from '../../store/useEngineStore';
-
-const SEVERITY_BANDS = [
-  { y1: 0, y2: 0.25, label: 'Healthy', color: 'rgba(34,197,94,0.08)' },
-  { y1: 0.25, y2: 0.50, label: 'Mild', color: 'rgba(234,179,8,0.08)' },
-  { y1: 0.50, y2: 0.75, label: 'Moderate', color: 'rgba(249,115,22,0.08)' },
-  { y1: 0.75, y2: 1.0, label: 'Severe/Critical', color: 'rgba(239,68,68,0.08)' },
-];
-
-const FAULT_COLORS = {
-  misfire: '#ef4444',
-  cylinder_failure: '#f97316',
-  cooling_degradation: '#eab308',
-  injector_abnormalities: '#8b5cf6',
-  lubrication_issues: '#3b82f6',
-  sensor_drift: '#06b6d4',
-};
-
-function getSeverityLabel(value) {
-  if (value <= 0.25) return 'Healthy';
-  if (value <= 0.50) return 'Mild';
-  if (value <= 0.75) return 'Moderate';
-  if (value <= 1.0) return 'Severe';
-  return 'Critical';
-}
+import { SEVERITY_BANDS, FAULT_COLORS, getSeverityLabel } from './severityUtils';
 
 const DegradationCauseGraph = () => {
   const [viewMode, setViewMode] = useState('chart');
@@ -132,6 +109,7 @@ const DegradationCauseGraph = () => {
                   <ReferenceLine y={0.25} stroke="rgba(234,179,8,0.4)" strokeDasharray="3 3" />
                   <ReferenceLine y={0.50} stroke="rgba(249,115,22,0.4)" strokeDasharray="3 3" />
                   <ReferenceLine y={0.75} stroke="rgba(239,68,68,0.4)" strokeDasharray="3 3" />
+                  <ReferenceLine y={0.90} stroke="rgba(185,28,28,0.4)" strokeDasharray="3 3" />
                   <Tooltip
                     contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', color: 'var(--text-primary)' }}
                     labelFormatter={(label) => `Time: ${label}s`}

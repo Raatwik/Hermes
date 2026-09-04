@@ -34,13 +34,23 @@ class FaultManager:
         raise ValueError(f"No active fault of type: {fault_type}")
 
     def get_active_faults(self) -> list[dict]:
-        return [
-            {
-                "fault_type": f.fault_type,
-                "severity": float(f.params.get("severity", 0.3)),
-            }
-            for f in self._faults
-        ]
+        results = []
+        for f in self._faults:
+            if f.fault_type == "sensor_drift":
+                offset = abs(float(f.params.get("offset", 0.0)))
+                sensor = str(f.params.get("sensor", "unknown"))
+                results.append({
+                    "fault_type": f"sensor_drift_{sensor}",
+                    "severity": min(offset / 100.0, 1.0),
+                })
+            else:
+                cyl = f.params.get("cylinder")
+                key = f"{f.fault_type}_cyl{cyl}" if cyl is not None else f.fault_type
+                results.append({
+                    "fault_type": key,
+                    "severity": float(f.params.get("severity", 0.3)),
+                })
+        return results
 
     def clear(self) -> None:
         self._faults.clear()

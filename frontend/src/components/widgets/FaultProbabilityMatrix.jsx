@@ -1,19 +1,9 @@
 import React, { useMemo } from 'react';
 import useEngineStore from '../../store/useEngineStore';
+import { getSeverityLabel, getSeverityColor } from './severityUtils';
 
-function getSeverityLabel(value) {
-  if (value <= 0.25) return 'Healthy';
-  if (value <= 0.50) return 'Mild';
-  if (value <= 0.75) return 'Moderate';
-  return 'Severe';
-}
-
-function getSeverityColor(value) {
-  if (value <= 0.25) return 'var(--color-good, #22c55e)';
-  if (value <= 0.50) return 'var(--color-warning, #eab308)';
-  if (value <= 0.75) return '#f97316';
-  return 'var(--color-danger, #ef4444)';
-}
+const GRID_COLS_WITH_SEV = '2fr 1.2fr 0.8fr 0.8fr';
+const GRID_COLS_DEFAULT = '2fr 1.5fr 1fr';
 
 const FaultProbabilityMatrix = () => {
   const faults = useEngineStore((state) => state.faultProbabilities);
@@ -26,6 +16,7 @@ const FaultProbabilityMatrix = () => {
 
   const sortedFaults = [...faults].sort((a, b) => b.probability - a.probability);
   const hasLiveSeverity = Object.keys(liveSeverities).length > 0;
+  const gridCols = hasLiveSeverity ? GRID_COLS_WITH_SEV : GRID_COLS_DEFAULT;
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -34,7 +25,7 @@ const FaultProbabilityMatrix = () => {
       </div>
 
       <div style={{ flexGrow: 1, padding: '1rem', overflowY: 'auto' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: hasLiveSeverity ? '2fr 1.2fr 0.8fr 0.8fr' : '2fr 1.5fr 1fr', gap: '0.5rem', marginBottom: '0.5rem', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: gridCols, gap: '0.5rem', marginBottom: '0.5rem', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
           <div>Fault / Anomaly</div>
           <div>Probability Bar</div>
           <div style={{ textAlign: 'right' }}>Prob (95% CI)</div>
@@ -48,7 +39,7 @@ const FaultProbabilityMatrix = () => {
           const liveSev = liveSeverities[faultKey];
 
           return (
-            <div key={index} style={{ display: 'grid', gridTemplateColumns: hasLiveSeverity ? '2fr 1.2fr 0.8fr 0.8fr' : '2fr 1.5fr 1fr', gap: '0.5rem', alignItems: 'center', marginBottom: '0.75rem', fontSize: '0.85rem' }}>
+            <div key={index} style={{ display: 'grid', gridTemplateColumns: gridCols, gap: '0.5rem', alignItems: 'center', marginBottom: '0.75rem', fontSize: '0.85rem' }}>
               <div style={{ color: 'var(--text-primary)', wordBreak: 'break-word' }}>
                 {fault.name}
               </div>
