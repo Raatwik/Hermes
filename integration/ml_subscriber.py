@@ -28,6 +28,23 @@ WINDOW_SIZE = 60
 
 MODELS_DIR = Path(__file__).resolve().parent.parent / "models"
 
+SENSOR_GROUPS = {
+    "temperature": ["cht", "egt", "egt_1", "egt_2", "egt_3", "egt_4", "oil_temp"],
+    "pressure": ["oil_pressure"],
+    "vibration": ["vibration_index"],
+    "rpm": ["rpm"],
+    "fuel": ["fuel_flow", "engine_load", "injection_timing"],
+    "electrical": ["battery_voltage"],
+}
+
+PHYSICAL_COUPLINGS = [
+    {"temperature", "pressure"},
+    {"rpm", "vibration"},
+    {"fuel", "temperature"},
+]
+
+DIVERGENCE_THRESHOLD = 0.02
+
 
 def _load_xgboost(path: Path):
     try:
@@ -147,17 +164,23 @@ class MLSubscriber:
         self._residual_window.append(residuals)
 
         drift_score, ehi_components = self._compute_drift_score()
+        divergence = self._classify_divergence()
         xgb_faults = self._run_xgboost(telemetry, residuals)
         rul_mean, rul_std = self._run_lstm()
         is_anomaly = self._run_isolation_forest(telemetry, residuals)
 
         result = self._apply_anomaly_override(is_anomaly, xgb_faults, rul_mean, rul_std)
 
+        if divergence["classification"] == "sensor_fault":
+            result["lstm_rul_mean"] = None
+            result["lstm_rul_std"] = None
+
         return {
             "tick": self._tick,
             "time": current_time,
             "twin_drift_score": drift_score,
             "ehi_components": ehi_components,
+            "divergence_classification": divergence,
             "xgboost_faults": result["xgboost_faults"],
             "lstm_rul_mean": result["lstm_rul_mean"],
             "lstm_rul_std": result["lstm_rul_std"],
@@ -199,6 +222,113 @@ class MLSubscriber:
                 group_scores[group_name] = float(np.mean(normalized[idxs]))
 
         return float(np.mean(normalized)), group_scores
+
+    def _classify_divergence(self) -> dict:
+        if len(self._residual_window) < 5:
+            return {"classification": "nominal", "confidence": 0.0, "evidence": []}
+
+        arr = np.array(
+            [[r.get(f"{s}_residual", 0.0) for s in RESIDUAL_SENSORS]
+             for r in self._residual_window]
+        )
+        mse_per_sensor = np.mean(arr ** 2, axis=0)
+        ranges = np.array([_sensor_range(s) for s in RESIDUAL_SENSORS])
+        normalized = mse_per_sensor / (ranges ** 2 + 1e-9)
+
+        sensor_to_idx = {s: i for i, s in enumerate(RESIDUAL_SENSORS)}
+        group_scores: dict[str, float] = {}
+        for gname, sensors in SENSOR_GROUPS.items():
+            idxs = [sensor_to_idx[s] for s in sensors if s in sensor_to_idx]
+            if idxs:
+                group_scores[gname] = float(np.mean(normalized[idxs]))
+
+        diverging = {g for g, score in group_scores.items()
+                     if score > DIVERGENCE_THRESHOLD}
+        normal = {g for g, score in group_scores.items()
+                  if score <= DIVERGENCE_THRESHOLD}
+
+        if not diverging:
+            return {"classification": "nominal", "confidence": 1.0, "evidence": []}
+
+        evidence = [
+            {"group": g, "score": round(group_scores[g], 6), "status": "diverging"}
+            for g in sorted(diverging)
+        ] + [
+            {"group": g, "score": round(group_scores[g], 6), "status": "normal"}
+            for g in sorted(normal)
+        ]
+
+        if len(diverging) == 1:
+            group_name = next(iter(diverging))
+            sensors_in_group = SENSOR_GROUPS[group_name]
+            idxs = [sensor_to_idx[s] for s in sensors_in_group if s in sensor_to_idx]
+            sensor_scores = [(sensors_in_group[i], float(normalized[idx]))
+                             for i, idx in enumerate(idxs)]
+            high = [s for s, sc in sensor_scores if sc > DIVERGENCE_THRESHOLD]
+
+            if len(high) <= 1 and len(sensors_in_group) > 1:
+                confidence = min(1.0, group_scores[group_name] / (DIVERGENCE_THRESHOLD * 3))
+                if high:
+                    evidence.insert(0, {
+                        "group": group_name,
+                        "sensor": high[0],
+                        "score": round(dict(sensor_scores)[high[0]], 6),
+                        "status": "isolated",
+                    })
+                return {
+                    "classification": "sensor_fault",
+                    "confidence": round(confidence, 3),
+                    "affected_group": group_name,
+                    "affected_sensor": high[0] if high else sensors_in_group[0],
+                    "evidence": evidence,
+                }
+
+            confidence = min(1.0, group_scores[group_name] / (DIVERGENCE_THRESHOLD * 3))
+            return {
+                "classification": "sensor_fault",
+                "confidence": round(confidence, 3),
+                "affected_group": group_name,
+                "evidence": evidence,
+            }
+
+        div_scores = [group_scores[g] for g in diverging]
+        score_spread = max(div_scores) - min(div_scores) if len(div_scores) > 1 else 0.0
+        mean_div = np.mean(div_scores)
+
+        fraction_diverging = len(diverging) / len(group_scores) if group_scores else 0
+        is_broad = fraction_diverging >= 0.6
+        is_uniform = score_spread < mean_div * 0.5 if mean_div > 0 else True
+
+        if is_broad and is_uniform:
+            confidence = min(1.0, fraction_diverging * (1.0 - score_spread / (mean_div + 1e-9)))
+            return {
+                "classification": "model_drift",
+                "confidence": round(max(0.1, confidence), 3),
+                "evidence": evidence,
+            }
+
+        coupled = False
+        for coupling in PHYSICAL_COUPLINGS:
+            if coupling.issubset(diverging):
+                coupled = True
+                break
+
+        if coupled or (len(diverging) >= 2 and not is_broad):
+            confidence = min(1.0, len(diverging) / len(group_scores) + 0.3)
+            return {
+                "classification": "engine_fault",
+                "confidence": round(min(1.0, confidence), 3),
+                "coupled_groups": sorted(diverging),
+                "evidence": evidence,
+            }
+
+        confidence = min(1.0, fraction_diverging)
+        return {
+            "classification": "engine_fault",
+            "confidence": round(confidence, 3),
+            "coupled_groups": sorted(diverging),
+            "evidence": evidence,
+        }
 
     def _run_xgboost(self, telemetry: dict, residuals: dict) -> list[str]:
         if self._xgb_model is None:

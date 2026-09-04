@@ -93,6 +93,131 @@ const EhiBreakdownWidget = ({ ehi, contributions, isLive }) => {
   );
 };
 
+const CLASSIFICATION_CONFIG = {
+  nominal: { label: 'NOMINAL', color: 'var(--color-good)', description: 'All subsystems operating within expected parameters' },
+  sensor_fault: { label: 'SENSOR FAULT', color: 'var(--color-warning)', description: 'Isolated sensor divergence detected — engine health unaffected' },
+  engine_fault: { label: 'ENGINE FAULT', color: 'var(--color-critical)', description: 'Correlated multi-subsystem divergence consistent with physical mechanism' },
+  model_drift: { label: 'MODEL DRIFT', color: '#e67e22', description: 'Broad systematic offset — digital twin may need recalibration' },
+};
+
+const DivergenceClassificationWidget = ({ classification, isLive }) => {
+  if (!isLive || !classification) {
+    return (
+      <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--border-color)' }}>
+          <h3 style={{ fontSize: '0.85rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>DIVERGENCE CLASSIFICATION</h3>
+        </div>
+        <div style={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+          Awaiting telemetry data...
+        </div>
+      </div>
+    );
+  }
+
+  const cls = classification.classification || 'nominal';
+  const config = CLASSIFICATION_CONFIG[cls] || CLASSIFICATION_CONFIG.nominal;
+  const confidence = classification.confidence ?? 0;
+  const evidence = classification.evidence ?? [];
+  const diverging = evidence.filter(e => e.status === 'diverging' || e.status === 'isolated');
+  const normal = evidence.filter(e => e.status === 'normal');
+
+  return (
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h3 style={{ fontSize: '0.85rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>DIVERGENCE CLASSIFICATION</h3>
+        <span style={{ fontSize: '0.7rem', fontWeight: 600, padding: '2px 8px', borderRadius: '3px', backgroundColor: config.color, color: '#000' }}>
+          {config.label}
+        </span>
+      </div>
+      <div style={{ padding: '1rem', display: 'flex', gap: '1.5rem', flexGrow: 1 }}>
+        <div style={{ minWidth: '180px', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <div>
+            <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'uppercase', fontWeight: 600, marginBottom: '0.25rem' }}>Classification</div>
+            <div style={{ fontSize: '1.1rem', fontWeight: 700, color: config.color }}>{config.label}</div>
+          </div>
+          <div>
+            <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'uppercase', fontWeight: 600, marginBottom: '0.25rem' }}>Confidence</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <div style={{ flex: 1, height: '6px', backgroundColor: 'var(--bg-secondary)', borderRadius: '3px', overflow: 'hidden', maxWidth: '80px' }}>
+                <div style={{ width: `${Math.round(confidence * 100)}%`, height: '100%', backgroundColor: config.color, transition: 'width 0.4s ease' }} />
+              </div>
+              <span style={{ fontSize: '0.8rem', fontWeight: 600, color: config.color }}>{Math.round(confidence * 100)}%</span>
+            </div>
+          </div>
+          {classification.affected_sensor && (
+            <div>
+              <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'uppercase', fontWeight: 600, marginBottom: '0.25rem' }}>Affected Sensor</div>
+              <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-warning)' }}>{classification.affected_sensor}</div>
+            </div>
+          )}
+          {classification.affected_group && !classification.affected_sensor && (
+            <div>
+              <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'uppercase', fontWeight: 600, marginBottom: '0.25rem' }}>Affected Group</div>
+              <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-warning)' }}>{classification.affected_group}</div>
+            </div>
+          )}
+          {classification.coupled_groups && (
+            <div>
+              <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'uppercase', fontWeight: 600, marginBottom: '0.25rem' }}>Coupled Groups</div>
+              <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap' }}>
+                {classification.coupled_groups.map(g => (
+                  <span key={g} style={{ fontSize: '0.7rem', padding: '1px 6px', borderRadius: '3px', backgroundColor: 'rgba(255,50,50,0.15)', color: 'var(--color-critical)', fontWeight: 600 }}>{g}</span>
+                ))}
+              </div>
+            </div>
+          )}
+          <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginTop: '0.25rem', lineHeight: 1.4 }}>
+            {config.description}
+          </div>
+        </div>
+
+        {evidence.length > 0 && (
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+            <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'uppercase', fontWeight: 600, marginBottom: '0.25rem' }}>Residual Evidence</div>
+            {diverging.map((e, i) => (
+              <div key={`d-${i}`} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', width: '75px', textAlign: 'right', flexShrink: 0 }}>
+                  {e.sensor || e.group}
+                </span>
+                <div style={{ flex: 1, height: '8px', backgroundColor: 'var(--bg-secondary)', borderRadius: '4px', overflow: 'hidden' }}>
+                  <div style={{
+                    width: `${Math.min(100, e.score * 1000)}%`,
+                    height: '100%',
+                    backgroundColor: e.status === 'isolated' ? 'var(--color-warning)' : 'var(--color-critical)',
+                    borderRadius: '4px',
+                    transition: 'width 0.4s ease',
+                  }} />
+                </div>
+                <span style={{ fontSize: '0.65rem', color: e.status === 'isolated' ? 'var(--color-warning)' : 'var(--color-critical)', width: '55px', textAlign: 'right', fontWeight: 600 }}>
+                  {(e.score * 100).toFixed(2)}%
+                </span>
+              </div>
+            ))}
+            {normal.slice(0, 4).map((e, i) => (
+              <div key={`n-${i}`} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: 0.6 }}>
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', width: '75px', textAlign: 'right', flexShrink: 0 }}>
+                  {e.group}
+                </span>
+                <div style={{ flex: 1, height: '8px', backgroundColor: 'var(--bg-secondary)', borderRadius: '4px', overflow: 'hidden' }}>
+                  <div style={{
+                    width: `${Math.min(100, e.score * 1000)}%`,
+                    height: '100%',
+                    backgroundColor: 'var(--color-good)',
+                    borderRadius: '4px',
+                  }} />
+                </div>
+                <span style={{ fontSize: '0.65rem', color: 'var(--color-good)', width: '55px', textAlign: 'right', fontWeight: 600 }}>
+                  {(e.score * 100).toFixed(2)}%
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 const EngineerDashboard = () => {
   const missionContext = useEngineStore(state => state.missionContext);
   const connectLiveTelemetry = useEngineStore(state => state.connectLiveTelemetry);
@@ -191,9 +316,12 @@ const EngineerDashboard = () => {
       {/* Main Grid Layout */}
       <main className="dashboard-grid">
 
-        {/* Row 0: EHI Breakdown */}
+        {/* Row 0: EHI Breakdown + Divergence Classification */}
         <div className="grid-area-ehi-breakdown card">
           <EhiBreakdownWidget ehi={missionContext.ehi} contributions={missionContext.ehiContributions} isLive={isLive} />
+        </div>
+        <div className="grid-area-divergence card">
+          <DivergenceClassificationWidget classification={missionContext.divergenceClassification} isLive={isLive} />
         </div>
 
         {/* Row 1: Engine Blueprint & Sandbox */}

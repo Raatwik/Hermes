@@ -124,9 +124,14 @@
   flex-grow: 1;
 }
 
-/* Row 0: EHI Breakdown */
+/* Row 0: EHI Breakdown + Divergence Classification */
 .grid-area-ehi-breakdown {
-  grid-column: span 12;
+  grid-column: span 6;
+  min-height: 120px;
+}
+
+.grid-area-divergence {
+  grid-column: span 6;
   min-height: 120px;
 }
 
@@ -168,6 +173,12 @@
 }
 
 @media (max-width: 1200px) {
+  .grid-area-ehi-breakdown {
+    grid-column: span 12;
+  }
+  .grid-area-divergence {
+    grid-column: span 12;
+  }
   .grid-area-causes {
     grid-column: span 12;
   }
