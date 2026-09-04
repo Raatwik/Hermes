@@ -211,23 +211,38 @@ def _run_optimization_simulation(
     }
 
 
-def _evaluate_maintain_profile(
+def _apply_altitude_offset(
+    trajectory: list[dict[str, float]], offset: float,
+) -> list[dict[str, float]]:
+    if offset == 0:
+        return trajectory
+    return [
+        {**step, "altitude": max(0.0, step["altitude"] + offset)}
+        for step in trajectory
+    ]
+
+
+def _evaluate_strategy(
     current_time: float,
     current_state: dict[str, float] | None,
+    altitude_offset: float,
+    action: str,
+    description: str,
 ) -> dict:
     df = _get_scenario_data()
     trajectory = _extract_future_trajectory(df, current_time)
+    trajectory = _apply_altitude_offset(trajectory, altitude_offset)
 
     sim_result = _run_optimization_simulation(trajectory, current_state)
 
+    sim_params = {}
+    if altitude_offset != 0:
+        sim_params["altitudeOffset"] = altitude_offset
+
     return {
-        "action": "Maintain Profile",
-        "description": (
-            "Continue with the current planned flight path. "
-            "No parameters are changed. Risk and RUL reflect the upcoming "
-            "trajectory as defined by the active mission scenario."
-        ),
-        "simParams": {},
+        "action": action,
+        "description": description,
+        "simParams": sim_params,
         "simResult": {
             "simulatedRisk": sim_result["risk"],
             "rul": sim_result["rul"],
@@ -236,6 +251,61 @@ def _evaluate_maintain_profile(
             "stepsCompleted": sim_result["steps_completed"],
         },
     }
+
+
+def _evaluate_maintain_profile(
+    current_time: float,
+    current_state: dict[str, float] | None,
+) -> dict:
+    return _evaluate_strategy(
+        current_time, current_state,
+        altitude_offset=0,
+        action="Maintain Profile",
+        description=(
+            "Continue with the current planned flight path. "
+            "No parameters are changed. Risk and RUL reflect the upcoming "
+            "trajectory as defined by the active mission scenario."
+        ),
+    )
+
+
+ALTITUDE_STRATEGIES = [
+    {
+        "offset": -500,
+        "action": "Drop 500ft",
+        "description": (
+            "Reduce altitude by 500ft across the remaining trajectory. "
+            "Lower altitude reduces thermal stress on the engine, potentially "
+            "extending remaining useful life."
+        ),
+    },
+    {
+        "offset": -1000,
+        "action": "Drop 1000ft",
+        "description": (
+            "Reduce altitude by 1000ft across the remaining trajectory. "
+            "A more aggressive altitude reduction for greater engine stress relief, "
+            "trading altitude margin for improved engine health."
+        ),
+    },
+]
+
+
+def _evaluate_all_strategies(
+    current_time: float,
+    current_state: dict[str, float] | None,
+) -> list[dict]:
+    strategies = [_evaluate_maintain_profile(current_time, current_state)]
+    for s in ALTITUDE_STRATEGIES:
+        strategies.append(
+            _evaluate_strategy(
+                current_time, current_state,
+                altitude_offset=s["offset"],
+                action=s["action"],
+                description=s["description"],
+            )
+        )
+    return strategies
 
 
 MQTT_HOST = "localhost"
@@ -368,13 +438,13 @@ def _register_routes(
 
     @target_app.post("/api/optimize")
     async def optimize_endpoint(req: OptimizeRequest):
-        result = await asyncio.get_running_loop().run_in_executor(
+        results = await asyncio.get_running_loop().run_in_executor(
             None,
-            _evaluate_maintain_profile,
+            _evaluate_all_strategies,
             req.current_time,
             req.current_state,
         )
-        return [result]
+        return results
 
 
 _register_routes(app, lambda: bridge, lambda: _lstm_model)
