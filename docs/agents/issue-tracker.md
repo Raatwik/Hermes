@@ -18,6 +18,7 @@
 - **Integration** issue 05 (Dynamic EHI) is COMPLETE. `useEngineStore.js` `_applyTelemetry` now computes `ehi` dynamically from `twin_drift_score` as `Math.max(0, Math.round(100 - twin_drift_score * 100))`, fixing the frozen 0/100 state on the Operator Dashboard.
 - **Integration** issue 06 (Dynamic Physics Baselines) is COMPLETE. `ml_subscriber.py` now extracts `expected_rpm`, `expected_oil_pressure`, `expected_oil_temp`, `expected_cht`, and `expected_egt_1..4` from its local simulation and includes them in the predictions payload. Frontend store routes these into `twinComparisonData`, replacing hardcoded fallbacks. System Status no longer triggers false CRITICAL during healthy maneuvers. Tests updated in `test_ml_subscriber.py` and `test_ws_gateway.py`.
 - **Frontend** is COMPLETE. The user has built the Vite React application.
+- **04.4-Simulation (Interactive Attack Simulator)** is COMPLETE. All 4 issues done: core simulation loop with 1-hour mission profile and CSV export (issue 01), interactive single-fault CLI menu with all 6 fault types and timing modes (issue 02), progressive degradation with exponential severity ramp and user-defined TTF (issue 03), compound fault support with looping menu, concurrent injection, independent per-fault degradation, and `FaultManager.update_params()` API replacing the `clear_faults()` workaround (issue 04). 115 unit tests passing.
 
 ## 3. Wayfinder Team Tracks Index
 

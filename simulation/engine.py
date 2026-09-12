@@ -12,6 +12,10 @@ SENSOR_NOISE_STD: dict[str, float] = {
     "egt_2": 5.0,
     "egt_3": 5.0,
     "egt_4": 5.0,
+    "cht_1": 2.0,
+    "cht_2": 2.0,
+    "cht_3": 2.0,
+    "cht_4": 2.0,
     "oil_pressure": 0.5,
     "oil_temp": 1.0,
     "fuel_flow": 0.2,
@@ -58,6 +62,17 @@ INITIAL_VALUES: dict[str, float] = {
     "oil_temp": 70.0,
     "fuel_flow": 6.0,
     "battery_voltage": 12.2,
+}
+
+HEALTHY_RUL: float = 5000.0
+
+ATTACK_INITIAL_RUL: dict[str, float] = {
+    "misfire": 1500.0,
+    "cylinder_failure": 600.0,
+    "cooling_degradation": 1200.0,
+    "injector_abnormalities": 1000.0,
+    "lubrication_issues": 800.0,
+    "sensor_drift": 2000.0,
 }
 
 
@@ -155,6 +170,7 @@ class Simulation:
         self._is_alive: bool = True
         self._failure_reason: str | None = None
         self._has_run: bool = False
+        self._rul_countdowns: list[tuple[float, float]] = []
 
     @property
     def is_alive(self) -> bool:
@@ -167,10 +183,23 @@ class Simulation:
         return self._failure_reason
 
     def inject_fault(self, fault_type: str, **kwargs: object) -> None:
+        ttf = kwargs.pop("ttf", None)
+        if ttf is not None:
+            initial_rul = float(ttf)
+        else:
+            initial_rul = ATTACK_INITIAL_RUL.get(fault_type, HEALTHY_RUL)
+        self._rul_countdowns.append((self._time, initial_rul))
         self._fault_manager.inject(fault_type, **kwargs)
+
+    def update_fault_severity(self, fault_type: str, severity: float) -> None:
+        self._fault_manager.update_severity(fault_type, severity)
+
+    def update_fault_params(self, fault_type: str, **kwargs: object) -> None:
+        self._fault_manager.update_params(fault_type, **kwargs)
 
     def clear_faults(self) -> None:
         self._fault_manager.clear()
+        self._rul_countdowns.clear()
 
     def load_profile(self, profile_data: dict) -> None:
         setpoints = profile_data.get("setpoints")
@@ -221,9 +250,10 @@ class Simulation:
             self._kill(f"RPM {state['rpm']:.0f} below stall threshold {RPM_STALL_THRESHOLD:.0f}")
             return
 
-        if state["cht"] > CHT_LIMIT:
-            self._kill(f"CHT {state['cht']:.1f} exceeded limit {CHT_LIMIT:.0f}")
-            return
+        for key in ["cht", "cht_1", "cht_2", "cht_3", "cht_4"]:
+            if state[key] > CHT_LIMIT:
+                self._kill(f"CHT ({key}) {state[key]:.1f} exceeded limit {CHT_LIMIT:.0f}")
+                return
 
         if state["oil_pressure"] < OIL_PRESSURE_LIMIT:
             self._kill(f"Oil pressure {state['oil_pressure']:.1f} below limit {OIL_PRESSURE_LIMIT:.0f}")
@@ -273,11 +303,26 @@ class Simulation:
             cyl_key = f"egt_{i}"
             state[cyl_key] = base_egt + mods["output_offsets"].get(cyl_key, 0.0)
             
+        base_cht = state["cht"]
+        for i in range(1, 5):
+            cyl_key = f"cht_{i}"
+            state[cyl_key] = base_cht + mods["output_offsets"].get(cyl_key, 0.0)
+            
         rpm_fraction = state["rpm"] / 5500.0
         baseline_vib = 0.02 + 0.03 * rpm_fraction
         fault_vib = mods["vibration_severity"]
         state["vibration_index"] = min(baseline_vib + fault_vib, 1.0)
         state["engine_load"] = min(self._throttle * rpm_fraction, 1.0)
         state["injection_timing"] = 24.0 + 8.0 * rpm_fraction
+
+        if not self._rul_countdowns:
+            state["rul"] = HEALTHY_RUL
+        else:
+            rul_values = []
+            for inject_time, initial_rul in self._rul_countdowns:
+                elapsed = self._time - inject_time
+                steps = int(elapsed // 10)
+                rul_values.append(max(initial_rul - 10.0 * steps, 0.0))
+            state["rul"] = min(rul_values)
 
         return state

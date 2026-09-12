@@ -141,7 +141,7 @@ const EngineBlueprintWidget = () => {
   const oilPressStatus = isLive ? computeStatus(twinComparisonData.globals.oilPressure.deviation) : 'NORMAL';
   const oilTempStatus = isLive ? computeStatus(twinComparisonData.globals.oilTemp.deviation) : 'NORMAL';
   
-  const cyl1Status = 'CRITICAL'; // FORCED FOR TESTING: getCylStatus(twinComparisonData.cylinders[0]);
+  const cyl1Status = getCylStatus(twinComparisonData.cylinders[0]);
   const cyl2Status = getCylStatus(twinComparisonData.cylinders[1]);
   const cyl3Status = getCylStatus(twinComparisonData.cylinders[2]);
   const cyl4Status = getCylStatus(twinComparisonData.cylinders[3]);
