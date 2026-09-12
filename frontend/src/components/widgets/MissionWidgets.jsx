@@ -34,8 +34,13 @@ export function MissionProgress({ phases, currentPhaseIndex, progressPercent, el
           {phases.map((phase, index) => {
             const isCompleted = index <= currentPhaseIndex;
             const isCurrent = index === currentPhaseIndex;
+            const leftPercent = (index / (phases.length - 1)) * 100;
             return (
-              <div key={phase.name} className={`phase-item ${isCompleted ? 'completed' : ''} ${isCurrent ? 'current' : ''}`}>
+              <div 
+                key={phase.name} 
+                className={`phase-item ${isCompleted ? 'completed' : ''} ${isCurrent ? 'current' : ''}`}
+                style={{ position: 'absolute', left: `${leftPercent}%`, transform: 'translateX(-50%)' }}
+              >
                 <div className="phase-icon">
                   <phase.icon size={24} />
                 </div>

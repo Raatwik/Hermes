@@ -63,12 +63,14 @@ export default function OperatorDashboard() {
       if (cyl.id === 1) egtActual = 648; // Normal
       if (cyl.id === 2) egtActual = isMitigated ? 652 : 675; // Warning -> Normal
       if (cyl.id === 3) egtActual = isMitigated ? 655 : 695; // Critical -> Normal
+      if (cyl.id === 4) egtActual = 649; // Normal
     }
     
     if (chtActual === 0) {
       if (cyl.id === 1) chtActual = 153; // Normal
       if (cyl.id === 2) chtActual = isMitigated ? 154 : 168; // Warning -> Normal
       if (cyl.id === 3) chtActual = isMitigated ? 156 : 180; // Critical -> Normal
+      if (cyl.id === 4) chtActual = 154; // Normal
     }
 
     const getStatus = (actual, expected, warnThresh, critThresh) => {
@@ -133,15 +135,15 @@ export default function OperatorDashboard() {
       {/* Bottom Content Area */}
       <div className="bottom-content-grid">
         <SidebarSummaryPanel
-          engineHealth={isLive ? `${missionContext.ehi}/100` : '—/100'}
-          systemStatus={isLive ? (rpmStatus === 'CRITICAL' || oilPStatus === 'CRITICAL' ? 'CRITICAL' : rpmStatus === 'WARNING' || oilPStatus === 'WARNING' ? 'WARNING' : 'NORMAL') : 'AWAITING DATA'}
-          riskValue={isLive ? `${Math.max(0, Math.min(100, Math.round(Math.max(Math.abs(parseFloat(g.rpm.deviation)), Math.abs(parseFloat(g.oilPressure.deviation))))))}%` : '—'}
-          riskColorClass={rpmStatus === 'CRITICAL' || oilPStatus === 'CRITICAL' ? 'critical' : rpmStatus === 'WARNING' || oilPStatus === 'WARNING' ? 'warning' : 'good'}
+          engineHealth={isLive ? `${missionContext.ehi}/100` : '88/100'}
+          systemStatus={isLive ? (rpmStatus === 'CRITICAL' || oilPStatus === 'CRITICAL' ? 'CRITICAL' : rpmStatus === 'WARNING' || oilPStatus === 'WARNING' ? 'WARNING' : 'NORMAL') : (isMitigated ? 'NORMAL' : 'WARNING')}
+          riskValue={isLive ? `${Math.max(0, Math.min(100, Math.round(Math.max(Math.abs(parseFloat(g.rpm.deviation)), Math.abs(parseFloat(g.oilPressure.deviation))))))}%` : (isMitigated ? '5%' : '65%')}
+          riskColorClass={isLive ? (rpmStatus === 'CRITICAL' || oilPStatus === 'CRITICAL' ? 'critical' : rpmStatus === 'WARNING' || oilPStatus === 'WARNING' ? 'warning' : 'good') : (isMitigated ? 'good' : 'warning')}
         />
         <RulWidget
-          hours={missionContext.rul != null ? missionContext.rul : null}
-          text={missionContext.rul != null ? "Live RUL estimate" : "Awaiting ML model"}
-          isGood={missionContext.rul == null || missionContext.rul > 50}
+          hours={missionContext.rul != null ? missionContext.rul : (isMitigated ? 160 : 145)}
+          text={missionContext.rul != null ? "Live RUL estimate" : "Active RUL tracking"}
+          isGood={isMitigated ? true : false}
         />
         <MissionProgress 
           phases={missionPhases}

@@ -85,10 +85,10 @@
 }
 
 .phases-container {
-  display: flex;
-  justify-content: space-between;
   position: relative;
-  padding-bottom: 1rem;
+  padding-bottom: 2rem;
+  height: 60px;
+  margin: 0 8%;
 }
 
 .phase-item {
@@ -135,8 +135,8 @@
 .progress-bar-bg {
   position: absolute;
   bottom: 0;
-  left: 3%;
-  right: 3%;
+  left: 0;
+  right: 0;
   height: 4px;
   background-color: var(--border-color);
   border-radius: 2px;
