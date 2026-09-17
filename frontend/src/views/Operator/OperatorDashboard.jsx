@@ -26,7 +26,7 @@ const MetricCardSmall = ({ title, expected, current, deviation, unit, status, ic
   
   const fillPct = Math.min(100, Math.max(0, (currentNum / maxVal) * 100)) || 0;
   
-  const radius = 22;
+  const radius = 18;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (fillPct / 100) * circumference;
   
@@ -50,10 +50,10 @@ const MetricCardSmall = ({ title, expected, current, deviation, unit, status, ic
           <span className="metric-unit" style={{ color: 'var(--text-secondary)' }}>{unit}</span>
         </div>
         
-        <div style={{ position: 'relative', width: '50px', height: '50px', flexShrink: 0 }}>
-          <svg width="50" height="50" style={{ transform: 'rotate(-90deg)' }}>
-            <circle cx="25" cy="25" r={radius} stroke="var(--bg-secondary)" strokeWidth="4" fill="none" />
-            <circle cx="25" cy="25" r={radius} stroke={valColor} strokeWidth="4" fill="none"
+        <div style={{ position: 'relative', width: '40px', height: '40px', flexShrink: 0 }}>
+          <svg width="40" height="40" style={{ transform: 'rotate(-90deg)' }}>
+            <circle cx="20" cy="20" r={radius} stroke="var(--bg-secondary)" strokeWidth="3" fill="none" />
+            <circle cx="20" cy="20" r={radius} stroke={valColor} strokeWidth="3" fill="none"
               strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} strokeLinecap="round" />
           </svg>
         </div>
@@ -205,22 +205,22 @@ export default function OperatorDashboard() {
         <div className="area-warning">
           <div className="card advisory-panel" style={{ height: '100%' }}>
             {mockWarnings.length > 0 ? (
-              <h2 className="section-title" style={{ padding: '1rem 1rem 0 1rem', color: 'var(--color-warning)' }}>
+              <h2 className="section-title" style={{ padding: '0.5rem 0.5rem 0 0.5rem', color: 'var(--color-warning)', marginBottom: '0.25rem' }}>
                 SYSTEM STATUS: {activeRecommendation ? 'CRITICAL' : 'WARNING'}: {mockWarnings.length} active conditions require operator awareness.
               </h2>
             ) : (
-              <h2 className="section-title" style={{ padding: '1rem 1rem 0 1rem' }}>SYSTEM STATUS: NORMAL</h2>
+              <h2 className="section-title" style={{ padding: '0.5rem 0.5rem 0 0.5rem', marginBottom: '0.25rem' }}>SYSTEM STATUS: NORMAL</h2>
             )}
-            <div style={{ height: '1px', backgroundColor: 'var(--border-color)', margin: '1rem 1rem 1rem 1rem' }}></div>
+            <div style={{ height: '1px', backgroundColor: 'var(--border-color)', margin: '0.25rem 0.5rem 0.5rem 0.5rem' }}></div>
             {mockWarnings.length > 0 ? (
-              <div style={{ padding: '0 1rem' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', alignItems: 'start' }}>
+              <div style={{ padding: '0 0.5rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', alignItems: 'start' }}>
                   <div>
-                    <div style={{ marginBottom: '0.5rem', fontSize: '1.1rem', fontWeight: 'bold', color: 'var(--text-secondary)' }}>ACTIVE ALERTS</div>
+                    <div style={{ marginBottom: '0.25rem', fontSize: '0.9rem', fontWeight: 'bold', color: 'var(--text-secondary)' }}>ACTIVE ALERTS</div>
                     <AlertBanner warnings={mockWarnings} />
                   </div>
                   <div>
-                    <div style={{ marginBottom: '0.5rem', fontSize: '1.1rem', fontWeight: 'bold', color: 'var(--text-secondary)' }}>ENGINEER MITIGATIONS</div>
+                    <div style={{ marginBottom: '0.25rem', fontSize: '0.9rem', fontWeight: 'bold', color: 'var(--text-secondary)' }}>ENGINEER MITIGATIONS</div>
                     {activeRecommendation ? (
                       <RecommendationBanner 
                         title={activeRecommendation.title}
@@ -247,17 +247,12 @@ export default function OperatorDashboard() {
 
         {/* TOP RIGHT: TELEMETRY CARDS */}
         <div className="area-telemetry">
-          <div className="card" style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: '1rem', overflowY: 'auto' }}>
-            <div>
-              <h2 className="section-title">ENGINE TELEMETRY</h2>
-              <div className="telemetry-cards-grid">
-                {allMetrics.map((metric, idx) => (
-                  <MetricCardSmall key={idx} {...metric} />
-                ))}
-              </div>
+          <div className="card" style={{ height: '100%', overflow: 'hidden' }}>
+            <div className="telemetry-cards-grid" style={{ height: '100%' }}>
+              {allMetrics.map((metric, idx) => (
+                <MetricCardSmall key={idx} {...metric} />
+              ))}
             </div>
-
-
           </div>
         </div>
 
@@ -274,19 +269,19 @@ export default function OperatorDashboard() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
               {/* FUEL MANAGEMENT */}
               <div style={{ border: '2px solid var(--border-color)', backgroundColor: 'var(--bg-primary)' }}>
-                <div style={{ padding: '4px 8px', backgroundColor: 'var(--bg-secondary)', borderBottom: '2px solid var(--border-color)', fontSize: '1rem', fontWeight: 'bold', color: 'var(--text-secondary)' }}>
+                <div style={{ padding: '4px 8px', backgroundColor: 'var(--bg-secondary)', borderBottom: '2px solid var(--border-color)', fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--text-secondary)' }}>
                   FUEL MANAGEMENT
                 </div>
                 <div style={{ padding: '8px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
                     <span style={{ color: 'var(--text-secondary)' }}>REMAINING</span>
                     <span style={{ color: 'var(--text-primary)', fontWeight: 'bold', fontFamily: "'Times New Roman', Times, serif" }}>{missionContext.fuelRemaining ?? 85} L</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
                     <span style={{ color: 'var(--text-secondary)' }}>BURN RATE</span>
                     <span style={{ color: 'var(--text-primary)', fontWeight: 'bold', fontFamily: "'Times New Roman', Times, serif" }}>{missionContext.fuelBurnRate ?? missionContext.fuelFlow ?? 24.1} L/hr</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
                     <span style={{ color: 'var(--text-secondary)' }}>TIME-TO-EMPTY</span>
                     <span style={{ color: 'var(--text-primary)', fontWeight: 'bold', fontFamily: "'Times New Roman', Times, serif" }}>{missionContext.timeToEmpty ?? 3.5} hr</span>
                   </div>
@@ -295,15 +290,15 @@ export default function OperatorDashboard() {
 
               {/* ELECTRICAL */}
               <div style={{ border: '2px solid var(--border-color)', backgroundColor: 'var(--bg-primary)' }}>
-                <div style={{ padding: '4px 8px', backgroundColor: 'var(--bg-secondary)', borderBottom: '2px solid var(--border-color)', fontSize: '1rem', fontWeight: 'bold', color: 'var(--text-secondary)' }}>
+                <div style={{ padding: '4px 8px', backgroundColor: 'var(--bg-secondary)', borderBottom: '2px solid var(--border-color)', fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--text-secondary)' }}>
                   ELECTRICAL SYS
                 </div>
                 <div style={{ padding: '8px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
                     <span style={{ color: 'var(--text-secondary)' }}>ALT OUTPUT</span>
                     <span style={{ color: 'var(--text-primary)', fontWeight: 'bold', fontFamily: "'Times New Roman', Times, serif" }}>{missionContext.alternatorVolts ?? 28.2}V / {missionContext.alternatorAmps ?? 45}A</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
                     <span style={{ color: 'var(--text-secondary)' }}>MAIN BUS LOAD</span>
                     <span style={{ color: 'var(--text-primary)', fontWeight: 'bold', fontFamily: "'Times New Roman', Times, serif" }}>{missionContext.mainBusLoad ?? 78}%</span>
                   </div>

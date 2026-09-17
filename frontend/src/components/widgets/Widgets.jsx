@@ -84,8 +84,8 @@ export function AlertBanner({ warnings }) {
         const colorClass = isCritical ? 'var(--color-critical)' : 'var(--color-warning)';
         const prefix = isCritical ? 'ALERT' : 'WATCH';
         return (
-          <div key={idx} style={{ color: 'var(--text-primary)', fontSize: '1.25rem', lineHeight: '1.5', padding: '1rem', backgroundColor: 'var(--bg-secondary)', borderLeft: `6px solid ${colorClass}` }}>
-            <span style={{ color: colorClass, fontWeight: 'bold', textTransform: 'uppercase', fontSize: '1.35rem', display: 'block', marginBottom: '0.25rem' }}>{prefix}: {w.title}</span>
+          <div key={idx} style={{ color: 'var(--text-primary)', fontSize: '0.9rem', lineHeight: '1.2', padding: '0.5rem 1rem', backgroundColor: 'var(--bg-secondary)', borderLeft: `6px solid ${colorClass}` }}>
+            <span style={{ color: colorClass, fontWeight: 'bold', textTransform: 'uppercase', fontSize: '1rem', display: 'block', marginBottom: '0.15rem' }}>{prefix}: {w.title}</span>
             <span style={{ color: 'var(--text-secondary)' }}>{w.message}</span>
           </div>
         );
@@ -122,23 +122,23 @@ export function SidebarSummaryPanel({ engineHealth, systemStatus, riskValue, ris
       <table style={{ width: '100%', height: '100%', borderCollapse: 'collapse', textAlign: 'center' }}>
         <tbody>
           <tr>
-            <td style={{ border: '2px solid var(--border-color)', padding: '1rem', width: '50%' }}>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 'bold', marginBottom: '0.5rem' }}>ENGINE HEALTH</div>
-              <div style={{ fontSize: '1.5rem', color: 'var(--text-primary)', fontWeight: 'bold' }}>{engineHealth}</div>
+            <td style={{ border: '2px solid var(--border-color)', padding: '0.5rem', width: '50%' }}>
+              <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', fontWeight: 'bold', marginBottom: '0.25rem' }}>ENGINE HEALTH</div>
+              <div style={{ fontSize: '1.2rem', color: 'var(--text-primary)', fontWeight: 'bold' }}>{engineHealth}</div>
             </td>
-            <td style={{ border: '2px solid var(--border-color)', padding: '1rem', width: '50%' }}>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 'bold', marginBottom: '0.5rem' }}>SYSTEM STATUS</div>
-              <div style={{ fontSize: '1.5rem', color: `var(--color-${riskColorClass})`, fontWeight: 'bold' }}>{systemStatus}</div>
+            <td style={{ border: '2px solid var(--border-color)', padding: '0.5rem', width: '50%' }}>
+              <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', fontWeight: 'bold', marginBottom: '0.25rem' }}>SYSTEM STATUS</div>
+              <div style={{ fontSize: '1.2rem', color: `var(--color-${riskColorClass})`, fontWeight: 'bold' }}>{systemStatus}</div>
             </td>
           </tr>
           <tr>
-            <td style={{ border: '2px solid var(--border-color)', padding: '1rem' }}>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 'bold', marginBottom: '0.5rem' }}>MAX RISK VALUE</div>
-              <div style={{ fontSize: '1.5rem', color: `var(--color-${riskColorClass})`, fontWeight: 'bold' }}>{riskValue}</div>
+            <td style={{ border: '2px solid var(--border-color)', padding: '0.5rem' }}>
+              <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', fontWeight: 'bold', marginBottom: '0.25rem' }}>MAX RISK VALUE</div>
+              <div style={{ fontSize: '1.2rem', color: `var(--color-${riskColorClass})`, fontWeight: 'bold' }}>{riskValue}</div>
             </td>
-            <td style={{ border: '2px solid var(--border-color)', padding: '1rem' }}>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 'bold', marginBottom: '0.5rem' }}>ESTIMATED RUL</div>
-              <div style={{ fontSize: '1.5rem', color: 'var(--text-primary)', fontWeight: 'bold' }}>{rul}</div>
+            <td style={{ border: '2px solid var(--border-color)', padding: '0.5rem' }}>
+              <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', fontWeight: 'bold', marginBottom: '0.25rem' }}>ESTIMATED RUL</div>
+              <div style={{ fontSize: '1.2rem', color: 'var(--text-primary)', fontWeight: 'bold' }}>{rul}</div>
             </td>
           </tr>
         </tbody>
