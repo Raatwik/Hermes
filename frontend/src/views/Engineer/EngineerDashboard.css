@@ -124,19 +124,8 @@
   flex-grow: 1;
 }
 
-/* Row 0: EHI Breakdown + Divergence Classification */
+/* Row 0: EHI Breakdown */
 .grid-area-ehi-breakdown {
-  grid-column: span 6;
-  min-height: 120px;
-}
-
-.grid-area-divergence {
-  grid-column: span 6;
-  min-height: 120px;
-}
-
-/* Row 1: Engine Fingerprint */
-.grid-area-fingerprint {
   grid-column: span 12;
   min-height: 120px;
 }
@@ -150,6 +139,12 @@
 .grid-area-sandbox {
   grid-column: span 4;
   height: 600px;
+}
+
+/* Degradation Trajectory */
+.grid-area-degradation-trajectory {
+  grid-column: span 12;
+  min-height: 380px;
 }
 
 /* Row 3: Causes */
@@ -179,12 +174,6 @@
 }
 
 @media (max-width: 1200px) {
-  .grid-area-ehi-breakdown {
-    grid-column: span 12;
-  }
-  .grid-area-divergence {
-    grid-column: span 12;
-  }
   .grid-area-causes {
     grid-column: span 12;
   }

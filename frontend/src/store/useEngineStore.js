@@ -118,6 +118,7 @@ function _applyTelemetry(state, data) {
     rulUpperBound: data.lstm_rul_mean != null && data.lstm_rul_std != null
       ? Math.min(9999, Number((data.lstm_rul_mean + 2 * data.lstm_rul_std).toFixed(2)))
       : state.missionContext.rulUpperBound,
+    rulSource: data.rul_source ?? (data.lstm_rul_mean != null ? 'lstm' : 'simulation'),
     phase: data.mission_phase != null
       ? data.mission_phase.toUpperCase()
       : (computed ? computed.phase : state.missionContext.phase),
@@ -161,6 +162,25 @@ function _applyTelemetry(state, data) {
     : state.faultProbabilities;
 
   const MAX_TIMELINE_POINTS = 200;
+
+  const rulTimeline = [...state.rulTimeline];
+  const rulMean = data.lstm_rul_mean ?? (data.rul != null ? data.rul : null);
+  const rulStd = data.lstm_rul_std ?? null;
+  const rulSource = data.rul_source ?? (data.lstm_rul_mean != null ? 'lstm' : 'simulation');
+  if (rulMean != null && divergenceClassification?.classification !== 'sensor_fault') {
+    const simTime = data.time ?? data.time_sec ?? 0;
+    rulTimeline.push({
+      time: Math.round(simTime * 10) / 10,
+      mean: Math.round(rulMean * 100) / 100,
+      lower: rulStd != null ? Math.max(0, Math.round((rulMean - 2 * rulStd) * 100) / 100) : null,
+      upper: rulStd != null ? Math.round((rulMean + 2 * rulStd) * 100) / 100 : null,
+      source: rulSource,
+    });
+    if (rulTimeline.length > MAX_TIMELINE_POINTS) {
+      rulTimeline.splice(0, rulTimeline.length - MAX_TIMELINE_POINTS);
+    }
+  }
+
   const degradationTimeline = [...state.degradationTimeline];
   const faultSeverities = data.fault_severities;
   if (faultSeverities && typeof faultSeverities === 'object' && Object.keys(faultSeverities).length > 0) {
@@ -191,6 +211,7 @@ function _applyTelemetry(state, data) {
     twinComparisonData: newTwinData,
     faultProbabilities,
     degradationTimeline,
+    rulTimeline,
     fingerprint,
   };
 
@@ -220,6 +241,7 @@ const useEngineStore = create((set, get) => ({
     rul: null,
     rulLowerBound: null,
     rulUpperBound: null,
+    rulSource: null,
   },
 
   twinComparisonData: _liveSnapshot?.twinComparisonData ?? {
@@ -241,6 +263,8 @@ const useEngineStore = create((set, get) => ({
   faultProbabilities: _liveSnapshot?.faultProbabilities ?? [],
 
   degradationTimeline: _liveSnapshot?.degradationTimeline ?? [],
+
+  rulTimeline: _liveSnapshot?.rulTimeline ?? [],
 
   fingerprint: _liveSnapshot?.fingerprint ?? null,
 

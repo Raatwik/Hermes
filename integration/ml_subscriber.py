@@ -192,6 +192,8 @@ class MLSubscriber:
         if self._fingerprint.is_ready and fp_deviation < 1.5 and drift_score > 0:
             drift_score = drift_score * 0.7
 
+        rul_source = "lstm" if result["lstm_rul_mean"] is not None else "simulation"
+
         return {
             "tick": self._tick,
             "time": current_time,
@@ -201,6 +203,7 @@ class MLSubscriber:
             "xgboost_faults": result["xgboost_faults"],
             "lstm_rul_mean": result["lstm_rul_mean"],
             "lstm_rul_std": result["lstm_rul_std"],
+            "rul_source": rul_source,
             "isolation_forest_anomaly": is_anomaly,
             "fingerprint": fingerprint,
             "expected_rpm": expected.get("rpm"),
