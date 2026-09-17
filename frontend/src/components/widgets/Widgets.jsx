@@ -67,15 +67,26 @@ export function StatusCard({ title, value, max, status, statusText, icon: Icon, 
 }
 
 export function AlertBanner({ warnings }) {
-  if (!warnings || warnings.length === 0) return null;
+  const containerStyle = { 
+    maxHeight: '250px', overflowY: 'auto', padding: '0', 
+    display: 'flex', flexDirection: 'column', gap: '0.5rem', 
+    backgroundColor: 'transparent'
+  };
+
+  if (!warnings || warnings.length === 0) {
+    return null;
+  }
 
   return (
-    <div className="alert-banner-container" style={{ maxHeight: '180px', overflowY: 'auto', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+    <div className="alert-banner-container" style={containerStyle}>
       {warnings.map((w, idx) => {
-        const colorClass = w.level === 'critical' ? 'var(--color-critical)' : w.level === 'warning' ? 'var(--color-warning)' : 'var(--text-primary)';
+        const isCritical = w.level === 'critical';
+        const colorClass = isCritical ? 'var(--color-critical)' : 'var(--color-warning)';
+        const prefix = isCritical ? 'ALERT' : 'WATCH';
         return (
-          <div key={idx} style={{ color: 'var(--text-primary)', fontSize: '0.875rem', lineHeight: '1.4', fontWeight: '500' }}>
-            <span style={{ color: colorClass, fontWeight: 'bold', textTransform: 'uppercase' }}>{w.title}:</span> {w.message}
+          <div key={idx} style={{ color: 'var(--text-primary)', fontSize: '1.25rem', lineHeight: '1.5', padding: '1rem', backgroundColor: 'var(--bg-secondary)', borderLeft: `6px solid ${colorClass}` }}>
+            <span style={{ color: colorClass, fontWeight: 'bold', textTransform: 'uppercase', fontSize: '1.35rem', display: 'block', marginBottom: '0.25rem' }}>{prefix}: {w.title}</span>
+            <span style={{ color: 'var(--text-secondary)' }}>{w.message}</span>
           </div>
         );
       })}
@@ -105,55 +116,33 @@ export function TelemetryItem({ title, value, unit, status, icon: Icon, colorCla
   );
 }
 
-export function SidebarSummaryPanel({ engineHealth, systemStatus, riskValue, riskColorClass }) {
-  const radius = 30;
-  const circumference = 2 * Math.PI * radius;
-  const riskNum = parseInt(riskValue);
-  const strokeDashoffset = circumference - ((riskNum / 100) * circumference);
-
+export function SidebarSummaryPanel({ engineHealth, systemStatus, riskValue, riskColorClass, rul }) {
   return (
-    <div className="card sidebar-summary-panel" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', gap: '1rem', width: '100%', height: '100%', padding: '1rem' }}>
-      <div className="summary-table-row" style={{ flex: 1, padding: 0 }}>
-        <span className="summary-table-label">ENGINE HEALTH</span>
-        <span className="summary-table-value">{engineHealth}</span>
-      </div>
-      
-      <div className="summary-table-row" style={{ flex: 1, padding: 0 }}>
-        <span className="summary-table-label">SYSTEM STATUS</span>
-        <span className="summary-table-value">{systemStatus}</span>
-      </div>
-      
-      <div className="summary-right-risk" style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-        <h3 className="summary-risk-label" style={{ margin: 0 }}>RISK</h3>
-        <div className="status-icon-wrapper" style={{ color: `var(--color-${riskColorClass})`, width: '70px', height: '70px' }}>
-          <svg className="status-progress-ring" width="70" height="70" viewBox="0 0 70 70">
-            <circle 
-              className="progress-ring-bg" 
-              stroke="var(--border-color)" 
-              strokeWidth="4" 
-              fill="transparent" 
-              r={radius} 
-              cx="35" 
-              cy="35" 
-            />
-            <circle 
-              className="progress-ring-fill" 
-              stroke="currentColor" 
-              strokeWidth="4" 
-              fill="transparent" 
-              r={radius} 
-              cx="35" 
-              cy="35"
-              strokeDasharray={circumference}
-              strokeDashoffset={strokeDashoffset}
-              strokeLinecap="round"
-            />
-          </svg>
-          <div className="status-icon" style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>
-            {riskValue}
-          </div>
-        </div>
-      </div>
+    <div className="card sidebar-summary-panel" style={{ padding: 0 }}>
+      <table style={{ width: '100%', height: '100%', borderCollapse: 'collapse', textAlign: 'center' }}>
+        <tbody>
+          <tr>
+            <td style={{ border: '2px solid var(--border-color)', padding: '1rem', width: '50%' }}>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 'bold', marginBottom: '0.5rem' }}>ENGINE HEALTH</div>
+              <div style={{ fontSize: '1.5rem', color: 'var(--text-primary)', fontWeight: 'bold' }}>{engineHealth}</div>
+            </td>
+            <td style={{ border: '2px solid var(--border-color)', padding: '1rem', width: '50%' }}>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 'bold', marginBottom: '0.5rem' }}>SYSTEM STATUS</div>
+              <div style={{ fontSize: '1.5rem', color: `var(--color-${riskColorClass})`, fontWeight: 'bold' }}>{systemStatus}</div>
+            </td>
+          </tr>
+          <tr>
+            <td style={{ border: '2px solid var(--border-color)', padding: '1rem' }}>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 'bold', marginBottom: '0.5rem' }}>MAX RISK VALUE</div>
+              <div style={{ fontSize: '1.5rem', color: `var(--color-${riskColorClass})`, fontWeight: 'bold' }}>{riskValue}</div>
+            </td>
+            <td style={{ border: '2px solid var(--border-color)', padding: '1rem' }}>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 'bold', marginBottom: '0.5rem' }}>ESTIMATED RUL</div>
+              <div style={{ fontSize: '1.5rem', color: 'var(--text-primary)', fontWeight: 'bold' }}>{rul}</div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   );
 }

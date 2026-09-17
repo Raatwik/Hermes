@@ -6,17 +6,11 @@ export function RulWidget({ hours, text, statusText, isGood }) {
   return (
     <div className="card rul-card">
       <div className="rul-header">
-        <h4 className="rul-title">REMAINING USEFUL LIFE (RUL)</h4>
+        <h4 className="rul-title">RUL (IN HRS)</h4>
       </div>
-      <div className="rul-body">
+      <div className="rul-body" style={{ justifyContent: 'center', padding: '1rem' }}>
         <div className="rul-main">
-          <span className="rul-value text-good">{hours != null ? hours : '—'}</span>
-          <span className="rul-unit text-good">HOURS<br/>REMAINING</span>
-        </div>
-        <div className="rul-divider"></div>
-        <div className="rul-status">
-          <span className="rul-status-text">{text}</span>
-          {isGood && <ShieldCheck className="text-good" size={32} />}
+          <span className="rul-value" style={{ color: '#000', fontSize: '4rem', lineHeight: '1' }}>{hours != null ? hours : ':'}</span>
         </div>
       </div>
     </div>
@@ -30,29 +24,25 @@ export function MissionProgress({ phases, currentPhaseIndex, progressPercent, el
         <h4 className="mission-title">MISSION PROGRESS</h4>
       </div>
       <div className="mission-body">
-        <div className="phases-container">
+        <div className="phases-container" style={{ display: 'flex', justifyContent: 'space-between', margin: '0', height: 'auto', paddingBottom: '2rem' }}>
           {phases.map((phase, index) => {
             const isCompleted = index <= currentPhaseIndex;
             const isCurrent = index === currentPhaseIndex;
-            const leftPercent = (index / (phases.length - 1)) * 100;
             return (
               <div 
                 key={phase.name} 
                 className={`phase-item ${isCompleted ? 'completed' : ''} ${isCurrent ? 'current' : ''}`}
-                style={{ position: 'absolute', left: `${leftPercent}%`, transform: 'translateX(-50%)' }}
+                style={{ position: 'static', transform: 'none' }}
               >
-                <div className="phase-icon">
-                  <phase.icon size={24} />
-                </div>
                 <div className="phase-name">{phase.name}</div>
               </div>
             );
           })}
           
-          <div className="progress-bar-bg">
+          <div className="progress-bar-bg" style={{ bottom: '0' }}>
             <div className="progress-bar-fill" style={{ width: `${progressPercent}%` }}></div>
             {/* Dots */}
-            <div className="progress-dots">
+            <div className="progress-dots" style={{ top: '0', transform: 'translateY(-50%)' }}>
               {phases.map((_, i) => (
                 <div key={i} className={`progress-dot ${i <= currentPhaseIndex ? 'completed' : ''} ${i === currentPhaseIndex ? 'current' : ''}`} style={{ left: `${(i / (phases.length - 1)) * 100}%` }}></div>
               ))}
@@ -62,12 +52,12 @@ export function MissionProgress({ phases, currentPhaseIndex, progressPercent, el
         
         <div className="mission-times">
           <div className="time-block">
-            <span className="time-label">ELAPSED TIME</span>
+            <span className="time-label">TIME ELAPSED</span>
             <span className="time-value">{elapsed}</span>
           </div>
-          <div className="progress-percent text-good">{progressPercent}%</div>
+          <div className="progress-percent text-good" style={{ color: '#000' }}>{progressPercent}%</div>
           <div className="time-block right">
-            <span className="time-label">REMAINING TIME</span>
+            <span className="time-label">TIME REMAINING</span>
             <span className="time-value">{remaining}</span>
           </div>
         </div>

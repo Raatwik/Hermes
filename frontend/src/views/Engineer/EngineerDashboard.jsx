@@ -6,6 +6,7 @@ import ResidualTimeSeries from '../../components/widgets/ResidualTimeSeries';
 import EngineBlueprintWidget from '../../components/widgets/EngineBlueprintWidget';
 import DegradationCauseGraph from '../../components/widgets/DegradationCauseGraph';
 import MissionSandboxWidget from '../../components/widgets/MissionSandboxWidget';
+import GlobalNav from '../../components/layout/GlobalNav';
 import './EngineerDashboard.css';
 
 const EngineerDashboard = () => {
@@ -26,6 +27,7 @@ const EngineerDashboard = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
           <h1 className="text-xl font-bold">PROPULSION ENGINEER VIEW</h1>
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', fontSize: '0.9rem' }}>
+            <GlobalNav />
             <Link to="/" style={{ color: 'var(--color-critical)', fontWeight: 'bold', textDecoration: 'none', padding: '4px 10px', border: '1px solid var(--color-critical)', borderRadius: '4px' }}>LOGOUT</Link>
           </div>
         </div>
@@ -39,49 +41,49 @@ const EngineerDashboard = () => {
       <section className="mission-context-bar card">
         <div className="context-item">
           <div className="label">Engine Health Index</div>
-          <div className="value" style={{ color: 'var(--color-warning)', fontWeight: 'bold' }}>{isLive && missionContext.ehi != null ? `${missionContext.ehi}%` : '—'}</div>
+          <div className="value" style={{ color: 'var(--color-warning)', fontWeight: 'bold' }}>{missionContext.ehi != null ? `${missionContext.ehi}%` : ':'}</div>
         </div>
         <div className="context-divider"></div>
         <div className="context-item" style={{ minWidth: '130px' }}>
           <div className="label">RUL</div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <div className="value" style={{ color: 'var(--color-good)', fontWeight: 'bold', lineHeight: 1.2 }}>
-              {isLive && missionContext.rul != null ? `${missionContext.rul} hrs` : '—'}
+              {missionContext.rul != null ? `${missionContext.rul} hrs` : ':'}
             </div>
             <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>
-              95% CI: [{isLive && missionContext.rulLowerBound != null ? missionContext.rulLowerBound : '—'} - {isLive && missionContext.rulUpperBound != null ? missionContext.rulUpperBound : '—'} h]
+              95% CI: [{missionContext.rulLowerBound != null ? missionContext.rulLowerBound : ':'} : {missionContext.rulUpperBound != null ? missionContext.rulUpperBound : ':'} h]
             </div>
           </div>
         </div>
         <div className="context-divider"></div>
         <div className="context-item">
           <div className="label">Altitude</div>
-          <div className="value">{isLive ? `${Math.round(missionContext.altitude).toLocaleString()} ft` : '—'}</div>
+          <div className="value">{Math.round(missionContext.altitude).toLocaleString()} ft</div>
         </div>
         <div className="context-divider"></div>
         <div className="context-item">
           <div className="label">RPM</div>
-          <div className="value">{isLive ? Math.round(missionContext.rpm).toLocaleString() : '—'}</div>
+          <div className="value">{Math.round(missionContext.rpm).toLocaleString()}</div>
         </div>
         <div className="context-divider"></div>
         <div className="context-item">
           <div className="label">Engine Load</div>
-          <div className="value">{isLive ? `${missionContext.engineLoad} %` : '—'}</div>
+          <div className="value">{missionContext.engineLoad} %</div>
         </div>
         <div className="context-divider"></div>
         <div className="context-item">
           <div className="label">OAT</div>
-          <div className="value">{isLive ? `${missionContext.oat} °C` : '—'}</div>
+          <div className="value">{missionContext.oat} °C</div>
         </div>
         <div className="context-divider"></div>
         <div className="context-item">
           <div className="label">MAP</div>
-          <div className="value">{isLive ? `${missionContext.map} inHg` : '—'}</div>
+          <div className="value">{missionContext.map} inHg</div>
         </div>
         <div className="context-divider"></div>
         <div className="context-item">
           <div className="label">Fuel Flow</div>
-          <div className="value">{isLive ? `${Math.round(missionContext.fuelFlow * 10) / 10} L/hr` : '—'}</div>
+          <div className="value">{Math.round(missionContext.fuelFlow * 10) / 10} L/hr</div>
         </div>
       </section>
 

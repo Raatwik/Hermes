@@ -123,7 +123,7 @@ const DegradationCauseGraph = () => {
             )}
           </div>
           <div style={{ padding: '0.5rem 1rem', fontSize: '0.8rem', color: 'var(--text-primary)', lineHeight: 1.5, borderTop: '1px solid var(--border-color)' }}>
-            <p>The <strong>λ value</strong> crosses roughly: 0-0.25 "healthy/mild," 0.25-0.5 "moderate," 0.5-0.75 "severe," 0.75-1.0 "critical" — so the same curve doubles as a running RUL indicator.</p>
+            <p>The <strong>λ value</strong> crosses roughly: 0-0.25 "healthy/mild," 0.25-0.5 "moderate," 0.5-0.75 "severe," 0.75-1.0 "critical": so the same curve doubles as a running RUL indicator.</p>
           </div>
         </div>
         

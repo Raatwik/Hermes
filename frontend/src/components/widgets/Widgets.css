@@ -562,8 +562,9 @@
 }
 
 .cylinder-card.condensed .cyl-header {
-  font-size: 0.7rem;
+  font-size: 0.9rem;
   padding-bottom: 0.25rem;
+  color: #E2E8F0;
 }
 
 .cyl-data {
@@ -584,14 +585,14 @@
 }
 
 .cylinder-card.condensed .cyl-data-row {
-  font-size: 0.75rem;
+  font-size: 0.9rem;
 }
 
 .cyl-label {
-  color: var(--text-secondary);
+  color: #9CA3AF;
   font-weight: 500;
 }
 
 .cyl-val {
-  font-weight: 700;
+  font-weight: 600;
 }

@@ -57,7 +57,7 @@ const TwinDriftChart = () => {
               contentStyle={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '4px', fontSize: '12px' }} 
               labelStyle={{ color: 'var(--text-primary)' }}
             />
-            <ReferenceLine y={0.50} stroke="var(--color-critical)" strokeDasharray="3 3" />
+            <ReferenceLine y={0.50} stroke="var(--color-warning)" strokeDasharray="3 3" />
             <Line 
               type="monotone" 
               dataKey="drift" 

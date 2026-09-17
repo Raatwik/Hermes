@@ -86,6 +86,32 @@ function _applyTelemetry(state, data) {
   _liveSnapshot = update;
   return update;
 }
+const initialTimeSeries = Array.from({ length: 60 }).map((_, i) => {
+  const isLast15 = i >= 45;
+  const isLast20 = i >= 40;
+  
+  const driftBase = 0.05 + (Math.random() * 0.02 - 0.01);
+  let drift = driftBase;
+  if (isLast15) {
+    drift = 0.05 + ((i - 45) / 14) * 0.40 + (Math.random() * 0.05 - 0.025);
+  }
+
+  const expectedEGT = 650;
+  let actualEGT = 650 + (Math.random() * 4 - 2);
+  if (isLast20) {
+    actualEGT = 650 + ((i - 40) / 19) * 45 + (Math.random() * 5 - 2.5);
+  }
+
+  return {
+    time: `12:${(i < 10 ? '0' : '') + i}:00`,
+    drift: Math.max(0, Math.min(1, drift)),
+    expectedEGT,
+    actualEGT: Math.round(actualEGT),
+    residual: Math.round(actualEGT - expectedEGT),
+    upperBound: 15,
+    lowerBound: -15,
+  };
+});
 
 const useEngineStore = create((set, get) => ({
   // --- State ---
@@ -93,36 +119,45 @@ const useEngineStore = create((set, get) => ({
   isLive: false,
 
   missionContext: _liveSnapshot?.missionContext ?? {
-    altitude: 0,
-    rpm: 0,
-    engineLoad: 0,
-    oat: 0,
-    map: 0,
-    fuelFlow: 0,
-    phase: 'STARTUP',
-    ehi: 0,
-    rul: null,
-    rulLowerBound: null,
-    rulUpperBound: null,
+    altitude: 15200,
+    rpm: 2420,
+    engineLoad: 68,
+    oat: -2,
+    map: 28.5,
+    fuelFlow: 24.1,
+    phase: 'CRUISE',
+    ehi: 88,
+    rul: 145,
+    rulLowerBound: 130,
+    rulUpperBound: 160,
+    fuelRemaining: 85,
+    timeToEmpty: 3.5,
+    alternatorVolts: 28.2,
+    alternatorAmps: 45,
+    mainBusLoad: 78,
   },
 
   twinComparisonData: _liveSnapshot?.twinComparisonData ?? {
     globals: {
-      rpm: { expected: 2450, actual: 0, deviation: 0, status: 'NOMINAL' },
-      oilPressure: { expected: 65, actual: 0, deviation: 0, status: 'NOMINAL' },
-      oilTemp: { expected: 95, actual: 0, deviation: 0, status: 'NOMINAL' },
+      rpm: { expected: 2450, actual: 2420, deviation: -1.2, status: 'good' },
+      oilPressure: { expected: 65, actual: 40, deviation: -38.5, status: 'critical' },
+      oilTemp: { expected: 95, actual: 98, deviation: 3.1, status: 'good' },
     },
     cylinders: [
-      { id: 1, egt: { expected: 650, actual: 0 }, cht: { expected: 155, actual: 0 } },
-      { id: 2, egt: { expected: 650, actual: 0 }, cht: { expected: 155, actual: 0 } },
-      { id: 3, egt: { expected: 650, actual: 0 }, cht: { expected: 155, actual: 0 } },
-      { id: 4, egt: { expected: 650, actual: 0 }, cht: { expected: 155, actual: 0 } },
+      { id: 1, egt: { expected: 650, actual: 648 }, cht: { expected: 155, actual: 153 } },
+      { id: 2, egt: { expected: 650, actual: 675 }, cht: { expected: 155, actual: 168 } },
+      { id: 3, egt: { expected: 650, actual: 695 }, cht: { expected: 155, actual: 180 } },
+      { id: 4, egt: { expected: 650, actual: 649 }, cht: { expected: 155, actual: 154 } },
     ],
   },
 
-  timeSeriesData: _liveSnapshot?.timeSeriesData ?? [],
+  timeSeriesData: _liveSnapshot?.timeSeriesData ?? initialTimeSeries,
 
-  faultProbabilities: _liveSnapshot?.faultProbabilities ?? [],
+  faultProbabilities: _liveSnapshot?.faultProbabilities ?? [
+    { name: 'Exhaust Valve Leak', probability: 0.65, ci: [0.60, 0.70] },
+    { name: 'Turbo Wastegate Sticking', probability: 0.15, ci: [0.10, 0.20] },
+    { name: 'Sensor Calibration Error', probability: 0.05, ci: [0.02, 0.08] }
+  ],
 
   // --- Actions ---
   pushRecommendationToOperator: (recommendation) => set({ activeRecommendation: recommendation }),

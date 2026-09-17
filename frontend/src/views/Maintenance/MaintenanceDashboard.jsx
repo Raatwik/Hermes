@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { RulWidget } from '../../components/widgets/MissionWidgets';
 import PostFlightLog from './PostFlightLog';
 import { Wrench, AlertTriangle, Activity } from 'lucide-react';
+import GlobalNav from '../../components/layout/GlobalNav';
 import './MaintenanceDashboard.css';
 
 const MaintenanceDashboard = () => {
@@ -24,6 +25,7 @@ const MaintenanceDashboard = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
           <h1 className="text-xl font-bold">MAINTENANCE VIEW</h1>
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', fontSize: '0.9rem' }}>
+            <GlobalNav />
             <Link to="/" style={{ color: '#cc0000', fontWeight: 'bold', textDecoration: 'none', padding: '4px 10px', border: '1px solid #cc0000', borderRadius: '0' }}>LOGOUT</Link>
           </div>
         </div>

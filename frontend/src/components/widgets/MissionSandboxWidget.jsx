@@ -121,7 +121,7 @@ const MissionSandboxWidget = () => {
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <div style={{ padding: '0.5rem', borderBottom: '1px solid var(--border-color)' }}>
-        <h3 className="text-base font-bold text-primary" style={{ fontSize: '1rem' }}>MISSION WHAT-IF SANDBOX</h3>
+        <h3 className="text-base font-bold text-primary" style={{ fontSize: '1rem', color: 'var(--text-primary)' }}>PREDICTIVE MITIGATION</h3>
       </div>
       
       <div style={{ flexGrow: 1, padding: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem', overflowY: 'auto' }}>
@@ -191,7 +191,7 @@ const MissionSandboxWidget = () => {
             opacity: isSimulating ? 0.7 : 1
           }}
         >
-          {isSimulating ? 'SIMULATING...' : 'RUN SIMULATION'}
+          {isSimulating ? 'CALCULATING...' : 'CALCULATE MITIGATION STRATEGY'}
         </button>
 
         <button 

@@ -31,13 +31,13 @@ const FaultProbabilityMatrix = () => {
               </div>
               
               {/* Probability Bar */}
-              <div style={{ width: '100%', height: '8px', backgroundColor: 'var(--bg-primary)', borderRadius: '4px', overflow: 'hidden' }}>
+              <div style={{ width: '100%', height: '8px', backgroundColor: 'var(--bg-primary)', borderRadius: '0px', overflow: 'hidden' }}>
                 <div 
                   style={{ 
                     width: `${fault.probability * 100}%`, 
                     height: '100%', 
                     backgroundColor: barColor,
-                    borderRadius: '4px'
+                    borderRadius: '0px'
                   }} 
                 />
               </div>

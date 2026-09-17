@@ -1,27 +1,38 @@
 .operator-layout {
+  --color-good: #E2E8F0;
+  --color-warning: #F59E0B;
+  --color-critical: #EF4444;
+  --bg-primary: #16191D;
+  --bg-card: #22272B;
+  --border-color: #3A4148;
+  --text-primary: #E2E8F0;
+  --text-secondary: #8693A4;
+  --color-accent: #3A4148;
+
   display: flex;
   flex-direction: column;
   min-height: 100vh;
   padding: 10px 20px;
   max-width: 100%;
   margin: 0;
-  background-color: #ffffff; /* Clean white */
-  color: #333333;
-  font-family: 'Arial', sans-serif;
-  
-  /* Default colors will be used (Green for good) */
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Times New Roman', Times, serif;
 }
 
 .operator-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-bottom: 10px;
-  margin-bottom: 10px;
-  border-bottom: 3px solid #000080; /* Navy Blue */
-  background-color: #ffffff;
-  padding: 10px 20px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  padding: 12px 20px;
+  margin: -10px -20px 20px -20px;
+  background-color: var(--bg-primary); /* Use deep slate */
+  color: #ffffff;
+  box-shadow: none;
+  border-bottom: 1px solid var(--border-color);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
 }
 
 .header-left {
@@ -32,7 +43,7 @@
 
 .header-logo {
   flex-shrink: 0;
-  color: #000080 !important; /* Navy Blue */
+  color: #ffffff !important;
 }
 
 .header-title-block {
@@ -48,12 +59,12 @@
   align-items: center;
   gap: 0.5rem;
   letter-spacing: 1px;
-  color: #000080;
+  color: #ffffff;
   text-transform: uppercase;
 }
 
 .title-divider {
-  color: #cc0000; /* Red */
+  color: #94a3b8; /* Slate Gray */
   font-weight: 700;
 }
 
@@ -73,11 +84,11 @@
   gap: 1.5rem;
   font-size: 0.9rem;
   font-weight: bold;
-  color: #000080;
+  color: #ffffff;
 }
 
 .utc-time {
-  color: var(--text-secondary);
+  color: #dddddd;
   font-variant-numeric: tabular-nums;
 }
 
@@ -92,8 +103,8 @@
   width: 8px;
   height: 8px;
   background-color: var(--color-good);
-  border-radius: 50%;
-  box-shadow: 0 0 8px var(--color-good);
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .operator-main {
@@ -103,27 +114,25 @@
   gap: 1.5rem;
 }
 
-/* DRDO Government Theme Overrides for Operator View */
 .operator-layout .card {
-  background-color: #ffffff;
-  border: 1px solid #cccccc;
-  border-top: 4px solid #000080; /* Navy Blue Accent */
-  border-radius: 0 !important; /* Sharp corners */
-  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 2px !important;
+  box-shadow: none;
   padding: 1rem;
 }
 
 .operator-layout .section-title {
-  font-family: 'Times New Roman', Times, serif;
-  font-size: 1.3rem;
+  font-family: inherit;
+  font-size: 0.85rem;
   font-weight: bold;
-  color: #000080;
+  color: var(--text-secondary);
   text-transform: uppercase;
-  margin-bottom: 10px;
-  letter-spacing: 1px;
+  margin-bottom: 12px;
+  letter-spacing: 0.05em;
 }
 
-/* Force sharp corners on all interactive elements and badges */
+/* Force corners on all interactive elements and badges */
 .operator-layout .badge,
 .operator-layout button,
 .operator-layout input,
@@ -136,13 +145,13 @@
 
 /* User Request: Removed green to red overrides */
 
-/* User Request: Green numbers to Black */
-.operator-layout .summary-table-row:first-child .summary-table-value, /* Engine Health (number) */
-.operator-layout .rul-value, /* RUL Hours (number) */
-.operator-layout .progress-percent, /* Mission Progress (number) */
-.operator-layout .deviation-cell, /* Telemetry deviation (number) */
-.operator-layout .enlarged-risk-value /* Risk number */ {
-  color: #333333 !important;
+/* User Request: Normal numbers to Main Text Color */
+.operator-layout .summary-table-row:first-child .summary-table-value, 
+.operator-layout .rul-value, 
+.operator-layout .progress-percent, 
+.operator-layout .deviation-cell, 
+.operator-layout .enlarged-risk-value {
+  color: var(--text-primary) !important;
 }
 
 .operator-layout .badge-warning {
