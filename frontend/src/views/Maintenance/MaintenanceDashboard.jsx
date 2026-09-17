@@ -4,11 +4,13 @@ import { RulWidget } from '../../components/widgets/MissionWidgets';
 import PostFlightLog from './PostFlightLog';
 import { Wrench, AlertTriangle, Activity } from 'lucide-react';
 import GlobalNav from '../../components/layout/GlobalNav';
+import '../../components/layout/OperatorLayout.css';
 import './MaintenanceDashboard.css';
 
 const MaintenanceDashboard = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isGenerated, setIsGenerated] = useState(false);
+  const currentTime = new Date().toISOString().substring(11, 19);
 
   const handleGenerate = () => {
     setIsGenerating(true);
@@ -21,20 +23,25 @@ const MaintenanceDashboard = () => {
   return (
     <div className="maintenance-dashboard">
       {/* Header */}
-      <header className="dashboard-header">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-          <h1 className="text-xl font-bold">MAINTENANCE VIEW</h1>
-          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', fontSize: '0.9rem' }}>
+      <header className="operator-header" style={{ margin: '-1.5rem -1.5rem 1rem -1.5rem' }}>
+        <div className="header-left">
+          <Activity className="header-logo" size={24} color="var(--color-good)" />
+          <div className="header-title-block">
+            <h1 className="header-title">MALE UAV <span className="title-divider">|</span> <span className="title-view">ROTAX914</span></h1>
+          </div>
+          <div style={{ display: 'flex', gap: '1rem', marginLeft: '2rem', alignItems: 'center', fontSize: '0.9rem' }}>
             <GlobalNav />
-            <Link to="/" style={{ color: '#cc0000', fontWeight: 'bold', textDecoration: 'none', padding: '4px 10px', border: '1px solid #cc0000', borderRadius: '0' }}>LOGOUT</Link>
+            <Link to="/" style={{ color: '#ffffff', fontWeight: 'bold', textDecoration: 'none', padding: '4px 10px', border: '1px solid #ffffff', borderRadius: '4px' }}>LOGOUT</Link>
           </div>
         </div>
-        <div className="header-status">
-          <span>UAV-01</span>
-          <span className="separator">|</span>
-          <span>ENGINE: ROTAX 914 (NA)</span>
-          <span className="separator">|</span>
-          <span className="status-idle">CREW: MAINTENANCE ALPHA</span>
+        <div className="header-right">
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', fontSize: '0.75rem', color: '#a8b2d1' }}>
+            <div>TAKEOFF: 09:23Z | EST. LANDING: 15:08Z</div>
+            <div className="utc-time" style={{ color: '#ffffff', fontSize: '1rem', marginTop: '2px' }}>UTC {currentTime}</div>
+          </div>
+          <div className="operator-name-display" style={{ color: '#ffffff', fontWeight: 'bold' }}>
+            CREW: MAINTENANCE ALPHA
+          </div>
         </div>
       </header>
 

@@ -30,7 +30,7 @@ const EngineerDashboard = () => {
         <div className="header-left">
           <Activity className="header-logo" size={24} color="var(--color-good)" />
           <div className="header-title-block">
-            <h1 className="header-title">MALE UAV <span className="title-divider">|</span> <span className="title-view">PROPULSION ENGINEER</span></h1>
+            <h1 className="header-title">MALE UAV <span className="title-divider">|</span> <span className="title-view">ROTAX914</span></h1>
           </div>
           <div style={{ display: 'flex', gap: '1rem', marginLeft: '2rem', alignItems: 'center', fontSize: '0.9rem' }}>
             <GlobalNav />
