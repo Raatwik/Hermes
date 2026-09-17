@@ -4,7 +4,7 @@
 - **Languages:** Python 3.10+ (Backend, ML, Simulation), TypeScript (Frontend)
 - **Backend Framework:** FastAPI (REST API & Orchestration)
 - **Frontend Framework:** Next.js (React)
-- **Machine Learning:** PyTorch (LSTM/Neural ODEs), XGBoost (Discrete Classifiers), scikit-learn (Preprocessing/Metrics)
+- **Machine Learning:** PyTorch (MC Dropout LSTM for RUL, Neural ODEs), XGBoost (Discrete Classifiers), scikit-learn (Preprocessing/Metrics)
 - **Real-Time Data:** MQTT (Telemetry Streaming), WebSockets (Backend to Frontend push)
 - **Package Managers:** `pip` or `poetry` (Python), `npm` or `pnpm` (TypeScript)
 - **Data Formats:** Parquet/CSV (Offline Training), JSON/YAML (Mission Configs)

@@ -75,12 +75,9 @@ export default function OperatorDashboard() {
   const twinData = useEngineStore(state => state.twinComparisonData);
   const missionContext = useEngineStore(state => state.missionContext);
   const isLive = useEngineStore(state => state.isLive);
-  const [isMitigated, setIsMitigated] = useState(false);
-
-  useEffect(() => {
-    const disconnect = connectLiveTelemetry();
-    return disconnect;
-  }, [connectLiveTelemetry]);
+  const acceptRecommendation = useEngineStore(state => state.acceptRecommendation);
+  const activeAlerts = useEngineStore(state => state.activeAlerts);
+  // We removed isMitigated local state since the store manages the data directly upon accept.
 
   const g = twinData.globals;
 
@@ -98,8 +95,8 @@ export default function OperatorDashboard() {
   };
 
   const rpmDev = g.rpm.deviation; 
-  const oilPDev = isMitigated ? 0 : g.oilPressure.deviation; 
-  const oilPActual = isMitigated ? 65 : g.oilPressure.actual; 
+  const oilPDev = g.oilPressure.deviation; 
+  const oilPActual = g.oilPressure.actual; 
   const oilTDev = g.oilTemp.deviation; 
 
   const rpmStatus = deviationStatus(rpmDev);
@@ -118,15 +115,15 @@ export default function OperatorDashboard() {
     
     if (egtActual === 0) { 
       if (cyl.id === 1) egtActual = 648; 
-      if (cyl.id === 2) egtActual = isMitigated ? 652 : 675; 
-      if (cyl.id === 3) egtActual = isMitigated ? 655 : 695; 
+      if (cyl.id === 2) egtActual = 675; 
+      if (cyl.id === 3) egtActual = 695; 
       if (cyl.id === 4) egtActual = 649; 
     }
     
     if (chtActual === 0) {
       if (cyl.id === 1) chtActual = 153; 
-      if (cyl.id === 2) chtActual = isMitigated ? 154 : 168; 
-      if (cyl.id === 3) chtActual = isMitigated ? 156 : 180; 
+      if (cyl.id === 2) chtActual = 168; 
+      if (cyl.id === 3) chtActual = 180; 
       if (cyl.id === 4) chtActual = 154; 
     }
 
@@ -166,23 +163,6 @@ export default function OperatorDashboard() {
     { name: 'LANDING', icon: PlaneLanding }
   ];
 
-  const mockWarnings = [
-    {
-      level: 'warning',
-      title: 'EGT ELEVATED',
-      message: 'Exhaust gas temperature is elevated but remains within the caution range.',
-      timestamp: '12:45:10',
-      resolved: false
-    },
-    {
-      level: 'critical',
-      title: 'OIL PRESSURE LOW',
-      message: 'Oil pressure has fallen below the critical threshold.',
-      timestamp: '12:41:05',
-      resolved: false
-    }
-  ];
-
   const mockCheckpoints = [
     { lat: 28.6139, lng: 77.2090 },
     { lat: 28.5355, lng: 77.3910 },
@@ -204,20 +184,20 @@ export default function OperatorDashboard() {
         {/* BOTTOM LEFT: EARLY WARNING SYSTEM */}
         <div className="area-warning">
           <div className="card advisory-panel" style={{ height: '100%' }}>
-            {mockWarnings.length > 0 ? (
+            {activeAlerts.length > 0 ? (
               <h2 className="section-title" style={{ padding: '0.5rem 0.5rem 0 0.5rem', color: 'var(--color-warning)', marginBottom: '0.25rem' }}>
-                SYSTEM STATUS: {activeRecommendation ? 'CRITICAL' : 'WARNING'}: {mockWarnings.length} active conditions require operator awareness.
+                SYSTEM STATUS: {activeRecommendation ? 'CRITICAL' : 'WARNING'}: {activeAlerts.length} active conditions require operator awareness.
               </h2>
             ) : (
               <h2 className="section-title" style={{ padding: '0.5rem 0.5rem 0 0.5rem', marginBottom: '0.25rem' }}>SYSTEM STATUS: NORMAL</h2>
             )}
             <div style={{ height: '1px', backgroundColor: 'var(--border-color)', margin: '0.25rem 0.5rem 0.5rem 0.5rem' }}></div>
-            {mockWarnings.length > 0 ? (
+            {activeAlerts.length > 0 ? (
               <div style={{ padding: '0 0.5rem' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', alignItems: 'start' }}>
                   <div>
                     <div style={{ marginBottom: '0.25rem', fontSize: '0.9rem', fontWeight: 'bold', color: 'var(--text-secondary)' }}>ACTIVE ALERTS</div>
-                    <AlertBanner warnings={mockWarnings} />
+                    <AlertBanner warnings={activeAlerts} />
                   </div>
                   <div>
                     <div style={{ marginBottom: '0.25rem', fontSize: '0.9rem', fontWeight: 'bold', color: 'var(--text-secondary)' }}>ENGINEER MITIGATIONS</div>
@@ -226,7 +206,7 @@ export default function OperatorDashboard() {
                         title={activeRecommendation.title}
                         options={activeRecommendation.options}
                         isGood={activeRecommendation.isGood}
-                        onExecute={() => setIsMitigated(true)}
+                        onExecute={() => acceptRecommendation()}
                       />
                     ) : (
                       <div style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-secondary)', border: '1px dashed var(--border-color)', borderRadius: '4px' }}>
@@ -263,7 +243,7 @@ export default function OperatorDashboard() {
             systemStatus={rpmStatus === 'CRITICAL' || oilPStatus === 'CRITICAL' ? 'CRITICAL' : rpmStatus === 'WARNING' || oilPStatus === 'WARNING' ? 'WARNING' : 'NORMAL'}
             riskValue={`${Math.max(0, Math.min(100, Math.round(Math.max(Math.abs(parseFloat(g.rpm.deviation)), Math.abs(parseFloat(g.oilPressure.deviation))))))}%`}
             riskColorClass={rpmStatus === 'CRITICAL' || oilPStatus === 'CRITICAL' ? 'critical' : rpmStatus === 'WARNING' || oilPStatus === 'WARNING' ? 'warning' : 'good'}
-            rul={`${missionContext.rul ?? (isMitigated ? 160 : 145)} hrs`}
+            rul={`${missionContext.rul ?? 31} mins`}
           />
           <div className="bottom-content-grid" style={{ gridTemplateColumns: '1fr', marginTop: '1rem' }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>

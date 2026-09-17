@@ -33,10 +33,10 @@ const EngineerDashboard = () => {
           <div className="label">RUL</div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <div className="value" style={{ color: 'var(--color-good)', fontWeight: 'bold', lineHeight: 1.2 }}>
-              {missionContext.rul != null ? `${missionContext.rul} hrs` : ':'}
+              {missionContext.rul != null ? `${missionContext.rul} mins` : ':'}
             </div>
             <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>
-              95% CI: [{missionContext.rulLowerBound != null ? missionContext.rulLowerBound : ':'} : {missionContext.rulUpperBound != null ? missionContext.rulUpperBound : ':'} h]
+              95% CI: [{missionContext.rulLowerBound != null ? missionContext.rulLowerBound : ':'} : {missionContext.rulUpperBound != null ? missionContext.rulUpperBound : ':'} mins]
             </div>
           </div>
         </div>

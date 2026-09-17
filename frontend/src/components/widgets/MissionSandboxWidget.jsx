@@ -262,8 +262,25 @@ const MissionSandboxWidget = () => {
                 <p style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', margin: 0 }}>
                   This scenario would {result.simulatedRisk < result.currentRisk ? 'decrease' : 'increase'} risk by <strong>{Math.abs(result.currentRisk - result.simulatedRisk)}%</strong>. 
                   <br/>
-                  Estimated RUL Impact: <span style={{ color: result.rulImpact >= 0 ? 'var(--color-good)' : 'var(--color-critical)', fontWeight: 'bold' }}>{result.rulImpact > 0 ? '+' : ''}{result.rulImpact} h</span>
+                  Estimated RUL Impact: <span style={{ color: result.rulImpact >= 0 ? 'var(--color-good)' : 'var(--color-critical)', fontWeight: 'bold' }}>{result.rulImpact > 0 ? '+' : ''}{result.rulImpact} mins</span>
                 </p>
+                <button 
+                  onClick={() => pushRecommendationToOperator({})}
+                  style={{
+                    marginTop: '0.75rem',
+                    width: '100%',
+                    padding: '0.4rem 0.75rem',
+                    fontSize: '0.75rem',
+                    backgroundColor: 'var(--color-primary, #3b82f6)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  PUSH TO OPERATOR
+                </button>
               </div>
             </div>
           )}

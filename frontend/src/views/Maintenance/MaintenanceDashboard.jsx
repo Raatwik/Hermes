@@ -51,7 +51,7 @@ const MaintenanceDashboard = () => {
               <AlertTriangle size={18} /> MAINTENANCE PRIORITY
             </div>
             <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#cc0000', textAlign: 'center', margin: '1rem 0' }}>
-              HIGH URGENCY
+              A-Level (Ground until resolved)
             </div>
             <p style={{ fontSize: '0.85rem', color: '#666666', textAlign: 'center' }}>
               Inspection required before next deployment.
@@ -67,10 +67,10 @@ const MaintenanceDashboard = () => {
               <AlertTriangle size={18} /> SUSPECTED FAULT / DIAGNOSIS
             </div>
             <div className="diagnosis-fault">
-              INJECTOR DEGRADATION
+              OIL STARVATION / PUMP DEGRADATION
             </div>
             <p style={{ fontSize: '0.9rem', color: '#666666', marginBottom: '1rem' }}>
-              Continuous deviation in expected combustion temperatures and fuel flow rates detected during the last cruise phase.
+              45-min sustained residual drift in oil pressure. Thermodynamic mismatch detected.
             </p>
             
             <div className="card-title" style={{ fontSize: '0.8rem', marginTop: '0.5rem', marginBottom: '0.5rem' }}>
@@ -78,16 +78,16 @@ const MaintenanceDashboard = () => {
             </div>
             <div className="diagnosis-evidence">
               <div className="evidence-item">
-                <span>Temperature Residual</span>
-                <span style={{ color: '#cc0000', fontWeight: 'bold' }}>+31%</span>
+                <span>Pressure Residual</span>
+                <span style={{ color: '#cc0000', fontWeight: 'bold' }}>-38%</span>
               </div>
               <div className="evidence-item">
                 <span>Vibration Trend</span>
-                <span style={{ color: '#ff9900', fontWeight: 'bold' }}>+27%</span>
+                <span style={{ color: '#ff9900', fontWeight: 'bold' }}>+15%</span>
               </div>
               <div className="evidence-item">
-                <span>Fuel Efficiency</span>
-                <span style={{ color: '#cc0000', fontWeight: 'bold' }}>-12%</span>
+                <span>Temperature Gradient</span>
+                <span style={{ color: '#cc0000', fontWeight: 'bold' }}>+12%</span>
               </div>
             </div>
           </div>
@@ -98,9 +98,9 @@ const MaintenanceDashboard = () => {
               <Wrench size={18} /> MAINTENANCE ADVISORY
             </div>
             <ol className="advisory-steps">
-              <li>Inspect fuel injectors on cylinders 2 and 3 for clogging or wear.</li>
-              <li>Perform flow check on injector lines.</li>
-              <li>Verify engine oil for potential fuel contamination due to misfire.</li>
+              <li>Inspect oil pump assembly for wear or blockage.</li>
+              <li>Perform flow check on primary oil lines.</li>
+              <li>Verify engine bearing integrity due to prolonged low pressure.</li>
               <li>Run static ground test for 15 minutes post-maintenance to verify residual baseline return.</li>
             </ol>
             <div style={{ marginTop: 'auto', paddingTop: '1.5rem' }}>

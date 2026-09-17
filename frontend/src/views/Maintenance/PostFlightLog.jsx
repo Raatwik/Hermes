@@ -4,6 +4,7 @@ import MissionDetailsModal from './MissionDetailsModal';
 import './PostFlightLog.css';
 
 const mockLogs = [
+  { id: 'Surveillance-Alpha-09', date: new Date().toISOString().split('T')[0], duration: '02:15:00', maxRpm: 2450, anomalies: 1, riskLevel: 'Critical' },
   { id: 'M-142', date: '2026-08-28', duration: '08:14:00', maxRpm: 5600, anomalies: 3, riskLevel: 'High' },
   { id: 'M-141', date: '2026-08-25', duration: '06:30:00', maxRpm: 5400, anomalies: 1, riskLevel: 'Low' },
   { id: 'M-140', date: '2026-08-21', duration: '09:45:00', maxRpm: 5500, anomalies: 0, riskLevel: 'Nominal' },
