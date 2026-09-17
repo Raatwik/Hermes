@@ -4,7 +4,7 @@ import { Activity } from 'lucide-react';
 import GlobalNav from './GlobalNav';
 import './OperatorLayout.css';
 
-export default function OperatorLayout({ children }) {
+export default function OperatorLayout({ children, operatorName = "OPERATOR: R. SHARMA" }) {
   const currentTime = new Date().toISOString().substring(11, 19);
   
   return (
@@ -26,7 +26,7 @@ export default function OperatorLayout({ children }) {
             <div className="utc-time" style={{ color: '#ffffff', fontSize: '1rem', marginTop: '2px' }}>UTC {currentTime}</div>
           </div>
           <div className="operator-name-display" style={{ color: '#ffffff', fontWeight: 'bold' }}>
-            OPERATOR: R. SHARMA
+            {operatorName}
           </div>
         </div>
       </header>
