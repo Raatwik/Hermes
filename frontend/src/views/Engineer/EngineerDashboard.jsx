@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { Activity } from 'lucide-react';
 import useEngineStore from '../../store/useEngineStore';
 import TwinDriftChart from '../../components/widgets/TwinDriftChart';
 import ResidualTimeSeries from '../../components/widgets/ResidualTimeSeries';
@@ -7,12 +8,14 @@ import EngineBlueprintWidget from '../../components/widgets/EngineBlueprintWidge
 import DegradationCauseGraph from '../../components/widgets/DegradationCauseGraph';
 import MissionSandboxWidget from '../../components/widgets/MissionSandboxWidget';
 import GlobalNav from '../../components/layout/GlobalNav';
+import '../../components/layout/OperatorLayout.css';
 import './EngineerDashboard.css';
 
 const EngineerDashboard = () => {
   const missionContext = useEngineStore(state => state.missionContext);
   const connectLiveTelemetry = useEngineStore(state => state.connectLiveTelemetry);
   const isLive = useEngineStore(state => state.isLive);
+  const currentTime = new Date().toISOString().substring(11, 19);
 
   useEffect(() => {
     // Start listening to WebSocket/mock data on mount
@@ -23,17 +26,25 @@ const EngineerDashboard = () => {
   return (
     <div className="engineer-dashboard">
       {/* Header */}
-      <header className="dashboard-header">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-          <h1 className="text-xl font-bold">PROPULSION ENGINEER VIEW</h1>
-          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', fontSize: '0.9rem' }}>
+      <header className="operator-header" style={{ margin: '-1.5rem -1.5rem 1rem -1.5rem' }}>
+        <div className="header-left">
+          <Activity className="header-logo" size={24} color="var(--color-good)" />
+          <div className="header-title-block">
+            <h1 className="header-title">MALE UAV <span className="title-divider">|</span> <span className="title-view">PROPULSION ENGINEER</span></h1>
+          </div>
+          <div style={{ display: 'flex', gap: '1rem', marginLeft: '2rem', alignItems: 'center', fontSize: '0.9rem' }}>
             <GlobalNav />
-            <Link to="/" style={{ color: 'var(--color-critical)', fontWeight: 'bold', textDecoration: 'none', padding: '4px 10px', border: '1px solid var(--color-critical)', borderRadius: '4px' }}>LOGOUT</Link>
+            <Link to="/" style={{ color: '#ffffff', fontWeight: 'bold', textDecoration: 'none', padding: '4px 10px', border: '1px solid #ffffff', borderRadius: '4px' }}>LOGOUT</Link>
           </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', padding: '0.5rem 1rem', backgroundColor: 'var(--bg-secondary)', borderRadius: '4px', border: '1px solid var(--border-color)' }}>
-          <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>MISSION PHASE:</span>
-          <span style={{ color: 'var(--color-critical)', fontWeight: 'bold' }}>{missionContext.phase}</span>
+        <div className="header-right">
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', fontSize: '0.75rem', color: '#a8b2d1' }}>
+            <div>TAKEOFF: 09:23Z | EST. LANDING: 15:08Z</div>
+            <div className="utc-time" style={{ color: '#ffffff', fontSize: '1rem', marginTop: '2px' }}>UTC {currentTime}</div>
+          </div>
+          <div className="operator-name-display" style={{ color: '#ffffff', fontWeight: 'bold' }}>
+            ENGINEER: A. GUPTA
+          </div>
         </div>
       </header>
 
