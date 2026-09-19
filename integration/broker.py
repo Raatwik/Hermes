@@ -28,9 +28,10 @@ async def run_broker():
     print("MQTT broker listening on 0.0.0.0:1883")
 
     stop = asyncio.Event()
-    loop = asyncio.get_running_loop()
-    for sig in (signal.SIGINT, signal.SIGTERM):
-        loop.add_signal_handler(sig, stop.set)
+    if sys.platform != "win32":
+        loop = asyncio.get_running_loop()
+        for sig in (signal.SIGINT, signal.SIGTERM):
+            loop.add_signal_handler(sig, stop.set)
 
     await stop.wait()
     print("\nShutting down broker...")

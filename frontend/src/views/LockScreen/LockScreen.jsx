@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { KeyRound, ArrowRight, ArrowLeft, Lock } from 'lucide-react';
 import headerLeftImg from '../../assets/header-left.png';
 import headerRightImg from '../../assets/header-right.png';
+import engineImg from '../../assets/engine1.png';
+import uavImg from '../../assets/uav.png';
 import pmImg from '../../assets/pm.png';
-import ministerImg from '../../assets/minister.png';
-import minister2Img from '../../assets/minister2.png';
 import './LockScreen.css';
 
 const USERS = [
@@ -67,18 +67,15 @@ export default function LockScreen() {
               </div>
             </div>
 
-            <div className="dignitaries-section">
-              <div className="dignitary-card">
-                <img src={ministerImg} alt="Minister" className="dignitary-image" />
-                <p className="dignitary-title">HON'BLE RAKSHA MANTRI</p>
+            <div className="lower-content-section">
+              <div className="pm-passport-section">
+                <img src={pmImg} alt="Prime Minister" className="pm-passport-image" />
               </div>
-              <div className="dignitary-card">
-                <img src={pmImg} alt="Prime Minister" className="dignitary-image" />
-                <p className="dignitary-title">HON'BLE PRIME MINISTER</p>
+              <div className="machine-section">
+                <img src={engineImg} alt="Engine" className="machine-image engine-image" />
               </div>
-              <div className="dignitary-card">
-                <img src={minister2Img} alt="Minister 2" className="dignitary-image" />
-                <p className="dignitary-title">HON'BLE RAKSHA RAJYA MANTRI</p>
+              <div className="machine-section">
+                <img src={uavImg} alt="UAV" className="machine-image uav-image" />
               </div>
             </div>
           </>

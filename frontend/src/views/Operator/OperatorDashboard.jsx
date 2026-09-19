@@ -1,8 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import useEngineStore from '../../store/useEngineStore';
 import OperatorLayout from '../../components/layout/OperatorLayout';
-import { SidebarSummaryPanel, AlertBanner, TelemetryTable } from '../../components/widgets/Widgets';
+import { SidebarSummaryPanel, AlertBanner } from '../../components/widgets/Widgets';
 import { RulWidget, MissionProgress, RecommendationBanner } from '../../components/widgets/MissionWidgets';
+import MapWidget from '../../components/widgets/MapWidget';
 import { 
   Settings, ShieldAlert, CheckCircle2, 
   Gauge, Thermometer, Droplet,
@@ -10,17 +11,73 @@ import {
 } from 'lucide-react';
 import './OperatorDashboard.css';
 
+const MetricCardSmall = ({ title, expected, current, deviation, unit, status, icon: Icon, colorClass }) => {
+  const isNeutral = colorClass === 'good';
+  const valColor = isNeutral ? 'var(--text-primary)' : `var(--color-${colorClass})`;
+  
+  // Calculate threshold percentage for bar gauge
+  let maxVal = 100;
+  let currentNum = parseFloat(current);
+  if (title === 'RPM') maxVal = 6000;
+  else if (title.includes('CHT')) maxVal = 200;
+  else if (title.includes('EGT')) maxVal = 800;
+  else if (title === 'OIL PRESSURE') maxVal = 120;
+  else if (title === 'OIL TEMP') maxVal = 150;
+  
+  const fillPct = Math.min(100, Math.max(0, (currentNum / maxVal) * 100)) || 0;
+  
+  const radius = 18;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (fillPct / 100) * circumference;
+  
+  return (
+    <div className="metric-card-small">
+      <div className="metric-header">
+        <Icon size={14} style={{ color: 'var(--text-secondary)' }} />
+        <span style={{ color: 'var(--text-secondary)' }}>{title}</span>
+        {!isNeutral && (
+          <span style={{ 
+            width: '6px', height: '6px', borderRadius: '0', 
+            backgroundColor: `var(--color-${colorClass})`, 
+            marginLeft: 'auto' 
+          }}></span>
+        )}
+      </div>
+      
+      <div className="metric-value-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px' }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+          <span className="metric-value" style={{ color: valColor }}>{current}</span>
+          <span className="metric-unit" style={{ color: 'var(--text-secondary)' }}>{unit}</span>
+        </div>
+        
+        <div style={{ position: 'relative', width: '40px', height: '40px', flexShrink: 0 }}>
+          <svg width="40" height="40" style={{ transform: 'rotate(-90deg)' }}>
+            <circle cx="20" cy="20" r={radius} stroke="var(--bg-secondary)" strokeWidth="3" fill="none" />
+            <circle cx="20" cy="20" r={radius} stroke={valColor} strokeWidth="3" fill="none"
+              strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} strokeLinecap="round" />
+          </svg>
+        </div>
+      </div>
+      
+      <div className="metric-expected" style={{ borderTop: 'none' }}>
+        EXP: {expected} {unit}
+      </div>
+      <div className="metric-deviation" style={{ color: isNeutral ? 'var(--text-secondary)' : valColor }}>
+        DEV: {deviation}
+      </div>
+    </div>
+  );
+};
+
 export default function OperatorDashboard() {
   const activeRecommendation = useEngineStore(state => state.activeRecommendation);
   const connectLiveTelemetry = useEngineStore(state => state.connectLiveTelemetry);
   const twinData = useEngineStore(state => state.twinComparisonData);
   const missionContext = useEngineStore(state => state.missionContext);
   const isLive = useEngineStore(state => state.isLive);
-
-  useEffect(() => {
-    const disconnect = connectLiveTelemetry();
-    return disconnect;
-  }, [connectLiveTelemetry]);
+  const acceptRecommendation = useEngineStore(state => state.acceptRecommendation);
+  const activeAlerts = useEngineStore(state => state.activeAlerts);
+  // We removed isMitigated local state since the store manages the data directly upon accept.
 
   const g = twinData.globals;
 
@@ -37,20 +94,51 @@ export default function OperatorDashboard() {
     return 'good';
   };
 
-  const rpmStatus = deviationStatus(g.rpm.deviation);
-  const oilPStatus = deviationStatus(g.oilPressure.deviation);
-  const oilTStatus = deviationStatus(g.oilTemp.deviation);
+  const rpmDev = g.rpm.deviation; 
+  const oilPDev = g.oilPressure.deviation; 
+  const oilPActual = g.oilPressure.actual; 
+  const oilTDev = g.oilTemp.deviation; 
+
+  const rpmStatus = deviationStatus(rpmDev);
+  const oilPStatus = deviationStatus(oilPDev);
+  const oilTStatus = deviationStatus(oilTDev);
 
   const telemetryData = [
-    { title: 'RPM', expected: String(g.rpm.expected), current: isLive ? String(Math.round(g.rpm.actual)) : '—', deviation: isLive ? `${g.rpm.deviation}%` : '—', unit: 'RPM', status: rpmStatus, icon: Gauge, colorClass: deviationColor(rpmStatus) },
-    { title: 'OIL PRESSURE', expected: String(g.oilPressure.expected), current: isLive ? String(Math.round(g.oilPressure.actual)) : '—', deviation: isLive ? `${g.oilPressure.deviation}%` : '—', unit: 'psi', status: oilPStatus, icon: Droplet, colorClass: deviationColor(oilPStatus) },
-    { title: 'OIL TEMPERATURE', expected: String(g.oilTemp.expected), current: isLive ? String(Math.round(g.oilTemp.actual)) : '—', deviation: isLive ? `${g.oilTemp.deviation}%` : '—', unit: '°C', status: oilTStatus, icon: Thermometer, colorClass: deviationColor(oilTStatus) }
+    { title: 'RPM', expected: String(g.rpm.expected), current: String(Math.round(g.rpm.actual)), deviation: `${rpmDev}%`, unit: 'RPM', status: rpmStatus, icon: Gauge, colorClass: deviationColor(rpmStatus) },
+    { title: 'OIL PRESSURE', expected: String(g.oilPressure.expected), current: String(Math.round(oilPActual)), deviation: `${oilPDev}%`, unit: 'psi', status: oilPStatus, icon: Droplet, colorClass: deviationColor(oilPStatus) },
+    { title: 'OIL TEMP', expected: String(g.oilTemp.expected), current: String(Math.round(g.oilTemp.actual)), deviation: `${oilTDev}%`, unit: '°C', status: oilTStatus, icon: Thermometer, colorClass: deviationColor(oilTStatus) }
   ];
 
-  const cylinderMetrics = twinData.cylinders.flatMap((cyl) => [
-    { type: 'EGT', cyl: cyl.id, expected: cyl.egt.expected, current: Math.round(cyl.egt.actual), isWarning: Math.abs(cyl.egt.actual - cyl.egt.expected) > 20, unit: '°C' },
-    { type: 'CHT', cyl: cyl.id, expected: cyl.cht.expected, current: Math.round(cyl.cht.actual), isWarning: Math.abs(cyl.cht.actual - cyl.cht.expected) > 10, unit: '°C' },
-  ]);
+  const cylinderMetrics = twinData.cylinders.flatMap((cyl) => {
+    let egtActual = cyl.egt.actual;
+    let chtActual = cyl.cht.actual;
+
+    const getStatus = (actual, expected, warnThresh, critThresh) => {
+      const dev = Math.abs(actual - expected);
+      if (dev >= critThresh) return 'critical';
+      if (dev >= warnThresh) return 'warning';
+      return 'good';
+    };
+    
+    return [
+      { type: 'EGT', cyl: cyl.id, expected: cyl.egt.expected, current: Math.round(egtActual), status: getStatus(egtActual, cyl.egt.expected, 20, 50), unit: '°C' },
+      { type: 'CHT', cyl: cyl.id, expected: cyl.cht.expected, current: Math.round(chtActual), status: getStatus(chtActual, cyl.cht.expected, 10, 20), unit: '°C' },
+    ];
+  });
+
+  const allMetrics = [
+    ...telemetryData,
+    ...cylinderMetrics.map(m => ({
+      title: `CYL ${m.cyl} ${m.type}`,
+      expected: String(m.expected),
+      current: String(m.current),
+      deviation: String(Math.round(m.current - m.expected)),
+      unit: m.unit,
+      status: m.status.toUpperCase(),
+      icon: Thermometer,
+      colorClass: m.status
+    }))
+  ];
 
   const missionPhases = [
     { name: 'TAKEOFF', icon: PlaneTakeoff },
@@ -61,88 +149,131 @@ export default function OperatorDashboard() {
     { name: 'LANDING', icon: PlaneLanding }
   ];
 
-  const mockWarnings = [
-    {
-      level: 'warning',
-      title: 'WATCH: EGT ELEVATED',
-      message: 'Exhaust gas temperature is elevated but within acceptable limits.',
-      timestamp: '12:45:10',
-      resolved: false
-    },
-    {
-      level: 'critical',
-      title: 'ALERT: OIL PRESSURE DROP',
-      message: 'Oil pressure dropped below nominal threshold momentarily.',
-      timestamp: '12:41:05',
-      resolved: false
-    },
-    {
-      level: 'info',
-      title: 'INFO: COMMS LINK SWITCH',
-      message: 'Switched to backup satellite link due to latency.',
-      timestamp: '12:30:22',
-      resolved: true
-    }
+  const mockCheckpoints = [
+    { lat: 28.6139, lng: 77.2090 },
+    { lat: 28.5355, lng: 77.3910 },
+    { lat: 28.4595, lng: 77.0266 }
   ];
 
   return (
     <OperatorLayout>
-      <div className="dashboard-columns">
-        {/* Left Sidebar */}
-        <aside className="dashboard-sidebar">
-          <SidebarSummaryPanel
-            engineHealth={isLive ? `${missionContext.ehi}/100` : '—/100'}
-            systemStatus={isLive ? (rpmStatus === 'CRITICAL' || oilPStatus === 'CRITICAL' ? 'CRITICAL' : rpmStatus === 'WARNING' || oilPStatus === 'WARNING' ? 'WARNING' : 'NOMINAL') : 'AWAITING DATA'}
-            riskValue={isLive ? `${Math.max(0, Math.min(100, Math.round(Math.max(Math.abs(parseFloat(g.rpm.deviation)), Math.abs(parseFloat(g.oilPressure.deviation))))))}%` : '—'}
-            riskColorClass={rpmStatus === 'CRITICAL' || oilPStatus === 'CRITICAL' ? 'critical' : rpmStatus === 'WARNING' || oilPStatus === 'WARNING' ? 'warning' : 'good'}
+      <div className="dashboard-grid-layout">
+        
+        {/* TOP LEFT: MAP */}
+        <div className="area-map card" style={{ padding: 0 }}>
+          <MapWidget 
+            currentPosition={[28.5355, 77.3910]} 
+            checkpoints={mockCheckpoints}
           />
-          <RulWidget
-            hours={missionContext.rul != null ? missionContext.rul : null}
-            text={missionContext.rul != null ? "Live RUL estimate" : "Awaiting ML model"}
-            isGood={missionContext.rul == null || missionContext.rul > 50}
-          />
-          <MissionProgress 
-            phases={missionPhases}
-            currentPhaseIndex={2}
-            progressPercent={45}
-            elapsed="02:15:32"
-            remaining="03:44:28"
-          />
-          <div className="card advisory-panel sidebar-alert">
-            <AlertBanner warnings={mockWarnings} />
+        </div>
+
+        {/* BOTTOM LEFT: EARLY WARNING SYSTEM */}
+        <div className="area-warning">
+          <div className="card advisory-panel" style={{ height: '100%' }}>
+            {activeAlerts.length > 0 ? (
+              <h2 className="section-title" style={{ padding: '0.5rem 0.5rem 0 0.5rem', color: 'var(--color-warning)', marginBottom: '0.25rem' }}>
+                SYSTEM STATUS: {activeRecommendation ? 'CRITICAL' : 'WARNING'}: {activeAlerts.length} active conditions require operator awareness.
+              </h2>
+            ) : (
+              <h2 className="section-title" style={{ padding: '0.5rem 0.5rem 0 0.5rem', marginBottom: '0.25rem' }}>SYSTEM STATUS: NORMAL</h2>
+            )}
+            <div style={{ height: '1px', backgroundColor: 'var(--border-color)', margin: '0.25rem 0.5rem 0.5rem 0.5rem' }}></div>
+            {activeAlerts.length > 0 ? (
+              <div style={{ padding: '0 0.5rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', alignItems: 'start' }}>
+                  <div>
+                    <div style={{ marginBottom: '0.25rem', fontSize: '0.9rem', fontWeight: 'bold', color: 'var(--text-secondary)' }}>ACTIVE ALERTS</div>
+                    <AlertBanner warnings={activeAlerts} />
+                  </div>
+                  <div>
+                    <div style={{ marginBottom: '0.25rem', fontSize: '0.9rem', fontWeight: 'bold', color: 'var(--text-secondary)' }}>ENGINEER MITIGATIONS</div>
+                    {activeRecommendation ? (
+                      <RecommendationBanner 
+                        title={activeRecommendation.title}
+                        options={activeRecommendation.options}
+                        isGood={activeRecommendation.isGood}
+                        onExecute={() => acceptRecommendation()}
+                      />
+                    ) : (
+                      <div style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-secondary)', border: '1px dashed var(--border-color)', borderRadius: '4px' }}>
+                        No active mitigations.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-primary)' }}>
+                <div style={{ fontWeight: 'bold' }}>SYSTEM STATUS: NORMAL</div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>No active conditions.</div>
+              </div>
+            )}
           </div>
-        </aside>
-
-        {/* Right Main Content */}
-        <div className="dashboard-main-content">
-          {/* Live Core Readouts */}
-          <div className="core-readouts-section">
-            <h3 className="section-title">LIVE CORE READOUTS</h3>
-        <div className="card telemetry-table-card">
-          <TelemetryTable data={telemetryData} cylinderMetrics={cylinderMetrics} />
         </div>
-      </div>
 
-      {/* Bottom Content Area */}
-      <div className="bottom-content-grid">
-        {/* Recommendation Panel */}
-        <div className="card advisory-panel">
-          {activeRecommendation ? (
-            <RecommendationBanner 
-              title={activeRecommendation.title}
-              options={activeRecommendation.options}
-              isGood={activeRecommendation.isGood}
-            />
-          ) : (
-            <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
-              <CheckCircle2 size={48} style={{ margin: '0 auto 1rem', color: 'var(--color-good)', opacity: 0.5 }} />
-              <div style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>SYSTEM NOMINAL</div>
-              <div style={{ fontSize: '0.8rem' }}>No active mitigations recommended from Propulsion Engineer.</div>
+        {/* TOP RIGHT: TELEMETRY CARDS */}
+        <div className="area-telemetry">
+          <div className="card" style={{ height: '100%', overflow: 'hidden' }}>
+            <div className="telemetry-cards-grid" style={{ height: '100%' }}>
+              {allMetrics.map((metric, idx) => (
+                <MetricCardSmall key={idx} {...metric} />
+              ))}
             </div>
-          )}
+          </div>
         </div>
-      </div>
+
+        {/* BOTTOM RIGHT: SUMMARY */}
+        <div className="area-summary">
+          <SidebarSummaryPanel
+            engineHealth={`${missionContext.ehi}/100`}
+            systemStatus={rpmStatus === 'CRITICAL' || oilPStatus === 'CRITICAL' ? 'CRITICAL' : rpmStatus === 'WARNING' || oilPStatus === 'WARNING' ? 'WARNING' : 'NORMAL'}
+            riskValue={`${Math.max(0, Math.min(100, Math.round(Math.max(Math.abs(parseFloat(g.rpm.deviation)), Math.abs(parseFloat(g.oilPressure.deviation))))))}%`}
+            riskColorClass={rpmStatus === 'CRITICAL' || oilPStatus === 'CRITICAL' ? 'critical' : rpmStatus === 'WARNING' || oilPStatus === 'WARNING' ? 'warning' : 'good'}
+            rul={`${missionContext.rul ?? 31} mins`}
+          />
+          <div className="bottom-content-grid" style={{ gridTemplateColumns: '1fr', marginTop: '1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              {/* FUEL MANAGEMENT */}
+              <div style={{ border: '2px solid var(--border-color)', backgroundColor: 'var(--bg-primary)' }}>
+                <div style={{ padding: '4px 8px', backgroundColor: 'var(--bg-secondary)', borderBottom: '2px solid var(--border-color)', fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--text-secondary)' }}>
+                  FUEL MANAGEMENT
+                </div>
+                <div style={{ padding: '8px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+                    <span style={{ color: 'var(--text-secondary)' }}>REMAINING</span>
+                    <span style={{ color: 'var(--text-primary)', fontWeight: 'bold', fontFamily: "'Times New Roman', Times, serif" }}>{missionContext.fuelRemaining ?? 85} L</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+                    <span style={{ color: 'var(--text-secondary)' }}>BURN RATE</span>
+                    <span style={{ color: 'var(--text-primary)', fontWeight: 'bold', fontFamily: "'Times New Roman', Times, serif" }}>{missionContext.fuelBurnRate ?? missionContext.fuelFlow ?? 24.1} L/hr</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+                    <span style={{ color: 'var(--text-secondary)' }}>TIME-TO-EMPTY</span>
+                    <span style={{ color: 'var(--text-primary)', fontWeight: 'bold', fontFamily: "'Times New Roman', Times, serif" }}>{missionContext.timeToEmpty ?? 3.5} hr</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* ELECTRICAL */}
+              <div style={{ border: '2px solid var(--border-color)', backgroundColor: 'var(--bg-primary)' }}>
+                <div style={{ padding: '4px 8px', backgroundColor: 'var(--bg-secondary)', borderBottom: '2px solid var(--border-color)', fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--text-secondary)' }}>
+                  ELECTRICAL SYS
+                </div>
+                <div style={{ padding: '8px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+                    <span style={{ color: 'var(--text-secondary)' }}>ALT OUTPUT</span>
+                    <span style={{ color: 'var(--text-primary)', fontWeight: 'bold', fontFamily: "'Times New Roman', Times, serif" }}>{missionContext.alternatorVolts ?? 28.2}V / {missionContext.alternatorAmps ?? 45}A</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+                    <span style={{ color: 'var(--text-secondary)' }}>MAIN BUS LOAD</span>
+                    <span style={{ color: 'var(--text-primary)', fontWeight: 'bold', fontFamily: "'Times New Roman', Times, serif" }}>{missionContext.mainBusLoad ?? 78}%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
+
       </div>
     </OperatorLayout>
   );

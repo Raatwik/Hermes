@@ -64,7 +64,7 @@ While the theoretical spec proposes a complex PINN-GAT-ODE, we will implement a 
 | **MVP Starting Point**| Stage 1 & 2 Models | We will build the XGBoost (fault classification) and LSTM (RUL) models first, deferring the PINN-GAT-ODE to a later research phase. |
 | **Physics Integration**| Feature-Level Hybrid | The ML models will consume both the raw sensor data AND the physics residuals (Actual - Expected). This combines the strengths of data-driven and physics-based approaches without the complexity of custom physics-loss functions. |
 | **Unknown Faults** | Confidence Thresholding | For MVP open-set anomaly detection, we will use probability thresholds on the XGBoost classifier (e.g., if max class probability < 0.6, output 'Unknown Fault') rather than training a separate unsupervised model. |
-| **RUL Prediction** | Probabilistic LSTM | The LSTM will output distribution parameters (Mean and Variance) instead of a single scalar. This provides crucial confidence intervals (e.g., $145 \pm 20$ hours) for the Mission Risk calculations. |
+| **RUL Prediction** | MC Dropout LSTM (Gal & Ghahramani, ICML 2016) | LSTM with Dropout active at inference. N=50 stochastic forward passes produce a full predictive distribution capturing both aleatoric (model σ via NLL) and epistemic (pass variance) uncertainty. Output: `RUL_mean`, `RUL_lower_95`, `RUL_upper_95`. Provides actionable confidence bounds (e.g., `31 mins | 95% CI: [24–39 mins]`) for RTB decisions. One-line change on existing trained weights — no retraining needed. |
 
 ---
 

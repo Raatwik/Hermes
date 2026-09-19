@@ -66,16 +66,16 @@ const TwinComparisonWidget = () => {
           <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr 1fr 0.5fr', gap: '0.5rem', padding: '0.75rem 0', borderBottom: '1px solid var(--border-color)', alignItems: 'center' }}>
             <div style={{ fontWeight: 'bold', fontSize: '0.85rem' }}>💧 OIL PRESSURE</div>
             <div style={{ fontSize: '1rem', fontWeight: 'bold' }}>{twinComparisonData.globals.oilPressure.expected} <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>psi</span></div>
-            <div style={{ fontSize: '1rem', fontWeight: 'bold' }}>{isLive ? twinComparisonData.globals.oilPressure.actual.toFixed(0) : '—'} <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>psi</span></div>
-            <div style={{ fontWeight: 'bold' }}>{isLive ? formatDev(twinComparisonData.globals.oilPressure.deviation) : '—'}</div>
+            <div style={{ fontSize: '1rem', fontWeight: 'bold' }}>{isLive ? twinComparisonData.globals.oilPressure.actual.toFixed(0) : ':'} <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>psi</span></div>
+            <div style={{ fontWeight: 'bold' }}>{isLive ? formatDev(twinComparisonData.globals.oilPressure.deviation) : ':'}</div>
             <div style={{ textAlign: 'right' }}>{getStatusBadge(isLive ? computeStatus(twinComparisonData.globals.oilPressure.deviation) : 'NORMAL', 'oilPressure')}</div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr 1fr 0.5fr', gap: '0.5rem', padding: '0.75rem 0', borderBottom: '1px solid var(--border-color)', alignItems: 'center' }}>
             <div style={{ fontWeight: 'bold', fontSize: '0.85rem' }}>🌡️ OIL TEMPERATURE</div>
             <div style={{ fontSize: '1rem', fontWeight: 'bold' }}>{twinComparisonData.globals.oilTemp.expected} <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>°C</span></div>
-            <div style={{ fontSize: '1rem', fontWeight: 'bold' }}>{isLive ? Math.round(twinComparisonData.globals.oilTemp.actual) : '—'} <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>°C</span></div>
-            <div style={{ fontWeight: 'bold' }}>{isLive ? formatDev(twinComparisonData.globals.oilTemp.deviation) : '—'}</div>
+            <div style={{ fontSize: '1rem', fontWeight: 'bold' }}>{isLive ? Math.round(twinComparisonData.globals.oilTemp.actual) : ':'} <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>°C</span></div>
+            <div style={{ fontWeight: 'bold' }}>{isLive ? formatDev(twinComparisonData.globals.oilTemp.deviation) : ':'}</div>
             <div style={{ textAlign: 'right' }}>{getStatusBadge(isLive ? computeStatus(twinComparisonData.globals.oilTemp.deviation) : 'NORMAL', 'oilTemp')}</div>
           </div>
         </div>

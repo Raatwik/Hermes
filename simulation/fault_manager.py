@@ -73,6 +73,7 @@ class FaultManager:
             elif fault.fault_type == "cylinder_failure":
                 cyl = int(fault.params.get("cylinder", 1))
                 output_offsets[f"egt_{cyl}"] = output_offsets.get(f"egt_{cyl}", 0.0) - sev * 300.0
+                output_offsets[f"cht_{cyl}"] = output_offsets.get(f"cht_{cyl}", 0.0) - sev * 100.0
                 target_offsets["rpm"] = target_offsets.get("rpm", 0.0) - sev * 1500.0
                 vibration_severity += sev * 0.8
 

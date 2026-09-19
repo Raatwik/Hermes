@@ -2,146 +2,221 @@ import { create } from 'zustand';
 import { connectWebSocket, disconnectWebSocket } from '../api/websocket';
 import { postWhatIf } from '../api/restClient';
 
-let _liveSnapshot = null;
-let _throttleTimer = null;
-let _pendingData = null;
-const THROTTLE_MS = 200; // max ~5 updates/sec
+// --- Scene Setup Logic ---
+const initialTimeSeries = Array.from({ length: 60 }).map((_, i) => ({
+  time: `12:${(i < 10 ? '0' : '') + i}:00`,
+  drift: 0,
+  expectedEGT: 65,
+  actualEGT: 65,
+  residual: 0,
+  upperBound: 15,
+  lowerBound: -15,
+}));
 
-function _applyTelemetry(state, data) {
-  const newTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+// Base initial perfectly normal state
+const initialNormalContext = {
+  altitude: 15200, rpm: 2450, engineLoad: 68, oat: -2, map: 28.5, fuelFlow: 24.1,
+  phase: 'CRUISE', ehi: 98, rul: 145, rulLowerBound: 130, rulUpperBound: 160,
+  fuelRemaining: 85, timeToEmpty: 3.5, alternatorVolts: 28.2, alternatorAmps: 45, mainBusLoad: 78,
+};
 
-  const newData = [...state.timeSeriesData];
-  if (newData.length >= 61) newData.shift();
-  newData.push({
-    time: newTime,
-    drift: data.twin_drift_score ?? 0,
-    expectedEGT: 600,
-    actualEGT: data.egt ?? 600,
-    residual: (data.egt ?? 600) - 600,
-    upperBound: 15,
-    lowerBound: -15,
-  });
-
-  const ehi = data.twin_drift_score != null
-    ? Math.max(0, Math.round(100 - data.twin_drift_score * 100))
-    : state.missionContext.ehi;
-
-  const newContext = {
-    ...state.missionContext,
-    ehi,
-    altitude: data.altitude != null ? Math.round(data.altitude) : state.missionContext.altitude,
-    rpm: data.rpm != null ? Math.round(data.rpm) : state.missionContext.rpm,
-    engineLoad: typeof data.engine_load === 'number' ? Math.round(data.engine_load * 100) : state.missionContext.engineLoad,
-    oat: data.ambient_temperature != null ? Math.round(data.ambient_temperature) : state.missionContext.oat,
-    fuelFlow: data.fuel_flow != null ? Math.round(data.fuel_flow * 10) / 10 : state.missionContext.fuelFlow,
-    rul: data.lstm_rul_mean != null ? Math.max(0, Math.min(Number(data.lstm_rul_mean.toFixed(2)), 9999)) : state.missionContext.rul,
-    rulLowerBound: data.lstm_rul_mean != null && data.lstm_rul_std != null
-      ? Math.max(0, Number((data.lstm_rul_mean - 2 * data.lstm_rul_std).toFixed(2)))
-      : state.missionContext.rulLowerBound,
-    rulUpperBound: data.lstm_rul_mean != null && data.lstm_rul_std != null
-      ? Math.min(9999, Number((data.lstm_rul_mean + 2 * data.lstm_rul_std).toFixed(2)))
-      : state.missionContext.rulUpperBound,
-  };
-
-  const newTwinData = JSON.parse(JSON.stringify(state.twinComparisonData));
-
-  if (data.expected_rpm != null) newTwinData.globals.rpm.expected = Math.round(data.expected_rpm);
-  newTwinData.globals.rpm.actual = data.rpm != null ? Math.round(data.rpm) : newTwinData.globals.rpm.actual;
-  newTwinData.globals.rpm.deviation = ((newTwinData.globals.rpm.actual - newTwinData.globals.rpm.expected) / newTwinData.globals.rpm.expected * 100).toFixed(1);
-
-  if (data.expected_oil_pressure != null) newTwinData.globals.oilPressure.expected = Math.round(data.expected_oil_pressure * 10) / 10;
-  newTwinData.globals.oilPressure.actual = data.oil_pressure != null ? Math.round(data.oil_pressure * 10) / 10 : newTwinData.globals.oilPressure.actual;
-  newTwinData.globals.oilPressure.deviation = ((newTwinData.globals.oilPressure.actual - newTwinData.globals.oilPressure.expected) / newTwinData.globals.oilPressure.expected * 100).toFixed(1);
-
-  if (data.expected_oil_temp != null) newTwinData.globals.oilTemp.expected = Math.round(data.expected_oil_temp * 10) / 10;
-  newTwinData.globals.oilTemp.actual = data.oil_temp != null ? Math.round(data.oil_temp * 10) / 10 : newTwinData.globals.oilTemp.actual;
-  newTwinData.globals.oilTemp.deviation = ((newTwinData.globals.oilTemp.actual - newTwinData.globals.oilTemp.expected) / newTwinData.globals.oilTemp.expected * 100).toFixed(1);
-
-  const egtKeys = ['egt_1', 'egt_2', 'egt_3', 'egt_4'];
-  newTwinData.cylinders.forEach((cyl, i) => {
-    if (data[`expected_${egtKeys[i]}`] != null) cyl.egt.expected = Math.round(data[`expected_${egtKeys[i]}`]);
-    if (data[egtKeys[i]] != null) cyl.egt.actual = Math.round(data[egtKeys[i]]);
-    if (data.expected_cht != null) cyl.cht.expected = Math.round(data.expected_cht);
-    if (data.cht != null) cyl.cht.actual = Math.round(data.cht);
-  });
-
-  const faultProbabilities = (data.xgboost_faults && data.xgboost_faults.length > 0)
-    ? data.xgboost_faults.map((name) => ({
-        name,
-        probability: 1 / data.xgboost_faults.length,
-        ci: [0, 1],
-      }))
-    : state.faultProbabilities;
-
-  const update = {
-    isLive: true,
-    timeSeriesData: newData,
-    missionContext: newContext,
-    twinComparisonData: newTwinData,
-    faultProbabilities,
-  };
-
-  _liveSnapshot = update;
-  return update;
-}
+const initialTwinData = {
+  globals: {
+    rpm: { expected: 2450, actual: 2450, deviation: 0, status: 'good' },
+    oilPressure: { expected: 65, actual: 65, deviation: 0, status: 'good' },
+    oilTemp: { expected: 95, actual: 95, deviation: 0, status: 'good' },
+  },
+  cylinders: [
+    { id: 1, egt: { expected: 650, actual: 648 }, cht: { expected: 155, actual: 153 } },
+    { id: 2, egt: { expected: 650, actual: 655 }, cht: { expected: 155, actual: 158 } },
+    { id: 3, egt: { expected: 650, actual: 660 }, cht: { expected: 155, actual: 162 } },
+    { id: 4, egt: { expected: 650, actual: 649 }, cht: { expected: 155, actual: 154 } },
+  ],
+};
 
 const useEngineStore = create((set, get) => ({
-  // --- State ---
+  activeScene: 0,
+  _animFrame: null,
+  
+  // Scene Data (Starts at Normal)
+  missionContext: { ...initialNormalContext },
+  twinComparisonData: JSON.parse(JSON.stringify(initialTwinData)),
+  timeSeriesData: initialTimeSeries,
+  faultProbabilities: [],
   activeRecommendation: null,
-  isLive: false,
+  activeAlerts: [],
+  maintenanceLog: [],
+  diagnosisData: null,
 
-  missionContext: _liveSnapshot?.missionContext ?? {
-    altitude: 0,
-    rpm: 0,
-    engineLoad: 0,
-    oat: 0,
-    map: 0,
-    fuelFlow: 0,
-    phase: 'STARTUP',
-    ehi: 0,
-    rul: null,
-    rulLowerBound: null,
-    rulUpperBound: null,
+  animateTransition: (startValues, endValues, durationMs, onCompleteStateUpdates = {}) => {
+    let startTime = null;
+    const store = get();
+    if (store._animFrame) cancelAnimationFrame(store._animFrame);
+    
+    const animate = (time) => {
+      if (!startTime) startTime = time;
+      const progress = Math.min((time - startTime) / durationMs, 1);
+      
+      const currentEhi = Math.round(startValues.ehi + (endValues.ehi - startValues.ehi) * progress);
+      const rawOilP = startValues.oilP + (endValues.oilP - startValues.oilP) * progress;
+      const currentOilP = Math.round(rawOilP * 10) / 10;
+      const rawDev = startValues.dev + (endValues.dev - startValues.dev) * progress;
+      const currentDeviation = Math.round(rawDev * 10) / 10;
+      
+      set(state => {
+        const newState = {
+          missionContext: { ...state.missionContext, ehi: currentEhi },
+          twinComparisonData: {
+            ...state.twinComparisonData,
+            globals: {
+              ...state.twinComparisonData.globals,
+              oilPressure: {
+                ...state.twinComparisonData.globals.oilPressure,
+                actual: currentOilP,
+                deviation: currentDeviation,
+                status: currentDeviation < -30 ? 'critical' : (currentDeviation < -10 ? 'warning' : 'good')
+              }
+            }
+          }
+        };
+        // Apply final updates instantly if we hit 100%
+        if (progress === 1) {
+          return { ...state, ...newState, ...onCompleteStateUpdates };
+        }
+        return { ...state, ...newState };
+      });
+
+      if (progress < 1) {
+        store._animFrame = requestAnimationFrame(animate);
+      }
+    };
+    store._animFrame = requestAnimationFrame(animate);
   },
 
-  twinComparisonData: _liveSnapshot?.twinComparisonData ?? {
-    globals: {
-      rpm: { expected: 2450, actual: 0, deviation: 0, status: 'NOMINAL' },
-      oilPressure: { expected: 65, actual: 0, deviation: 0, status: 'NOMINAL' },
-      oilTemp: { expected: 95, actual: 0, deviation: 0, status: 'NOMINAL' },
-    },
-    cylinders: [
-      { id: 1, egt: { expected: 650, actual: 0 }, cht: { expected: 155, actual: 0 } },
-      { id: 2, egt: { expected: 650, actual: 0 }, cht: { expected: 155, actual: 0 } },
-      { id: 3, egt: { expected: 650, actual: 0 }, cht: { expected: 155, actual: 0 } },
-      { id: 4, egt: { expected: 650, actual: 0 }, cht: { expected: 155, actual: 0 } },
-    ],
+  // Setters
+  setScene: (sceneNumber) => {
+    let stateUpdates = { activeScene: sceneNumber };
+    const todayDate = new Date().toISOString().split('T')[0];
+
+    const store = get();
+    const currentOilP = store.twinComparisonData.globals.oilPressure.actual;
+    const currentDev = store.twinComparisonData.globals.oilPressure.deviation;
+    const currentEhi = store.missionContext.ehi;
+
+    if (sceneNumber === 0) {
+      // Normal
+      set({
+        activeScene: 0,
+        missionContext: { ...initialNormalContext },
+        twinComparisonData: JSON.parse(JSON.stringify(initialTwinData)),
+        activeAlerts: [],
+        activeRecommendation: null,
+      });
+    }
+    else if (sceneNumber === 1) {
+      // Warning Drop (Animate down to 85 EHI, 55 PSI)
+      store.animateTransition(
+        { ehi: currentEhi, oilP: currentOilP, dev: currentDev },
+        { ehi: 85, oilP: 55, dev: -15.3 },
+        2000,
+        {
+          activeAlerts: [{ level: 'warning', title: 'SYSTEM WARNING', message: 'Unexpected oil pressure drop detected. Monitoring closely.', timestamp: '12:44:00', resolved: false }],
+          missionContext: { ...store.missionContext, ehi: 85, rul: 80 }
+        }
+      );
+      set({ activeScene: 1 });
+    }
+    else if (sceneNumber === 2) {
+      // Critical Drop (Animate down to 68 EHI, 40 PSI)
+      store.animateTransition(
+        { ehi: currentEhi, oilP: currentOilP, dev: currentDev },
+        { ehi: 68, oilP: 40, dev: -38.5 },
+        2000,
+        {
+          activeAlerts: [{ level: 'critical', title: 'ANOMALY DETECTED', message: 'Thermodynamic Mismatch in Oil Pressure. Physics baseline deviation.', timestamp: '12:45:10', resolved: false }],
+          missionContext: { ...store.missionContext, ehi: 68, rul: 31, rulLowerBound: 24, rulUpperBound: 39 }
+        }
+      );
+      set({ activeScene: 2 });
+    } 
+    else if (sceneNumber === 3 || sceneNumber === 4) {
+      // Scene 3 & 4: Engineer Diagnosis and Sandbox
+      const dropSeries = initialTimeSeries.map((pt, i) => {
+        if (i >= 45) return { ...pt, expectedEGT: 65, actualEGT: 40, residual: -25, drift: 0.8 };
+        return { ...pt, expectedEGT: 65, actualEGT: 65, residual: 0, drift: 0.1 };
+      });
+      stateUpdates = {
+        ...stateUpdates,
+        missionContext: { ...get().missionContext, ehi: 68, rul: 31, altitude: 15200 },
+        timeSeriesData: dropSeries,
+        faultProbabilities: [
+          { name: 'Oil Starvation', probability: 0.88, ci: [0.80, 0.95] },
+          { name: 'Injector Degradation', probability: 0.07, ci: [0.05, 0.10] },
+          { name: 'Sensor Drift', probability: 0.03, ci: [0.01, 0.05] },
+          { name: 'Unknown Anomaly', probability: 0.02, ci: [0.00, 0.04] },
+        ]
+      };
+      set(stateUpdates);
+    } 
+    else if (sceneNumber === 5) {
+      // Scene 5: Operator accepts recommendation (before accept)
+      stateUpdates = {
+        ...stateUpdates,
+        activeRecommendation: {
+          title: "ENGINEER ADVISORY: Drop altitude to 10,000 ft, reduce throttle to 60%. Restores safe RTB margin.",
+          options: [],
+          isGood: true
+        }
+      };
+      set(stateUpdates);
+    } 
+    else if (sceneNumber === 6) {
+      // Scene 6: Maintenance
+      stateUpdates = {
+        ...stateUpdates,
+        maintenanceLog: [
+          { id: 'Surveillance-Alpha-09', date: todayDate, duration: '02:15:00', maxRpm: 2450, anomalies: 1, riskLevel: 'Critical' },
+          { id: 'M-142', date: '2026-08-28', duration: '08:14:00', maxRpm: 5600, anomalies: 3, riskLevel: 'High' },
+        ],
+        diagnosisData: {
+          fault: "OIL STARVATION / PUMP DEGRADATION",
+          evidence: "45-min sustained residual drift in oil pressure. Thermodynamic mismatch detected.",
+          priority: "A-Level (Ground until resolved)"
+        }
+      };
+      set(stateUpdates);
+    }
   },
 
-  timeSeriesData: _liveSnapshot?.timeSeriesData ?? [],
+  acceptRecommendation: () => {
+    set(state => ({
+      activeRecommendation: null,
+      activeAlerts: [],
+      missionContext: {
+        ...state.missionContext,
+        ehi: 82,
+        rul: 105, // 1h 45m
+        altitude: 10000,
+        rpm: 2100 // corresponding to 60% throttle
+      },
+      twinComparisonData: {
+        ...state.twinComparisonData,
+        globals: {
+          ...state.twinComparisonData.globals,
+          oilPressure: { expected: 65, actual: 55, deviation: -15.3, status: 'warning' }
+        }
+      }
+    }));
+  },
 
-  faultProbabilities: _liveSnapshot?.faultProbabilities ?? [],
-
-  // --- Actions ---
-  pushRecommendationToOperator: (recommendation) => set({ activeRecommendation: recommendation }),
+  // Actions
+  pushRecommendationToOperator: (rec) => {
+    // Send Recommendation sets scene to 5
+    get().setScene(5);
+  },
 
   connectLiveTelemetry: () => {
-    connectWebSocket((data) => {
-      _pendingData = data;
-      if (_throttleTimer) return;
-      _throttleTimer = setTimeout(() => {
-        _throttleTimer = null;
-        const throttledData = _pendingData;
-        if (!throttledData) return;
-        _pendingData = null;
-        set((state) => _applyTelemetry(state, throttledData));
-      }, THROTTLE_MS);
-    });
-
-    return () => {
-      if (_throttleTimer) { clearTimeout(_throttleTimer); _throttleTimer = null; }
-      disconnectWebSocket();
-    };
+    return () => {}; // Disabled for demo
   },
 
   fetchMissionContext: async () => {
@@ -149,71 +224,36 @@ const useEngineStore = create((set, get) => ({
   },
 
   simulateMission: async (params) => {
-    const { altitude, engineLoad } = params;
-    const throttle = Math.max(0, Math.min(1, (engineLoad ?? 68) / 100));
-    const currentContext = get().missionContext;
-    const currentRul = currentContext.rul ?? 145;
-
-    try {
-      const data = await postWhatIf({
-        throttle,
-        altitude: altitude ?? 0,
-        currentState: {
-          rpm: currentContext.rpm ?? 2420,
-          cht: 165,
-          egt: 620,
-          oil_pressure: 65,
-          oil_temp: 95,
-          fuel_flow: currentContext.fuelFlow ?? 24.1,
-          battery_voltage: 13.6,
-        },
-      });
-      const traj = data.trajectory ?? [];
-      const last = traj.length > 0 ? traj[traj.length - 1] : {};
-
-      let simulatedRisk = 65;
-      if (data.rul_mean != null) {
-        simulatedRisk = Math.max(5, Math.min(95, Math.round(100 - data.rul_mean)));
-      } else {
-        const cht = last.cht ?? 165;
-        const egt = last.egt ?? 620;
-        simulatedRisk = Math.round(Math.min(95, Math.max(5, (cht / 250) * 50 + (egt / 900) * 50)));
-      }
-
-      const currentRisk = Math.max(5, Math.min(95, Math.round(100 - currentRul)));
-
-      let rulImpact = 0;
-      if (data.rul_mean != null) {
-        rulImpact = Math.round((data.rul_mean - currentRul) * 10) / 10;
-      } else {
-        rulImpact = Math.round((currentRisk - simulatedRisk) / 5 * 10) / 10;
-      }
-
-      return {
-        simulatedRisk,
-        currentRisk,
-        rulImpact,
-        trajectory: traj,
-        engineAlive: data.engine_alive,
-        failureReason: data.failure_reason,
-      };
-    } catch (err) {
-      console.error('What-If API failed, falling back to heuristic:', err);
-      const { rpm } = params;
-      let riskScore = 65;
-      if (engineLoad < currentContext.engineLoad) riskScore -= (currentContext.engineLoad - engineLoad) * 0.8;
-      if (engineLoad > currentContext.engineLoad) riskScore += (engineLoad - currentContext.engineLoad) * 1.2;
-      if (rpm < currentContext.rpm) riskScore -= (currentContext.rpm - rpm) * 0.02;
-      if (rpm > currentContext.rpm) riskScore += (rpm - currentContext.rpm) * 0.03;
-      if (altitude < currentContext.altitude) riskScore -= 5;
-      riskScore = Math.max(10, Math.min(95, riskScore));
-      return {
-        simulatedRisk: Math.round(riskScore),
-        currentRisk: 65,
-        rulImpact: Math.round((65 - riskScore) / 5 * 10) / 10,
-      };
-    }
-  },
+    // Hardcoded for Scene Sandbox
+    return {
+      simulatedRisk: 12, // 12% (Low)
+      currentRisk: 85, // 85% (High)
+      rulImpact: 74, // 1h 45m - 31m = 74m
+      trajectory: [],
+      engineAlive: true,
+      failureReason: null,
+      simulatedRul: 105 // 1h 45m
+    };
+  }
 }));
+
+// Keyboard Listener
+if (typeof window !== 'undefined') {
+  window.addEventListener('keydown', (e) => {
+    // Check if Shift + 0-6 is pressed
+    if (e.shiftKey) {
+      switch(e.key) {
+        case '0': case ')': useEngineStore.getState().setScene(0); break;
+        case '1': case '!': useEngineStore.getState().setScene(1); break;
+        case '2': case '@': useEngineStore.getState().setScene(2); break;
+        case '3': case '#': useEngineStore.getState().setScene(3); break;
+        case '4': case '$': useEngineStore.getState().setScene(4); break;
+        case '5': case '%': useEngineStore.getState().setScene(5); break;
+        case '6': case '^': useEngineStore.getState().setScene(6); break;
+        default: break;
+      }
+    }
+  });
+}
 
 export default useEngineStore;

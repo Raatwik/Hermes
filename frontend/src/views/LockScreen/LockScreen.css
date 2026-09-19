@@ -119,43 +119,54 @@
   color: #333333;
 }
 
-.dignitaries-section {
+.lower-content-section {
+  position: relative;
   display: flex;
   justify-content: center;
-  align-items: flex-start;
-  gap: 100px;
-  margin-top: 60px;
-  padding-bottom: 30px;
-  width: 100%;
-}
-
-.dignitary-card {
-  display: flex;
-  flex-direction: column;
   align-items: center;
-  text-align: center;
-  width: 280px;
+  width: 100%;
+  margin-top: auto;
+  padding: 0 20px 20px 20px;
+  box-sizing: border-box;
+  gap: 40px;
 }
 
-.dignitary-image {
-  width: 220px;
-  height: 280px;
+.pm-passport-section {
+  position: absolute;
+  left: 40px;
+  bottom: 20px;
+  z-index: 10;
+}
+
+.pm-passport-image {
+  width: 90px;
+  height: 110px;
   object-fit: cover;
   object-position: top;
-  border: 3px solid #000080;
-  border-radius: 6px;
-  margin-bottom: 20px;
+  border: 2px solid #000080;
+  border-radius: 4px;
   background-color: #ffffff;
-  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
-.dignitary-title {
-  font-family: 'Arial', sans-serif;
-  font-size: 1.1rem;
-  font-weight: bold;
-  color: #000080;
-  margin: 0;
-  line-height: 1.3;
+.machine-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.machine-image {
+  max-width: 550px;
+  height: auto;
+  object-fit: contain;
+}
+
+.engine-image {
+  max-height: 480px;
+}
+
+.uav-image {
+  max-height: 400px;
 }
 
 .govt-login-section {

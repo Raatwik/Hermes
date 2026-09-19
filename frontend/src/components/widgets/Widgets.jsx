@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, LabelList } from 'recharts';
 import './Widgets.css';
 
 export function StatusCard({ title, value, max, status, statusText, icon: Icon, colorClass, hasAlert }) {
@@ -66,58 +67,29 @@ export function StatusCard({ title, value, max, status, statusText, icon: Icon, 
 }
 
 export function AlertBanner({ warnings }) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const containerStyle = { 
+    maxHeight: '250px', overflowY: 'auto', padding: '0', 
+    display: 'flex', flexDirection: 'column', gap: '0.5rem', 
+    backgroundColor: 'transparent'
+  };
 
-  if (!warnings || warnings.length === 0) return null;
-
-  const currentWarning = warnings[0];
-  const hasMore = warnings.length > 1;
+  if (!warnings || warnings.length === 0) {
+    return null;
+  }
 
   return (
-    <div className="alert-banner-container">
-      <div 
-        className={`alert-banner level-${currentWarning.level} ${hasMore ? 'clickable' : ''}`}
-        onClick={() => hasMore && setIsExpanded(!isExpanded)}
-      >
-        <div className="alert-icon-wrapper">
-          <AlertTriangle size={24} />
-        </div>
-        <div className="alert-content">
-          <div className="alert-title-row">
-            <span className="alert-title">{currentWarning.title}</span>
-            {currentWarning.resolved && <span className="warning-badge resolved">RESOLVED</span>}
-            {!currentWarning.resolved && currentWarning.level === 'critical' && <span className="warning-badge active-critical">ACTION REQUIRED</span>}
+    <div className="alert-banner-container" style={containerStyle}>
+      {warnings.map((w, idx) => {
+        const isCritical = w.level === 'critical';
+        const colorClass = isCritical ? 'var(--color-critical)' : 'var(--color-warning)';
+        const prefix = isCritical ? 'ALERT' : 'WATCH';
+        return (
+          <div key={idx} style={{ color: 'var(--text-primary)', fontSize: '0.9rem', lineHeight: '1.2', padding: '0.5rem 1rem', backgroundColor: 'var(--bg-secondary)', borderLeft: `6px solid ${colorClass}` }}>
+            <span style={{ color: colorClass, fontWeight: 'bold', textTransform: 'uppercase', fontSize: '1rem', display: 'block', marginBottom: '0.15rem' }}>{prefix}: {w.title}</span>
+            <span style={{ color: 'var(--text-secondary)' }}>{w.message}</span>
           </div>
-          <span className="alert-message">{currentWarning.message}</span>
-        </div>
-        <div className="alert-timestamp">{currentWarning.timestamp}</div>
-        {hasMore && (
-          <div className="alert-chevron">
-            {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-          </div>
-        )}
-      </div>
-      
-      {isExpanded && hasMore && (
-        <div className="alert-history">
-          {warnings.slice(1).map((w, idx) => (
-            <div key={idx} className={`alert-history-item level-${w.level}`}>
-              <div className="alert-icon-wrapper small">
-                <AlertTriangle size={18} />
-              </div>
-              <div className="alert-content">
-                <div className="alert-title-row">
-                  <span className="alert-title">{w.title}</span>
-                  {w.resolved && <span className="warning-badge resolved">RESOLVED</span>}
-                  {!w.resolved && w.level === 'critical' && <span className="warning-badge active-critical">ACTION REQUIRED</span>}
-                </div>
-                <span className="alert-message">{w.message}</span>
-              </div>
-              <div className="alert-timestamp">{w.timestamp}</div>
-            </div>
-          ))}
-        </div>
-      )}
+        );
+      })}
     </div>
   );
 }
@@ -144,62 +116,59 @@ export function TelemetryItem({ title, value, unit, status, icon: Icon, colorCla
   );
 }
 
-export function SidebarSummaryPanel({ engineHealth, systemStatus, riskValue, riskColorClass }) {
-  const radius = 46;
-  const circumference = 2 * Math.PI * radius;
-  const riskNum = parseInt(riskValue);
-  const strokeDashoffset = circumference - ((riskNum / 100) * circumference);
-
+export function SidebarSummaryPanel({ engineHealth, systemStatus, riskValue, riskColorClass, rul }) {
   return (
-    <div className="card sidebar-summary-panel">
-      <div className="summary-left-table">
-        <div className="summary-table-row">
-          <span className="summary-table-label">ENGINE HEALTH</span>
-          <span className="summary-table-value text-good">{engineHealth}</span>
-        </div>
-        <div className="summary-table-divider"></div>
-        <div className="summary-table-row">
-          <span className="summary-table-label">SYSTEM STATUS</span>
-          <span className="summary-table-value text-good">{systemStatus}</span>
-        </div>
-      </div>
-      
-      <div className="summary-right-risk">
-        <h3 className="summary-risk-label">RISK</h3>
-        <div className="status-icon-wrapper large" style={{ color: `var(--color-${riskColorClass})` }}>
-          <svg className="status-progress-ring" width="112" height="112" viewBox="0 0 112 112">
-            <circle 
-              className="progress-ring-bg" 
-              stroke="var(--border-color)" 
-              strokeWidth="6" 
-              fill="transparent" 
-              r={radius} 
-              cx="56" 
-              cy="56" 
-            />
-            <circle 
-              className="progress-ring-fill" 
-              stroke="currentColor" 
-              strokeWidth="6" 
-              fill="transparent" 
-              r={radius} 
-              cx="56" 
-              cy="56"
-              strokeDasharray={circumference}
-              strokeDashoffset={strokeDashoffset}
-              strokeLinecap="round"
-            />
-          </svg>
-          <div className="status-icon enlarged-risk-value">
-            {riskValue}
-          </div>
-        </div>
-      </div>
+    <div className="card sidebar-summary-panel" style={{ padding: 0 }}>
+      <table style={{ width: '100%', height: '100%', borderCollapse: 'collapse', textAlign: 'center' }}>
+        <tbody>
+          <tr>
+            <td style={{ border: '2px solid var(--border-color)', padding: '0.5rem', width: '50%' }}>
+              <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', fontWeight: 'bold', marginBottom: '0.25rem' }}>ENGINE HEALTH</div>
+              <div style={{ fontSize: '1.2rem', color: 'var(--text-primary)', fontWeight: 'bold' }}>{engineHealth}</div>
+            </td>
+            <td style={{ border: '2px solid var(--border-color)', padding: '0.5rem', width: '50%' }}>
+              <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', fontWeight: 'bold', marginBottom: '0.25rem' }}>SYSTEM STATUS</div>
+              <div style={{ fontSize: '1.2rem', color: `var(--color-${riskColorClass})`, fontWeight: 'bold' }}>{systemStatus}</div>
+            </td>
+          </tr>
+          <tr>
+            <td style={{ border: '2px solid var(--border-color)', padding: '0.5rem' }}>
+              <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', fontWeight: 'bold', marginBottom: '0.25rem' }}>MAX RISK VALUE</div>
+              <div style={{ fontSize: '1.2rem', color: `var(--color-${riskColorClass})`, fontWeight: 'bold' }}>{riskValue}</div>
+            </td>
+            <td style={{ border: '2px solid var(--border-color)', padding: '0.5rem' }}>
+              <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', fontWeight: 'bold', marginBottom: '0.25rem' }}>ESTIMATED RUL</div>
+              <div style={{ fontSize: '1.2rem', color: 'var(--text-primary)', fontWeight: 'bold' }}>{rul}</div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   );
 }
 
 export function TelemetryTable({ data, cylinderMetrics }) {
+  const [activeMetric, setActiveMetric] = useState('EGT');
+
+  const chartData = useMemo(() => {
+    if (!cylinderMetrics) return [];
+    
+    return [1, 2, 3, 4].map(cylId => {
+      const egt = cylinderMetrics.find(m => m.cyl === cylId && m.type === 'EGT');
+      const cht = cylinderMetrics.find(m => m.cyl === cylId && m.type === 'CHT');
+      
+      return {
+        name: `CYL ${cylId}`,
+        egtExpected: egt ? egt.expected : 0,
+        egtCurrent: egt ? egt.current : 0,
+        egtStatus: egt ? egt.status : 'good',
+        chtExpected: cht ? cht.expected : 0,
+        chtCurrent: cht ? cht.current : 0,
+        chtStatus: cht ? cht.status : 'good',
+      };
+    });
+  }, [cylinderMetrics]);
+
   return (
     <div className="telemetry-table-wrapper">
       <table className="telemetry-table">
@@ -226,7 +195,7 @@ export function TelemetryTable({ data, cylinderMetrics }) {
                 <span className="value-unit">{item.unit}</span>
               </td>
               <td className="value-cell">
-                <span className="value-main">{item.current}</span>
+                <span className={`value-main text-${item.colorClass}`}>{item.current}</span>
                 <span className="value-unit">{item.unit}</span>
               </td>
               <td className={`deviation-cell text-${item.colorClass}`}>
@@ -241,27 +210,104 @@ export function TelemetryTable({ data, cylinderMetrics }) {
             <>
               <tr className="telemetry-subsection-header">
                 <td colSpan="5">
-                  <div className="subsection-title">CYLINDER READOUTS (EGT / CHT)</div>
+                  <div className="subsection-title-container">
+                    <div className="subsection-title">CYLINDER READOUTS (EGT / CHT)</div>
+                    <div className="metric-toggle">
+                      <button 
+                        className={`toggle-btn ${activeMetric === 'EGT' ? 'active' : ''}`}
+                        onClick={() => setActiveMetric('EGT')}
+                      >
+                        EGT
+                      </button>
+                      <button 
+                        className={`toggle-btn ${activeMetric === 'CHT' ? 'active' : ''}`}
+                        onClick={() => setActiveMetric('CHT')}
+                      >
+                        CHT
+                      </button>
+                    </div>
+                  </div>
                 </td>
               </tr>
               <tr className="telemetry-row cylinder-row">
                 <td colSpan="5" className="cylinder-cell">
-                  <div className="cylinder-grid-8">
-                    {cylinderMetrics.map((metric, idx) => (
-                      <div key={idx} className={`cylinder-card ${metric.isWarning ? 'has-warning' : ''}`}>
-                        <div className="cyl-header">CYL {metric.cyl} {metric.type}</div>
-                        <div className="cyl-data">
-                          <div className="cyl-data-row">
-                            <span className="cyl-label">EXPECTED</span>
-                            <span className="cyl-val">{metric.expected} {metric.unit}</span>
-                          </div>
-                          <div className="cyl-data-row">
-                            <span className="cyl-label">CURRENT</span>
-                            <span className={`cyl-val ${metric.isWarning ? 'text-warning' : ''}`}>{metric.current} {metric.unit}</span>
+                  <div className="cylinder-layout">
+                    {/* Left side: Chart */}
+                    <div className="cylinder-chart-container">
+                      <ResponsiveContainer width="100%" height="100%" minHeight={250}>
+                        <BarChart
+                          data={chartData}
+                          margin={{ top: 20, right: 10, left: 0, bottom: 20 }}
+                        >
+                          <CartesianGrid strokeDasharray="0" stroke="var(--border-color)" vertical={true} />
+                          <XAxis 
+                            dataKey="name" 
+                            stroke="var(--text-secondary)" 
+                            tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} 
+                            axisLine={true} 
+                            tickLine={true} 
+                            label={{ value: 'CYLINDER', position: 'insideBottom', offset: -15, fill: 'var(--text-secondary)', fontSize: 11, fontWeight: 700 }}
+                          />
+                          <YAxis 
+                            stroke="var(--text-secondary)" 
+                            tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} 
+                            axisLine={true} 
+                            tickLine={true} 
+                            label={{ value: activeMetric === 'EGT' ? 'TEMP (°C)' : 'TEMP (°C)', angle: -90, position: 'insideLeft', offset: 10, fill: 'var(--text-secondary)', fontSize: 11, fontWeight: 700 }}
+                          />
+                          <Tooltip 
+                            contentStyle={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '4px', fontSize: '12px' }}
+                            itemStyle={{ color: 'var(--text-primary)', padding: '2px 0' }}
+                            cursor={{ fill: 'rgba(255,255,255,0.02)' }}
+                          />
+                          <Legend wrapperStyle={{ paddingTop: '20px', fontSize: '12px' }} iconType="circle" />
+                          {activeMetric === 'EGT' ? (
+                            <>
+                              <Bar dataKey="egtExpected" name="Expected" fill="#888888" radius={[0, 0, 0, 0]} maxBarSize={30}>
+                                <LabelList dataKey="egtExpected" position="top" formatter={(val) => val ? `${val}°C` : 'N/A'} fontSize={10} fill="var(--text-secondary)" />
+                              </Bar>
+                              <Bar dataKey="egtCurrent" name="Current" radius={[0, 0, 0, 0]} maxBarSize={30}>
+                                <LabelList dataKey="egtCurrent" position="top" formatter={(val) => val ? `${val}°C` : 'N/A'} fontSize={10} fill="var(--text-primary)" />
+                                {chartData.map((entry, index) => (
+                                  <Cell key={`cell-${index}`} fill={`var(--color-${entry.egtStatus})`} />
+                                ))}
+                              </Bar>
+                            </>
+                          ) : (
+                            <>
+                              <Bar dataKey="chtExpected" name="Expected" fill="#888888" radius={[0, 0, 0, 0]} maxBarSize={30}>
+                                <LabelList dataKey="chtExpected" position="top" formatter={(val) => val ? `${val}°C` : 'N/A'} fontSize={10} fill="var(--text-secondary)" />
+                              </Bar>
+                              <Bar dataKey="chtCurrent" name="Current" radius={[0, 0, 0, 0]} maxBarSize={30}>
+                                <LabelList dataKey="chtCurrent" position="top" formatter={(val) => val ? `${val}°C` : 'N/A'} fontSize={10} fill="var(--text-primary)" />
+                                {chartData.map((entry, index) => (
+                                  <Cell key={`cell-${index}`} fill={`var(--color-${entry.chtStatus})`} />
+                                ))}
+                              </Bar>
+                            </>
+                          )}
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+
+                    {/* Right side: Condensed Cards */}
+                    <div className="cylinder-grid-condensed">
+                      {cylinderMetrics.map((metric, idx) => (
+                        <div key={idx} className={`cylinder-card condensed ${metric.status === 'warning' ? 'has-warning' : ''} ${metric.status === 'critical' ? 'has-critical' : ''}`}>
+                          <div className="cyl-header">C{metric.cyl} {metric.type}</div>
+                          <div className="cyl-data">
+                            <div className="cyl-data-row">
+                              <span className="cyl-label">EXP</span>
+                              <span className="cyl-val">{metric.expected}°</span>
+                            </div>
+                            <div className="cyl-data-row">
+                              <span className="cyl-label">CUR</span>
+                              <span className={`cyl-val text-${metric.status}`}>{metric.current}°</span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
                 </td>
               </tr>

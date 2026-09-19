@@ -103,16 +103,16 @@
 }
 
 .context-item .label {
-  font-size: 0.7rem;
+  font-size: 0.85rem;
   text-transform: uppercase;
-  color: var(--text-secondary);
+  color: #9CA3AF;
   font-weight: 600;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.35rem;
 }
 
 .context-item .value {
-  font-size: 1.25rem;
-  font-weight: 500;
+  font-size: 1.75rem;
+  font-weight: 600;
   color: var(--text-primary);
 }
 

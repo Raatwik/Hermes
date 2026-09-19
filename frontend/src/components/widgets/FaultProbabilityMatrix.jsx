@@ -22,7 +22,7 @@ const FaultProbabilityMatrix = () => {
 
         {sortedFaults.map((fault, index) => {
           const isUnknown = fault.name.includes('Unknown');
-          const barColor = isUnknown ? '#8b5cf6' : (fault.probability > 0.3 ? 'var(--color-warning)' : 'var(--color-good)');
+          const barColor = isUnknown ? '#8b5cf6' : (fault.probability > 0.7 ? 'var(--color-critical)' : fault.probability > 0.3 ? 'var(--color-warning)' : 'var(--color-good)');
           
           return (
             <div key={index} style={{ display: 'grid', gridTemplateColumns: '2fr 1.5fr 1fr', gap: '0.5rem', alignItems: 'center', marginBottom: '0.75rem', fontSize: '0.85rem' }}>
@@ -31,13 +31,13 @@ const FaultProbabilityMatrix = () => {
               </div>
               
               {/* Probability Bar */}
-              <div style={{ width: '100%', height: '8px', backgroundColor: 'var(--bg-primary)', borderRadius: '4px', overflow: 'hidden' }}>
+              <div style={{ width: '100%', height: '8px', backgroundColor: 'var(--bg-primary)', borderRadius: '0px', overflow: 'hidden' }}>
                 <div 
                   style={{ 
                     width: `${fault.probability * 100}%`, 
                     height: '100%', 
                     backgroundColor: barColor,
-                    borderRadius: '4px'
+                    borderRadius: '0px'
                   }} 
                 />
               </div>

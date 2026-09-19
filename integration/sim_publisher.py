@@ -9,7 +9,17 @@ from pathlib import Path
 import pandas as pd
 import paho.mqtt.client as mqtt
 
-DEFAULT_DATA_PATH = Path(__file__).resolve().parent.parent / "djibouti_data" / "djibouti_flight_path" / "djibouti_aligned.parquet"
+_BASE_DIR = Path(__file__).resolve().parent.parent
+DEFAULT_DATA_PATH = _BASE_DIR / "djibouti_data" / "djibouti_flight_path" / "djibouti_aligned.parquet"
+if not DEFAULT_DATA_PATH.exists():
+    _fallback = _BASE_DIR / "djibouti_data" / "djibouti_accident_telemetry.csv"
+    if _fallback.exists():
+        DEFAULT_DATA_PATH = _fallback
+    else:
+        _fallback = _BASE_DIR / "attack_scenario_telemetry.csv"
+        if _fallback.exists():
+            DEFAULT_DATA_PATH = _fallback
+
 TOPIC = "telemetry/engine"
 
 

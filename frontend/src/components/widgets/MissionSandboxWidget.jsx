@@ -121,7 +121,7 @@ const MissionSandboxWidget = () => {
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <div style={{ padding: '0.5rem', borderBottom: '1px solid var(--border-color)' }}>
-        <h3 className="text-base font-bold text-primary" style={{ fontSize: '1rem' }}>MISSION WHAT-IF SANDBOX</h3>
+        <h3 className="text-base font-bold text-primary" style={{ fontSize: '1rem', color: 'var(--text-primary)' }}>PREDICTIVE MITIGATION</h3>
       </div>
       
       <div style={{ flexGrow: 1, padding: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem', overflowY: 'auto' }}>
@@ -191,7 +191,7 @@ const MissionSandboxWidget = () => {
             opacity: isSimulating ? 0.7 : 1
           }}
         >
-          {isSimulating ? 'SIMULATING...' : 'RUN SIMULATION'}
+          {isSimulating ? 'CALCULATING...' : 'CALCULATE MITIGATION STRATEGY'}
         </button>
 
         <button 
@@ -262,8 +262,25 @@ const MissionSandboxWidget = () => {
                 <p style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', margin: 0 }}>
                   This scenario would {result.simulatedRisk < result.currentRisk ? 'decrease' : 'increase'} risk by <strong>{Math.abs(result.currentRisk - result.simulatedRisk)}%</strong>. 
                   <br/>
-                  Estimated RUL Impact: <span style={{ color: result.rulImpact >= 0 ? 'var(--color-good)' : 'var(--color-critical)', fontWeight: 'bold' }}>{result.rulImpact > 0 ? '+' : ''}{result.rulImpact} h</span>
+                  Estimated RUL Impact: <span style={{ color: result.rulImpact >= 0 ? 'var(--color-good)' : 'var(--color-critical)', fontWeight: 'bold' }}>{result.rulImpact > 0 ? '+' : ''}{result.rulImpact} mins</span>
                 </p>
+                <button 
+                  onClick={() => pushRecommendationToOperator({})}
+                  style={{
+                    marginTop: '0.75rem',
+                    width: '100%',
+                    padding: '0.4rem 0.75rem',
+                    fontSize: '0.75rem',
+                    backgroundColor: 'var(--color-primary, #3b82f6)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  PUSH TO OPERATOR
+                </button>
               </div>
             </div>
           )}
