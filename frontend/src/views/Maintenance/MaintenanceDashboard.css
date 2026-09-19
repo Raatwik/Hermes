@@ -43,14 +43,14 @@
 .maintenance-grid {
   display: grid;
   grid-template-columns: 350px 1fr;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: auto auto 1fr;
   gap: 1.25rem;
   flex: 1;
 }
 
 .grid-sidebar {
   grid-column: 1 / 2;
-  grid-row: 1 / 3;
+  grid-row: 1 / 4;
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
@@ -64,9 +64,15 @@
   gap: 1.25rem;
 }
 
-.grid-main-bottom {
+.grid-main-middle {
   grid-column: 2 / 3;
   grid-row: 2 / 3;
+  min-height: 300px;
+}
+
+.grid-main-bottom {
+  grid-column: 2 / 3;
+  grid-row: 3 / 4;
 }
 
 .card {

@@ -112,20 +112,6 @@ export default function OperatorDashboard() {
   const cylinderMetrics = twinData.cylinders.flatMap((cyl) => {
     let egtActual = cyl.egt.actual;
     let chtActual = cyl.cht.actual;
-    
-    if (egtActual === 0) { 
-      if (cyl.id === 1) egtActual = 648; 
-      if (cyl.id === 2) egtActual = 675; 
-      if (cyl.id === 3) egtActual = 695; 
-      if (cyl.id === 4) egtActual = 649; 
-    }
-    
-    if (chtActual === 0) {
-      if (cyl.id === 1) chtActual = 153; 
-      if (cyl.id === 2) chtActual = 168; 
-      if (cyl.id === 3) chtActual = 180; 
-      if (cyl.id === 4) chtActual = 154; 
-    }
 
     const getStatus = (actual, expected, warnThresh, critThresh) => {
       const dev = Math.abs(actual - expected);

@@ -3,7 +3,6 @@ import { connectWebSocket, disconnectWebSocket } from '../api/websocket';
 import { postWhatIf } from '../api/restClient';
 
 // --- Scene Setup Logic ---
-// We define the base initial state
 const initialTimeSeries = Array.from({ length: 60 }).map((_, i) => ({
   time: `12:${(i < 10 ? '0' : '') + i}:00`,
   drift: 0,
@@ -14,63 +13,134 @@ const initialTimeSeries = Array.from({ length: 60 }).map((_, i) => ({
   lowerBound: -15,
 }));
 
+// Base initial perfectly normal state
+const initialNormalContext = {
+  altitude: 15200, rpm: 2450, engineLoad: 68, oat: -2, map: 28.5, fuelFlow: 24.1,
+  phase: 'CRUISE', ehi: 98, rul: 145, rulLowerBound: 130, rulUpperBound: 160,
+  fuelRemaining: 85, timeToEmpty: 3.5, alternatorVolts: 28.2, alternatorAmps: 45, mainBusLoad: 78,
+};
+
+const initialTwinData = {
+  globals: {
+    rpm: { expected: 2450, actual: 2450, deviation: 0, status: 'good' },
+    oilPressure: { expected: 65, actual: 65, deviation: 0, status: 'good' },
+    oilTemp: { expected: 95, actual: 95, deviation: 0, status: 'good' },
+  },
+  cylinders: [
+    { id: 1, egt: { expected: 650, actual: 648 }, cht: { expected: 155, actual: 153 } },
+    { id: 2, egt: { expected: 650, actual: 655 }, cht: { expected: 155, actual: 158 } },
+    { id: 3, egt: { expected: 650, actual: 660 }, cht: { expected: 155, actual: 162 } },
+    { id: 4, egt: { expected: 650, actual: 649 }, cht: { expected: 155, actual: 154 } },
+  ],
+};
+
 const useEngineStore = create((set, get) => ({
-  activeScene: 1,
+  activeScene: 0,
+  _animFrame: null,
   
-  // Scene Data
-  missionContext: {
-    altitude: 15200, rpm: 2450, engineLoad: 68, oat: -2, map: 28.5, fuelFlow: 24.1,
-    phase: 'CRUISE', ehi: 68, rul: 31, rulLowerBound: 24, rulUpperBound: 39,
-    fuelRemaining: 85, timeToEmpty: 3.5, alternatorVolts: 28.2, alternatorAmps: 45, mainBusLoad: 78,
-  },
-  twinComparisonData: {
-    globals: {
-      rpm: { expected: 2450, actual: 2450, deviation: 0, status: 'good' },
-      oilPressure: { expected: 65, actual: 40, deviation: -38.5, status: 'critical' },
-      oilTemp: { expected: 95, actual: 95, deviation: 0, status: 'good' },
-    },
-    cylinders: [
-      { id: 1, egt: { expected: 650, actual: 648 }, cht: { expected: 155, actual: 153 } },
-      { id: 2, egt: { expected: 650, actual: 675 }, cht: { expected: 155, actual: 168 } },
-      { id: 3, egt: { expected: 650, actual: 695 }, cht: { expected: 155, actual: 180 } },
-      { id: 4, egt: { expected: 650, actual: 649 }, cht: { expected: 155, actual: 154 } },
-    ],
-  },
+  // Scene Data (Starts at Normal)
+  missionContext: { ...initialNormalContext },
+  twinComparisonData: JSON.parse(JSON.stringify(initialTwinData)),
   timeSeriesData: initialTimeSeries,
   faultProbabilities: [],
   activeRecommendation: null,
-  activeAlerts: [
-    {
-      level: 'critical', title: 'ANOMALY DETECTED',
-      message: 'Thermodynamic Mismatch in Oil Pressure. Physics baseline deviation.',
-      timestamp: '12:45:10', resolved: false
-    }
-  ],
+  activeAlerts: [],
   maintenanceLog: [],
   diagnosisData: null,
+
+  animateTransition: (startValues, endValues, durationMs, onCompleteStateUpdates = {}) => {
+    let startTime = null;
+    const store = get();
+    if (store._animFrame) cancelAnimationFrame(store._animFrame);
+    
+    const animate = (time) => {
+      if (!startTime) startTime = time;
+      const progress = Math.min((time - startTime) / durationMs, 1);
+      
+      const currentEhi = Math.round(startValues.ehi + (endValues.ehi - startValues.ehi) * progress);
+      const rawOilP = startValues.oilP + (endValues.oilP - startValues.oilP) * progress;
+      const currentOilP = Math.round(rawOilP * 10) / 10;
+      const rawDev = startValues.dev + (endValues.dev - startValues.dev) * progress;
+      const currentDeviation = Math.round(rawDev * 10) / 10;
+      
+      set(state => {
+        const newState = {
+          missionContext: { ...state.missionContext, ehi: currentEhi },
+          twinComparisonData: {
+            ...state.twinComparisonData,
+            globals: {
+              ...state.twinComparisonData.globals,
+              oilPressure: {
+                ...state.twinComparisonData.globals.oilPressure,
+                actual: currentOilP,
+                deviation: currentDeviation,
+                status: currentDeviation < -30 ? 'critical' : (currentDeviation < -10 ? 'warning' : 'good')
+              }
+            }
+          }
+        };
+        // Apply final updates instantly if we hit 100%
+        if (progress === 1) {
+          return { ...state, ...newState, ...onCompleteStateUpdates };
+        }
+        return { ...state, ...newState };
+      });
+
+      if (progress < 1) {
+        store._animFrame = requestAnimationFrame(animate);
+      }
+    };
+    store._animFrame = requestAnimationFrame(animate);
+  },
 
   // Setters
   setScene: (sceneNumber) => {
     let stateUpdates = { activeScene: sceneNumber };
     const todayDate = new Date().toISOString().split('T')[0];
 
-    if (sceneNumber === 1) {
-      stateUpdates = {
-        ...stateUpdates,
-        missionContext: { ...get().missionContext, ehi: 68, rul: 31, altitude: 15200, rpm: 2450 },
-        activeAlerts: [{ level: 'critical', title: 'ANOMALY DETECTED', message: 'Thermodynamic Mismatch in Oil Pressure. Physics baseline deviation.', timestamp: '12:45:10', resolved: false }],
+    const store = get();
+    const currentOilP = store.twinComparisonData.globals.oilPressure.actual;
+    const currentDev = store.twinComparisonData.globals.oilPressure.deviation;
+    const currentEhi = store.missionContext.ehi;
+
+    if (sceneNumber === 0) {
+      // Normal
+      set({
+        activeScene: 0,
+        missionContext: { ...initialNormalContext },
+        twinComparisonData: JSON.parse(JSON.stringify(initialTwinData)),
+        activeAlerts: [],
         activeRecommendation: null,
-        twinComparisonData: {
-          ...get().twinComparisonData,
-          globals: {
-            rpm: { expected: 2450, actual: 2450, deviation: 0, status: 'good' },
-            oilPressure: { expected: 65, actual: 40, deviation: -38.5, status: 'critical' },
-            oilTemp: { expected: 95, actual: 95, deviation: 0, status: 'good' },
-          }
+      });
+    }
+    else if (sceneNumber === 1) {
+      // Warning Drop (Animate down to 85 EHI, 55 PSI)
+      store.animateTransition(
+        { ehi: currentEhi, oilP: currentOilP, dev: currentDev },
+        { ehi: 85, oilP: 55, dev: -15.3 },
+        2000,
+        {
+          activeAlerts: [{ level: 'warning', title: 'SYSTEM WARNING', message: 'Unexpected oil pressure drop detected. Monitoring closely.', timestamp: '12:44:00', resolved: false }],
+          missionContext: { ...store.missionContext, ehi: 85, rul: 80 }
         }
-      };
-    } else if (sceneNumber === 2 || sceneNumber === 3) {
-      // Scene 2 & 3: Engineer Diagnosis and Sandbox
+      );
+      set({ activeScene: 1 });
+    }
+    else if (sceneNumber === 2) {
+      // Critical Drop (Animate down to 68 EHI, 40 PSI)
+      store.animateTransition(
+        { ehi: currentEhi, oilP: currentOilP, dev: currentDev },
+        { ehi: 68, oilP: 40, dev: -38.5 },
+        2000,
+        {
+          activeAlerts: [{ level: 'critical', title: 'ANOMALY DETECTED', message: 'Thermodynamic Mismatch in Oil Pressure. Physics baseline deviation.', timestamp: '12:45:10', resolved: false }],
+          missionContext: { ...store.missionContext, ehi: 68, rul: 31, rulLowerBound: 24, rulUpperBound: 39 }
+        }
+      );
+      set({ activeScene: 2 });
+    } 
+    else if (sceneNumber === 3 || sceneNumber === 4) {
+      // Scene 3 & 4: Engineer Diagnosis and Sandbox
       const dropSeries = initialTimeSeries.map((pt, i) => {
         if (i >= 45) return { ...pt, expectedEGT: 65, actualEGT: 40, residual: -25, drift: 0.8 };
         return { ...pt, expectedEGT: 65, actualEGT: 65, residual: 0, drift: 0.1 };
@@ -86,8 +156,10 @@ const useEngineStore = create((set, get) => ({
           { name: 'Unknown Anomaly', probability: 0.02, ci: [0.00, 0.04] },
         ]
       };
-    } else if (sceneNumber === 4) {
-      // Scene 4: Operator accepts recommendation (before accept)
+      set(stateUpdates);
+    } 
+    else if (sceneNumber === 5) {
+      // Scene 5: Operator accepts recommendation (before accept)
       stateUpdates = {
         ...stateUpdates,
         activeRecommendation: {
@@ -96,8 +168,10 @@ const useEngineStore = create((set, get) => ({
           isGood: true
         }
       };
-    } else if (sceneNumber === 5) {
-      // Scene 5: Maintenance
+      set(stateUpdates);
+    } 
+    else if (sceneNumber === 6) {
+      // Scene 6: Maintenance
       stateUpdates = {
         ...stateUpdates,
         maintenanceLog: [
@@ -110,9 +184,8 @@ const useEngineStore = create((set, get) => ({
           priority: "A-Level (Ground until resolved)"
         }
       };
+      set(stateUpdates);
     }
-
-    set(stateUpdates);
   },
 
   acceptRecommendation: () => {
@@ -138,8 +211,8 @@ const useEngineStore = create((set, get) => ({
 
   // Actions
   pushRecommendationToOperator: (rec) => {
-    // Send Recommendation sets scene to 4
-    get().setScene(4);
+    // Send Recommendation sets scene to 5
+    get().setScene(5);
   },
 
   connectLiveTelemetry: () => {
@@ -151,7 +224,7 @@ const useEngineStore = create((set, get) => ({
   },
 
   simulateMission: async (params) => {
-    // Hardcoded for Scene 3
+    // Hardcoded for Scene Sandbox
     return {
       simulatedRisk: 12, // 12% (Low)
       currentRisk: 85, // 85% (High)
@@ -167,14 +240,16 @@ const useEngineStore = create((set, get) => ({
 // Keyboard Listener
 if (typeof window !== 'undefined') {
   window.addEventListener('keydown', (e) => {
-    // Check if Shift + 1-5 is pressed
+    // Check if Shift + 0-6 is pressed
     if (e.shiftKey) {
       switch(e.key) {
+        case '0': case ')': useEngineStore.getState().setScene(0); break;
         case '1': case '!': useEngineStore.getState().setScene(1); break;
         case '2': case '@': useEngineStore.getState().setScene(2); break;
         case '3': case '#': useEngineStore.getState().setScene(3); break;
         case '4': case '$': useEngineStore.getState().setScene(4); break;
         case '5': case '%': useEngineStore.getState().setScene(5); break;
+        case '6': case '^': useEngineStore.getState().setScene(6); break;
         default: break;
       }
     }

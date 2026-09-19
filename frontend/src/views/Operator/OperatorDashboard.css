@@ -95,12 +95,14 @@
   padding-top: 6px;
   margin-top: 4px;
   font-family: 'Times New Roman', Times, serif;
+  white-space: nowrap;
 }
 
 .metric-card-small .metric-deviation {
   font-size: 13px;
   font-weight: bold;
   font-family: 'Times New Roman', Times, serif;
+  white-space: nowrap;
 }
 
 .bottom-content-grid {
